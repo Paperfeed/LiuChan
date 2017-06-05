@@ -1,18 +1,18 @@
-#cperapera_options {
+#liuchan_options,
+#liuchan_options td {
 	padding: 0 10px;
 	font-family: sans-serif;
 	font-size: 10pt;
 }
 
-#tabs {
-}
+#tabs {}
 
 .tab {
 	float: left;
 	display: inline;
 	padding: 5px;
 	margin-left: 3px;
-	background-color: #EEE;
+	background-color: #eee;
 	border: 1px solid #999;
 	border-bottom: 0px;
 	font-style: italic;
@@ -20,21 +20,30 @@
 }
 
 .active-tab {
-	font-weight: bold;
 	font-style: normal;
 	color: #000;
+}
+
+.selected-tab {
+	font-style: normal;
+	color: #000;
+	font-weight: bold;
 	background-color: #dde;
+}
+
+.tabContent.hide {
+	display: none;
 }
 
 #options {
 	clear: both;
-	background-color: #C9E8FF;
+	background-color: #dde;
 	padding: 10px;
-	max-width: 300px;
 	border: 1px solid black;
 }
 
-#options p, #options form {
+#options p,
+#options form {
 	margin: 0;
-	paddign: 0;
+	padding: 0;
 }

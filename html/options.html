@@ -1,0 +1,126 @@
+<html>
+
+<head>
+	<link rel="stylesheet" type="text/css" href="/css/options.css" />
+	<title>LiuChan settings</title>
+</head>
+
+<body>
+	<div id="liuchan_options">
+		<form id="optform" name="optform">
+			<div id="options">
+				<div id="gencon" class="tabContent">
+					<h1>General</h1>
+					<p>Popup Theme:
+						<select class="config inputfield" id="popupColor" name="popupColor">
+							<option value="charcoal">Charcoal</option>
+							<option value="paper">Paper</option>
+							<option value="sepia">Sepia</option>
+						</select>
+						<br />
+						Pronunciation:
+						<select class="config inputfield" id="pinyin" name="pinyin">
+							<option value="tonemarks">Tone Marks</option>
+							<option value="tonenums">Tone Numbers</option>
+							<option value="zhuyin">Zhuyin</option>
+						</select>
+						<br />
+						Hanzi Setting:
+						<select class="config inputfield" id="showHanzi" name="showHanzi">
+							<option value="simp">Simplified</option>
+							<option value="trad">Traditional</option>
+							<option value="boths">Simp, Trad</option>
+							<option value="botht">Trad, Simp</option>
+						</select>
+						<br />
+						<input class="config" type="checkbox" id="highlightText" name="highlightText"> Highlight text
+						<br />
+						<input class="config" type="checkbox" id="textboxhl" name="textboxhl"> Highlight text inside of text boxes
+						<br />
+						<input class="config" type="checkbox" id="doColors" name="doColors"> Show tone colors
+						<br />
+						<input class="config" type="checkbox" id="miniHelp" name="miniHelp"> Show mini help
+						<br /> Show popup with delay:
+						<input class="config" type="number" id="popupDelay" name="popupDelay" min="1"> milliseconds
+						<br />
+					</p>
+				</div>
+				<div id="keycon" class="tabContent">
+					<h1>Keyboard</h1>
+					Show popup only on pressed key:<br />
+					<input class="config" type="radio" name="showOnKey" value="">Not used<br />
+					<input class="config" type="radio" name="showOnKey" value="Alt">Alt<br />
+					<input class="config" type="radio" name="showOnKey" value="Ctrl">Ctrl<br />
+					<input class="config" type="radio" name="showOnKey" value="Alt+Ctrl">Alt+Ctrl<br />
+					<br />
+					<strong>Keys when popup is visible</strong><br><br>
+					<table cellspacing=5>
+						<tr>
+							<td>A</td>
+							<td>Alternate popup location</td>
+						</tr>
+						<tr>
+							<td>Y</td>
+							<td>Move popup location down</td>
+						</tr>
+						<tr>
+							<td>C</td>
+							<td>Copy to clipboard</td>
+						</tr>
+						<tr>
+							<td>D</td>
+							<td>Hide/show definitions</td>
+						</tr>
+						<tr>
+							<td>B</td>
+							<td>Previous character</td>
+						</tr>
+						<tr>
+							<td>M</td>
+							<td>Next character</td>
+						</tr>
+						<tr>
+							<td>N</td>
+							<td>Next word</td>
+						</tr>
+					</table>
+					<br />
+					<input class="config" type="checkbox" id="disableKeys" name="disableKeys"> Disable these keys
+				</div>
+				<div id="clipcon" class="tabContent">
+					<h1>Copy to Clipboard</h1>
+					<p>
+						<table cellspacing=5>
+							<tr>
+								<td>Line ending:</td>
+								<td>
+									<select class="config" id="lineEnding" name="lineEnding">
+										<option value="n">Unix (\n)</option>
+										<option value="rn">Windows (\r\n)</option>
+										<option value="r">Mac (\r)</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td>Field separator:</td>
+								<td>
+									<select class="config" id="copySeparator" name="copySeparator">
+										<option value="tab">Tab</option>
+										<option value="comma">Comma</option>
+										<option value="space">Space</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td>Maximum entries:</td>
+								<td><input class="config" type="number" id="maxClipCopyEntries" name="maxClipCopyEntries" min="1"></td>
+							</tr>
+						</table>
+					</p>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+<script src="/js/options.js"></script>
+</html>

@@ -1,6 +1,6 @@
 /* this is to reset almost everything under the popup to a sane value */
 
-#cperapera-window, #cperapera-window * { 
+#liuchan-window, #liuchan-window * { 
 	width: auto;
 	height: auto;
 	background: transparent;
@@ -20,14 +20,14 @@
 	visibility: visible;
 }
 
-#cperapera-window[dropdown] { 
+#liuchan-window[dropdown] { 
     margin: 0 auto;
     width: 900px; 
     top: 0px;
     visibility: hidden;
 }
 
-#cperapera-window { 
+#liuchan-window { 
   	background: url("paper.png") repeat scroll 0 0 #2D2D2D;
     border: 2px solid #BCBCBC !important;
     border-radius: 8px 8px 8px 8px;
@@ -35,10 +35,10 @@
     min-width: 100px;
     padding: 6px 8px;
     position: absolute;
-    z-index: 7777;
+    z-index: 99999999999;
 }
 
-#cperapera-dropdown { 
+#liuchan-dropdown { 
     background: url("dropdown-small.png") no-repeat scroll 0 0 #2D2D2D;
     border: 2px solid #BCBCBC !important;
     border-radius: 0px 0px 8px 8px;
@@ -50,11 +50,11 @@
     width: 322px;
 	left: 50%; 
 	margin-left: -161px;
-    z-index: 7777;
+    z-index: 99999999999;
 }
 
 /* used for word definitions */
-#cperapera-window .w-title {
+#liuchan-window .w-title {
     background: none repeat scroll 0 0 #E8E8E8;
     border-radius: 8px 8px 8px 8px;
     color: #707070;
@@ -65,103 +65,103 @@
     text-align: right;
 }
 
-#cperapera-window .w-kanji {
+#liuchan-window .w-kanji {
 	font-size: 18px;
 	color: #7070E0;
 	margin-right: 0.7em;
 }
 
-#cperapera-window .w-hanzi1 {
+#liuchan-window .w-hanzi1 {
 	font-size: 18px;
 	color: #E12525;
 }
 
-#cperapera-window .w-hanzi2 {
+#liuchan-window .w-hanzi2 {
 	font-size: 18px;
 	color: #24B624;
 }
 
-#cperapera-window .w-hanzi3 {
+#liuchan-window .w-hanzi3 {
 	font-size: 18px;
 	color: #0000FF;
 }
 
-#cperapera-window .w-hanzi4 {
+#liuchan-window .w-hanzi4 {
 	font-size: 18px;
 	color: #DA6EFF;
 }
 
-#cperapera-window .w-hanzi5 {
+#liuchan-window .w-hanzi5 {
 	font-size: 18px;
 	color: #777777;
 }
 
-#cperapera-window .w-kana {
+#liuchan-window .w-kana {
 	font-size: 16px;
 	margin-left: 0.7em;
 	color: #00B1AE;
 }
 
-#cperapera-window .w-conj {
+#liuchan-window .w-conj {
 	color: #A0A0A0;
 	font-size: 12px;
 }
 
-#cperapera-window .w-def {
+#liuchan-window .w-def {
 	color: #000000;
 	font-size: 12px;
 	display: block;
 }
 
-#cperapera-window .w-na-tb td {
+#liuchan-window .w-na-tb td {
 	vertical-align: top;
 	padding-right: 0.8em;
 }
 
 /* used for kanji information */
 
-#cperapera-window .k-main-tb {
+#liuchan-window .k-main-tb {
 	width: 300px;
 }
 
-#cperapera-window .k-kanji {
+#liuchan-window .k-kanji {
 	font-family: serif;
 	font-size: 48px;
 	color: #FFFFFF;
 }
 
-#cperapera-window .k-eigo {
+#liuchan-window .k-eigo {
 	font-size: 12px;
 }
 
 /* kanji: readings */
 
-#cperapera-window .k-yomi {
+#liuchan-window .k-yomi {
 	font-size: 14px;
 	color: #20A020;
 	margin: 4px 0px;
 }
 
-#cperapera-window .k-yomi-hi {
+#liuchan-window .k-yomi-hi {
 	color: #7070E0;
 	border: 1px solid red;
 }
 
-#cperapera-window .k-yomi-ti {
+#liuchan-window .k-yomi-ti {
 	font-size: 11px;
 	color: #E0E0E0;
 }
 
 /* kanji radical, grade, freq, strokes box */
 
-#cperapera-window .k-abox-tb {
+#liuchan-window .k-abox-tb {
 	width: 120px;
 	margin-bottom: 4px;
 	float: right;
 	clear: right;
 }
 
-#cperapera-window .k-abox-r {
+#liuchan-window .k-abox-r {
 	font-size: 12px;
 	text-align: center;
 	padding: 1px 4px;
@@ -169,7 +169,7 @@
 	color: #E0E0E0;
 }
 
-#cperapera-window .k-abox-g {
+#liuchan-window .k-abox-g {
 	font-size: 12px;
 	text-align: center;
 	padding: 1px 4px;
@@ -177,7 +177,7 @@
 	color: #F0F0F0;
 }
 
-#cperapera-window .k-abox-f {
+#liuchan-window .k-abox-f {
 	font-size: 12px;
 	text-align: center;
 	padding: 1px 4px;
@@ -185,7 +185,7 @@
 	color: #F0F0F0;
 }
 
-#cperapera-window .k-abox-s {
+#liuchan-window .k-abox-s {
 	font-size: 12px;
 	text-align: center;
 	padding: 1px 4px;
@@ -195,14 +195,14 @@
 
 /* kanji components box */
 
-#cperapera-window .k-bbox-tb {
+#liuchan-window .k-bbox-tb {
 	width: 120px;
 	margin-bottom: 4px;
 	float: right;
 	clear: right;
 }
 
-#cperapera-window .k-bbox-0a {
+#liuchan-window .k-bbox-0a {
 	vertical-align: top;
 	font-size: 11px;
 	padding: 1px 3px;
@@ -210,7 +210,7 @@
 	color: #E0E0E0;
 }
 
-#cperapera-window .k-bbox-0b {
+#liuchan-window .k-bbox-0b {
 	vertical-align: top;
 	font-size: 11px;
 	padding: 1px 3px;
@@ -218,7 +218,7 @@
 	color: #E0E0E0;
 }
 
-#cperapera-window .k-bbox-1a {
+#liuchan-window .k-bbox-1a {
 	vertical-align: top;
 	font-size: 11px;
 	padding: 1px 3px;
@@ -226,7 +226,7 @@
 	color: #F0F0F0;
 }
 
-#cperapera-window .k-bbox-1b {
+#liuchan-window .k-bbox-1b {
 	vertical-align: top;
 	font-size: 11px;
 	padding: 1px 3px;
@@ -237,17 +237,17 @@
 
 /* kanji: misc index */
 
-#cperapera-window .k-mix-tb {
+#liuchan-window .k-mix-tb {
 	width: 100%
 }
 
-#cperapera-window .k-mix-td0 {
+#liuchan-window .k-mix-td0 {
 	font-size: 12px;
 	background: #505050;
 	color: #F0F0F0;
 }
 
-#cperapera-window .k-mix-td1 {
+#liuchan-window .k-mix-td1 {
 	font-size: 12px;
 	background: #303030;
 	color: #E0E0E0;
@@ -256,17 +256,17 @@
 
 /* manual query */
 
-#cperapera-window .q-tb td {
+#liuchan-window .q-tb td {
 }
 
-#cperapera-window .q-w {
+#liuchan-window .q-w {
 	border-right: 1px dotted #B0B0B0 !important;
 	padding: 0px 2px;
 	vertical-align: top;
 	min-width: 300px;
 }
 
-#cperapera-window .q-k {
+#liuchan-window .q-k {
 	padding: 0px 2px;
 	vertical-align: top;
 }

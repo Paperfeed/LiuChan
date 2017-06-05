@@ -38,22 +38,46 @@
 	when modifying any of the files. - Jon
 
 */
-function ppcDict() {
-	this.loadDictionary();
+function lcxDict() {
+	//this.loadDictionary();
 }
   
-ppcDict.prototype = {
+lcxDict.prototype = {
 	config: {},
 
 	setConfig: function(c) {
 		this.config = c;
 	},
 
-	fileRead: function(url, charset) {
-		var req = new XMLHttpRequest();
-		req.open("GET", url, false);
-		req.send(null);
-		return req.responseText;
+	loadDictionaries: function() {
+		return Promise.all([
+			this.loadDictionary()
+		]);
+	},
+	
+	fileRead: function(filename, field) {
+		var self = this;
+		return new Promise(function(resolve, reject) {
+			var req = new XMLHttpRequest();
+			req.onreadystatechange = function() {
+				if (this.readyState !== XMLHttpRequest.DONE) {
+					return;
+				}
+				if (this.status !== 200) {
+					console.error("Can't load", filename);
+					reject("sorry");
+					return;
+				}
+				if (field) {
+					self[field] = this.responseText;
+					resolve(true);
+				} else {
+					resolve(this.responseText);
+				}
+			};
+			req.open("GET", chrome.extension.getURL(filename));
+			req.send(null);
+		});
 	},
 
 	fileReadArray: function(name, charset) {
@@ -65,8 +89,13 @@ ppcDict.prototype = {
 	},
 
 	loadDictionary: function() {
-		this.wordDict = this.fileRead(chrome.extension.getURL("data/dict.dat"));
-		this.wordIndex = this.fileRead(chrome.extension.getURL("data/dict.idx"));
+		//this.wordDict = this.fileRead(chrome.extension.getURL("data/dict.dat"));
+		//this.wordIndex = this.fileRead(chrome.extension.getURL("data/dict.idx"));
+
+		return Promise.all([
+			this.fileRead("data/dict.dat", "wordDict"),
+			this.fileRead("data/dict.idx", "wordIndex")
+		]);
 	},
 
 	getUniqueArray: function(arr) {
@@ -189,9 +218,9 @@ ppcDict.prototype = {
 
 			//HANZI
 			k = "";
-			if ("botht" == ppcMain.config.showhanzi || "boths" == ppcMain.config.showhanzi) {
-				var first  = ppcMain.config.showhanzi == "botht" ? trad : simp;
-				var second = ppcMain.config.showhanzi == "botht" ? simp : trad;
+			if ("botht" == lcxMain.config.showHanzi || "boths" == lcxMain.config.showHanzi) {
+				var first  = lcxMain.config.showHanzi == "botht" ? trad : simp;
+				var second = lcxMain.config.showHanzi == "botht" ? simp : trad;
 				
 				//add the repetition dot if trad == simp
 				var newsecond = [];
@@ -203,7 +232,7 @@ ppcDict.prototype = {
 				}
 				second = newsecond.join('');
 				
-				if (ppcMain.config.docolors == "yes") {
+				if (lcxMain.config.doColors == "yes") {
 					for( j = 0; j < pinyin.tones.length; j++)
 						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + first[j] + '</span>';
 					k += '　';
@@ -214,8 +243,8 @@ ppcDict.prototype = {
 					k += '<span class="w-hanzi3">' + first + '</span>　<span class="w-hanzi3">'　+ second + '</span>';
 			}
 			else {
-				var hanzi = ppcMain.config.showhanzi == "simp" ? simp : trad;
-				if (ppcMain.config.docolors == "yes")
+				var hanzi = lcxMain.config.showHanzi == "simp" ? simp : trad;
+				if (lcxMain.config.doColors == "yes")
 					for( j = 0; j < pinyin.tones.length; j++)
 						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + hanzi[j] + '</span>';
 				else
@@ -224,8 +253,8 @@ ppcDict.prototype = {
 			
 			//PINYIN
 			k += '&#32;&#32; <span class="w-kana">';
-			if      ("tonenums" == ppcMain.config.pinyin) k += pinyin.tonenums  + '</span>';
-			else if ("zhuyin"   == ppcMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
+			if      ("tonenums" == lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
+			else if ("zhuyin"   == lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
 			else 										  k += pinyin.tonemarks + '</span>';
 
 			b.push(k);
