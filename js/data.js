@@ -1,4 +1,9 @@
 ﻿/*
+	LiuChan - A port of Rikaikun to Chinese
+	By Aldert Vaandering (2017)
+	https://gitlab.com/paperfeed/liuchan
+
+	---
 
 	Rikaikun
 	Copyright (C) 2010 Erek Speed
@@ -38,10 +43,15 @@
 	when modifying any of the files. - Jon
 
 */
+
+/**
+ * LiuChan Dictionary Class
+ * @constructor
+ */
 function lcxDict() {
 	//this.loadDictionary();
 }
-  
+
 lcxDict.prototype = {
 	config: {},
 
@@ -84,7 +94,7 @@ lcxDict.prototype = {
 		var a = this.fileRead(name, charset).split('\n');
 		// Is this just in case there is blank shit in the file.  It was writtin by Jon though.
 		// I suppose this is more robust
-		while ((a.length > 0) && (a[a.length - 1].length == 0)) a.pop();
+		while ((a.length > 0) && (a[a.length - 1].length === 0)) a.pop();
 		return a;
 	},
 
@@ -121,7 +131,7 @@ lcxDict.prototype = {
 		
 		//find all hits for traditional characters
 		hit = book.indexOf( "\n" + word + hanzisep);
-		while (hit != -1) {
+		while (hit !== -1) {
 			start = book.indexOf(indexsep, hit) + 1;
 			end = book.indexOf("\n", start);
 			indexString = book.substr(start, end - start); 
@@ -132,7 +142,7 @@ lcxDict.prototype = {
 		
 		//find all hits for simplified characters
 		hit = book.indexOf(hanzisep + word + indexsep);
-		while (hit != -1) {
+		while (hit !== -1) {
 			start = book.indexOf(indexsep, hit) + 1;
 			end = book.indexOf("\n", start);
 			indexString = book.substr(start, end - start); 
@@ -194,13 +204,10 @@ lcxDict.prototype = {
 	},
 	
 	makeHtml: function(entry) {
-		var e; 
-		var k;
-		
 		var trad, simp, pinyin, def;
-		var i, j, k;
+		var i, j, k, e;
 		
-		if (entry == null) return '';
+		if (entry === null) return '';
 
 		var b = [];
 		
@@ -218,21 +225,21 @@ lcxDict.prototype = {
 
 			//HANZI
 			k = "";
-			if ("botht" == lcxMain.config.showHanzi || "boths" == lcxMain.config.showHanzi) {
-				var first  = lcxMain.config.showHanzi == "botht" ? trad : simp;
-				var second = lcxMain.config.showHanzi == "botht" ? simp : trad;
+			if ("botht" === lcxMain.config.showHanzi || "boths" === lcxMain.config.showHanzi) {
+				var first  = lcxMain.config.showHanzi === "botht" ? trad : simp;
+				var second = lcxMain.config.showHanzi === "botht" ? simp : trad;
 				
 				//add the repetition dot if trad == simp
 				var newsecond = [];
 				for (j = 0; j < first.length; j++) {
-					if (first[j] == second[j])
+					if (first[j] === second[j])
 						newsecond.push('\u30FB');
 					else
 						newsecond.push(second[j]);
 				}
 				second = newsecond.join('');
 				
-				if (lcxMain.config.doColors == "yes") {
+				if (lcxMain.config.doColors === "yes") {
 					for( j = 0; j < pinyin.tones.length; j++)
 						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + first[j] + '</span>';
 					k += '　';
@@ -243,8 +250,8 @@ lcxDict.prototype = {
 					k += '<span class="w-hanzi3">' + first + '</span>　<span class="w-hanzi3">'　+ second + '</span>';
 			}
 			else {
-				var hanzi = lcxMain.config.showHanzi == "simp" ? simp : trad;
-				if (lcxMain.config.doColors == "yes")
+				var hanzi = lcxMain.config.showHanzi === "simp" ? simp : trad;
+				if (lcxMain.config.doColors === "yes")
 					for( j = 0; j < pinyin.tones.length; j++)
 						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + hanzi[j] + '</span>';
 				else
@@ -253,9 +260,9 @@ lcxDict.prototype = {
 			
 			//PINYIN
 			k += '&#32;&#32; <span class="w-kana">';
-			if      ("tonenums" == lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
-			else if ("zhuyin"   == lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
-			else 										  k += pinyin.tonemarks + '</span>';
+			if      ("tonenums" === lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
+			else if ("zhuyin"   === lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
+			else 										   k += pinyin.tonemarks + '</span>';
 
 			b.push(k);
 
@@ -275,7 +282,7 @@ lcxDict.prototype = {
 		var i, j;
 		var t;
 
-		if (entry == null) return '';
+		if (entry === null) return '';
 
 		b = [];
 
@@ -303,8 +310,8 @@ lcxDict.prototype = {
 	zhuyinref: ['\u311A','\u311E','\u3122','\u3124','\u3120','\u3105\u311A','\u3105\u311E','\u3105\u3122','\u3105\u3124','\u3105\u3120','\u3105\u311F','\u3105\u3123','\u3105\u3125','\u3105\u30FC','\u3105\u30FC\u3122','\u3105\u30FC\u3120','\u3105\u30FC\u311D','\u3105\u30FC\u3123','\u3105\u30FC\u3125','\u3105\u311B','\u3105\u3128','\u3118\u311A','\u3118\u311E','\u3118\u3122','\u3118\u3124','\u3118\u3120','\u3118\u311C','\u3118\u3123','\u3118\u3125','\u3114\u311A','\u3114\u311E','\u3114\u3122','\u3114\u3124','\u3114\u3120','\u3114\u311C','\u3114\u3123','\u3114\u3125','\u3114','\u3114\u3128\u3125','\u3114\u3121','\u3114\u3128','\u3114\u3128\u311A','\u3114\u3128\u311E','\u3114\u3128\u3122','\u3114\u3128\u3124','\u3114\u3128\u311F','\u3114\u3128\u3123','\u3114\u3128\u311B','\u3118','\u3118\u3128\u3125','\u3118\u3121','\u3118\u3128','\u3118\u3128\u3122','\u3118\u3128\u311F','\u3118\u3128\u3123','\u3118\u3128\u311B','\u3109\u311A','\u3109\u311E','\u3109\u3122','\u3109\u3124','\u3109\u3120','\u3109\u311C','\u3109\u3125','\u3109\u30FC','\u3109\u30FC\u3122','\u3109\u30FC\u3124','\u3109\u30FC\u3120','\u3109\u30FC\u311D','\u3109\u30FC\u3125','\u3109\u30FC\u3121','\u3109\u3128\u3125','\u3109\u3121','\u3109\u3128','\u3109\u3128\u3122','\u3109\u3128\u311F','\u3109\u3128\u3123','\u3109\u3128\u311B','\u311C','\u311F','\u3123','\u3126','\u3108\u311A','\u3108\u3122','\u3108\u3124','\u3108\u311F','\u3108\u3123','\u3108\u3125','\u3108\u311B','\u3108\u3121','\u3108\u3128','\u310D\u311A','\u310D\u311E','\u310D\u3122','\u310D\u3124','\u310D\u3120','\u310D\u311C','\u310D\u311F','\u310D\u3123','\u310D\u3125','\u310D\u3128\u3125','\u310D\u3121','\u310D\u3128','\u310D\u3128\u311A','\u310D\u3128\u311E','\u310D\u3128\u3122','\u310D\u3128\u3124','\u310D\u3128\u311F','\u310D\u3128\u3123','\u310D\u3128\u311B','\u310F\u311A','\u310F\u311E','\u310F\u3122','\u310F\u3124','\u310F\u3120','\u310F\u311C','\u310F\u311F','\u310F\u3123','\u310F\u3125','\u310F\u3128\u3125','\u310F\u3121','\u310F\u3128','\u310F\u3128\u311A','\u310F\u3128\u311E','\u310F\u3128\u3122','\u310F\u3128\u3124','\u310F\u3128\u311F','\u310F\u3128\u3123','\u310F\u3128\u311B','\u3110\u30FC','\u3110\u30FC\u311A','\u3110\u30FC\u3122','\u3110\u30FC\u3124','\u3110\u30FC\u3120','\u3110\u30FC\u311D','\u3110\u30FC\u3123','\u3110\u30FC\u3125','\u3110\u3129\u3125','\u3110\u30FC\u3121','\u3110\u3129','\u3110\u3129\u3122','\u3110\u3129\u311D','\u3110\u3129\u3123','\u310E\u311A','\u310E\u311E','\u310E\u3122','\u310E\u3124','\u310E\u3120','\u310E\u311C','\u310E\u3123','\u310E\u3125','\u310E\u3128\u3125','\u310E\u3121','\u310E\u3128','\u310E\u3128\u311A','\u310E\u3128\u311E','\u310E\u3128\u3122','\u310E\u3128\u3124','\u310E\u3128\u311F','\u310E\u3128\u3123','\u310E\u3128\u311B','\u310C\u311A','\u310C\u311E','\u310C\u3122','\u310C\u3124','\u310C\u3120','\u310C\u311C','\u310C\u311F','\u310C\u3125','\u310C\u30FC','\u310C\u30FC\u3122','\u310C\u30FC\u3124','\u310C\u30FC\u3120','\u310C\u30FC\u311D','\u310C\u30FC\u3123','\u310C\u30FC\u3125','\u310C\u30FC\u3121','\u310C\u3128\u3125','\u310C\u3121','\u310C\u3128','\u310C\u3129','\u310C\u3128\u3122','\u310C\u3129\u311D','\u310C\u3128\u3123','\u310C\u3128\u311B','\u3107\u311A','\u3107\u311E','\u3107\u3122','\u3107\u3124','\u3107\u3120','\u3107\u311C','\u3107\u311F','\u3107\u3123','\u3107\u3125','\u3107\u30FC','\u3107\u30FC\u3122','\u3107\u30FC\u3120','\u3107\u30FC\u311D','\u3107\u30FC\u3123','\u3107\u30FC\u3125','\u3107\u30FC\u3121','\u3107\u3128\u311B','\u3107\u3121','\u3107\u3128','\u310B\u311A','\u310B\u311E','\u310B\u3122','\u310B\u3124','\u310B\u3120','\u310B\u311B','\u310B\u311F','\u310B\u3123','\u310B\u3125','\u310B\u30FC','\u310B\u30FC\u311A','\u310B\u30FC\u3122','\u310B\u30FC\u3124','\u310B\u30FC\u3120','\u310B\u30FC\u311D','\u310B\u30FC\u3123','\u310B\u30FC\u3125','\u310B\u30FC\u3121','\u310B\u3128\u3125','\u310B\u3121','\u310B\u3128','\u310B\u3129','\u310B\u3128\u3122','\u310B\u3129\u311D','\u310B\u3128\u311B','\u310B\u3128\u3123','\u3121','\u3106\u311A','\u3106\u311E','\u3106\u3122','\u3106\u3124','\u3106\u3120','\u3106\u311F','\u3106\u3123','\u3106\u3125','\u3106\u30FC','\u3106\u30FC\u3122','\u3106\u30FC\u3120','\u3106\u30FC\u311D','\u3106\u30FC\u3123','\u3106\u30FC\u3125','\u3106\u3128\u311B','\u3106\u3121','\u3106\u3128','\u3111\u30FC','\u3111\u30FC\u311A','\u3111\u30FC\u3122','\u3111\u30FC\u3124','\u3111\u30FC\u3120','\u3111\u30FC\u311D','\u3111\u30FC\u3123','\u3111\u30FC\u3125','\u3111\u3129\u3125','\u3111\u30FC\u3121','\u3111\u3129','\u3111\u3129\u3122','\u3111\u3129\u311D','\u3111\u3129\u3123','\u3116\u3122','\u3116\u3124','\u3116\u3120','\u3116\u311C','\u3116\u3123','\u3116\u3125','\u3116','\u3116\u3128\u3125','\u3116\u3121','\u3116\u3128','\u3116\u3128\u3122','\u3116\u3128\u311F','\u3116\u3128\u3123','\u3116\u3128\u311B','\u3119\u311A','\u3119\u311E','\u3119\u3122','\u3119\u3124','\u3119\u3120','\u3119\u311C','\u3119\u311F','\u3119\u3123','\u3119\u3125','\u3115\u311A','\u3115\u311E','\u3115\u3122','\u3115\u3124','\u3115\u3120','\u3115\u311C','\u3115\u311F','\u3115\u3123','\u3115\u3125','\u3115','\u3115\u3121\u3125','\u3115\u3121','\u3115\u3128','\u3115\u3128\u311A','\u3115\u3128\u311E','\u3115\u3128\u3122','\u3115\u3128\u3124','\u3115\u3128\u311F','\u3115\u3128\u3123','\u3115\u3128\u311B','\u3119','\u3119\u3128\u3125','\u3119\u3121','\u3119\u3128','\u3119\u3128\u3122','\u3119\u3128\u311F','\u3119\u3128\u3123','\u3119\u3128\u311B','\u310A\u311A','\u310A\u311E','\u310A\u3122','\u310A\u3124','\u310A\u3120','\u310A\u311C','\u310A\u3125','\u310A\u30FC','\u310A\u30FC\u3122','\u310A\u30FC\u3120','\u310A\u30FC\u311D','\u310A\u30FC\u3125','\u310A\u3128\u3125','\u310A\u3121','\u310A\u3128','\u310A\u3128\u3122','\u310A\u3128\u311F','\u310A\u3128\u3123','\u310A\u3128\u311B','\u3128\u311A','\u3128\u311E','\u3128\u3122','\u3128\u3124','\u3128\u311F','\u3128\u3123','\u3128\u3125','\u3128\u311B','\u3128','\u3112\u30FC','\u3112\u30FC\u311A','\u3112\u30FC\u3122','\u3112\u30FC\u3124','\u3112\u30FC\u3120','\u3112\u30FC\u311D','\u3112\u30FC\u3123','\u3112\u30FC\u3125','\u3112\u3129\u3125','\u3112\u30FC\u3121','\u3112\u3129','\u3112\u3129\u3122','\u3112\u3129\u311D','\u3112\u3129\u3123','\u30FC\u311A','\u30FC\u311E','\u30FC\u3122','\u30FC\u3124','\u30FC\u3120','\u30FC\u311D','\u30FC','\u30FC\u3123','\u30FC\u3125','\u30FC\u311B','\u3129\u3125','\u30FC\u3121','\u3129','\u3129\u3122','\u3129\u311D','\u3129\u3123','\u3117\u311A','\u3117\u311E','\u3117\u3122','\u3117\u3124','\u3117\u3120','\u3117\u311C','\u3117\u311F','\u3117\u3123','\u3117\u3125','\u3113\u311A','\u3113\u311E','\u3113\u3122','\u3113\u3124','\u3113\u3120','\u3113\u311C','\u3113\u311F','\u3113\u3123','\u3113\u3125','\u3113','\u3113\u3128\u3125','\u3113\u3121','\u3113\u3128','\u3113\u3128\u311A','\u3113\u3128\u311E','\u3113\u3128\u3122','\u3113\u3128\u3124','\u3113\u3128\u311F','\u3113\u3128\u3123','\u3113\u3128\u311B','\u3117','\u3117\u3128\u3125','\u3117\u3121','\u3117\u3128','\u3117\u3128\u3122','\u3117\u3128\u311F','\u3117\u3128\u3123','\u3117\u3128\u311B'],
 	
 	isVowel: function (letter) {
-		if( letter == "a" || letter == "e" || letter == "i" ||
-		    letter == "o" || letter == "u" ) return true;
+		if( letter === "a" || letter === "e" || letter === "i" ||
+		    letter === "o" || letter === "u" ) return true;
 		return false; 
   	},
   	
@@ -330,10 +337,10 @@ lcxDict.prototype = {
 			
 			tonenums.push(pin);
 			
-	    	if( pin.indexOf("1") != -1 ) tone = 0;
-	    	else if( pin.indexOf("2") != -1 ) tone = 1;
-	    	else if( pin.indexOf("3") != -1 ) tone = 2;
-	    	else if( pin.indexOf("4") != -1 ) tone = 3;
+	    	if( pin.indexOf("1") !== -1 ) tone = 0;
+	    	else if( pin.indexOf("2") !== -1 ) tone = 1;
+	    	else if( pin.indexOf("3") !== -1 ) tone = 2;
+	    	else if( pin.indexOf("4") !== -1 ) tone = 3;
 	    	
 	    	result.tones.push(tone+1);
 	    	
@@ -341,9 +348,9 @@ lcxDict.prototype = {
 			var indx = this.pinyinref.indexOf(prepin.toLowerCase());
 		  	zhuyin.push(this.zhuyinref[indx] + ztone[tone]);
 
-	    	if( pin.indexOf("a") != -1 ) pin = pin.replace( "a", _a[tone] );
-	    	else if( pin.indexOf("e") != -1 ) pin = pin.replace( "e", _e[tone] );
-	    	else if( pin.indexOf("ou") != -1 ) pin = pin.replace( "o", _o[tone] );
+	    	if( pin.indexOf("a") !== -1 ) pin = pin.replace( "a", _a[tone] );
+	    	else if( pin.indexOf("e") !== -1 ) pin = pin.replace( "e", _e[tone] );
+	    	else if( pin.indexOf("ou") !== -1 ) pin = pin.replace( "o", _o[tone] );
 	    	else {
 	    	 for( var k = pin.length - 1; k >= 0; k--){
 	    		if( this.isVowel(pin[k]) ){
@@ -352,7 +359,7 @@ lcxDict.prototype = {
 	    			 case 'o':  pin = pin.replace( "o", _o[tone] ); break;
 	    			 case 'u':  pin = pin.replace( "u", _u[tone] ); break;
 	    			 case '\u00FC': pin = pin.replace( "\u00FC", _v[tone] ); break; 
-	    			 default: alert("some kind of wierd vowel");
+	    			 default: alert("some kind of weird vowel");
 	    			}
 	    		break;
 	    		}
@@ -364,5 +371,5 @@ lcxDict.prototype = {
 	    result.zhuyin = zhuyin.join(" ");
 	    result.tonenums = tonenums.join(" ");
 	   	return result;
-	},
+	}
 };

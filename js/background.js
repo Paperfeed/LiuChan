@@ -1,23 +1,35 @@
 lcxMain.inlineDisable();
+
 chrome.browserAction.onClicked.addListener(lcxMain.inlineToggle);
-chrome.tabs.onSelectionChanged.addListener(lcxMain.onTabSelect);
+// DEPRECATED chrome.tabs.onSelectionChanged.addListener(lcxMain.onTabSelect);
+chrome.tabs.onActivated.addListener(lcxMain.onTabSelect);
+
+//Fired when a message is sent from either an extension process (by runtime.sendMessage)
+// or a content script (by tabs.sendMessage).
+// chrome.runtime.onMessage.addListener(function callback)
+// function(any message, MessageSender sender, function sendResponse)
 chrome.runtime.onMessage.addListener(
 	function(request, sender, response) {
+        console.log('runtime.onMessage: ' + request.type);
+
 		switch(request.type) {
 			case 'enable?':
 				console.log('enable?');
 				lcxMain.onTabSelect(sender.tab.id);
 				break;
+			case 'enable':
+                lcxMain.onTabSelect(sender.tab.id);
+                break;
 			case 'xsearch':
 				console.log('xsearch');
 				var e = lcxMain.search(request.text, request.showmode);
 				response(e);
 				break;
-			case 'translate':
+			/*case 'translate':
 				console.log('translate');
 				var e = lcxMain.dict.translate(request.title);
 				response(e);
-				break;
+				break;*/
 			case 'makehtml':
 				console.log('makehtml');
 				var html = lcxMain.dict.makeHtml(request.entry);
@@ -30,7 +42,7 @@ chrome.runtime.onMessage.addListener(
 			default:
 				console.log(request);
 		}
-	});
+});
 	
 if(initStorage("v0.0.1", true)) {
 	initStorage("popupColor", "charcoal");
@@ -55,7 +67,7 @@ if(initStorage("v0.0.1", true)) {
 * @author Teo (GD API Guru)
 * @param key The key for which to initialize 
 * @param initialValue Initial value of localStorage on the given key 
-* @return true if a value is assigned or false if nothing happens 
+* @return boolean - true if a value is assigned or false if nothing happens
 */ 
 function initStorage(key, initialValue) { 
   var currentValue = localStorage[key]; 
@@ -64,19 +76,4 @@ function initStorage(key, initialValue) {
 	return true; 
   } 
   return false; 
-} 
-
-lcxMain.config = {};
-lcxMain.config.css = localStorage["popupColor"];
-lcxMain.config.highlight = localStorage["highlight"];
-lcxMain.config.textboxhl = localStorage["textboxhl"];
-lcxMain.config.pinyin = localStorage["pinyin"];
-lcxMain.config.doColors = localStorage["doColors"];
-lcxMain.config.showHanzi = localStorage["showHanzi"];
-lcxMain.config.miniHelp = localStorage["miniHelp"];
-lcxMain.config.popupDelay = parseInt(localStorage["popupDelay"]);
-lcxMain.config.disableKeys = localStorage["disableKeys"];
-lcxMain.config.lineEnding = localStorage["lineEnding"];
-lcxMain.config.copySeparator = localStorage["copySeparator"];
-lcxMain.config.maxClipCopyEntries = localStorage["maxClipCopyEntries"];
-lcxMain.config.showOnKey = localStorage["showOnKey"];
+}

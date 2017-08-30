@@ -1,7 +1,7 @@
 ﻿/*
 
-	LiuChan 
-	Copyright (C) 2017 Aldert Vaandering
+	LiuChan - A port of Rikaikun to Chinese
+	By Aldert Vaandering (2017)
 	https://gitlab.com/paperfeed/liuchan
 	
 	---
@@ -38,6 +38,8 @@
 	when modifying any of the files. - Jon
 
 */
+
+
 var lcxMain = {
 	dictCount: 1,
 	altView: 0,
@@ -46,15 +48,19 @@ var lcxMain = {
 	// The callback for onSelectionChanged
 	// Just sends a message to the tab to enable itself if it hasn't
 	// already
-	onTabSelect: function(tabId) { 
-		lcxMain._onTabSelect(tabId); 
+	onTabSelect: function(tab) {
+		//lcxMain._onTabSelect(tab.tabId);
+		if (this.enabled) {
+			chrome.tab.sendMessage(tab.tabId, {
+				"type":"enable"
+			});
+		}
 	},
-	_onTabSelect: function(tabId) {
 
-		if ((this.enabled == 1))
-			chrome.tabs.sendRequest(tabId, {
-				"type":"enable", 
-				"config":lcxMain.config
+	_onTabSelect: function(tabId) {
+		if ((this.enabled === 1))
+			chrome.runtime.sendMessage(tabId, {
+				"type":"enable"
 			});
 	},
 
@@ -66,10 +72,10 @@ var lcxMain = {
 		var e;
 
 		f = entry;
-		if ((!f) || (f.length == 0)) return null;
+		if ((!f) || (f.length === 0)) return null;
 
 		if (clip) { // Save to clipboard
-			me = lcxMain.config.maxClipCopyEntries;
+			me = localStorage["maxClipCopyEntries"];
 		}
 
 		if (!this.fromLB) mk = 1;
@@ -86,23 +92,32 @@ var lcxMain = {
 			}
 		}
 
-		if (lcxMain.config.lineEnding == "rn") text = text.replace(/\n/g, '\r\n');
-		else if (lcxMain.config.lineEnding == "r") text = text.replace(/\n/g, '\r');
-		if (lcxMain.config.copySeparator != "tab") {
-			if (lcxMain.config.copySeparator == "comma")
-				return text.replace(/\t/g, ",");
-			if (lcxMain.config.copySeparator == "space")
-				return text.replace(/\t/g, " ");
+		switch (localStorage["lineEnding"]) {
+			case "rn":
+                text = text.replace(/\n/g, '\r\n');
+                break;
+			case "r":
+                text = text.replace(/\n/g, '\r');
+                break;
 		}
 
-		return text;
+		switch (localStorage["copySeparator"]) {
+			case "comma":
+                return text.replace(/\t/g, ",");
+                break;
+			case "space":
+                return text.replace(/\t/g, " ");
+                break;
+			default:
+				return text;
+		}
 	},
 
 	// Needs entirely new implementation and dependent on savePrep
 	copyToClip: function(tab, entry) {
 		var text;
 
-		if ((text = this.savePrep(1, entry)) != null) {
+		if ((text = this.savePrep(1, entry)) !== null) {
 			document.oncopy = function(event) {
 				event.clipboardData.setData("Text", text);
 				event.preventDefault();
@@ -132,19 +147,7 @@ var lcxMain = {
 	// Function which enables the inline mode of rikaikun
 	// Unlike rikaichan there is no lookup bar so this is the only enable.
 	inlineEnable: function(tab, mode) {
-		/*if (!this.dict) {
-			try {
-				this.dict = new ppcDict();
-			}
-			catch (ex) {
-				alert('Error loading dictionary: ' + ex);
-				return false;
-			}
-		}
-		return true;*/
-
 		if (!this.dict) {
-			//this.dict = new lcxDict();
 			try {
 				this.dict = new lcxDict();
 			}
@@ -158,15 +161,17 @@ var lcxMain = {
 
 	onDictionaryLoaded: function(tab, mode) {
 		// Send message to current tab to add listeners and create stuff
-		chrome.tabs.sendRequest(tab.id, {
+		chrome.runtime.sendMessage(tab.id, {
 			"type":"enable", 
 			"config":lcxMain.config
 		});
 		this.enabled = 1;
 		
-		if(mode == 1) {
-			if (lcxMain.config.miniHelp == 'true')
-				chrome.tabs.sendRequest(tab.id, {
+		if(mode === 1) {
+			if (localStorage['miniHelp'] === 'true')
+				// DEPRECATED
+				//chrome.tabs.sendRequest(tab.id, {
+				chrome.runtime.sendMessage(tab.id, {
 					"type":"showPopup", 
 					"text":lcxMain.miniHelp
 				});
@@ -197,7 +202,7 @@ var lcxMain = {
 		});
 	},
 
-	// This function diables 
+	// This function disables the plugin
 	inlineDisable: function(tab, mode) {
 		// Delete dictionary object after we implement it
 		delete this.dict;
@@ -222,7 +227,7 @@ var lcxMain = {
 				for (var i =0; i < windows.length; ++i) {
 					var tabs = windows[i].tabs;
 					for ( var j = 0; j < tabs.length; ++j) {
-						chrome.tabs.sendRequest(tabs[j].id, {
+						chrome.tabs.sendMessage(tabs[j].id, {
 							"type":"disable"
 						});
 					}
@@ -241,6 +246,8 @@ var lcxMain = {
 		var m = showMode;
 		var e = null;
 
+
+		// todo wtf is going on here? probably not necessary
 		do {
 			switch (showMode) {
 			case 0:
@@ -252,28 +259,8 @@ var lcxMain = {
 			}
 			if (e) break;
 			showMode = (showMode + 1) % this.dictCount;
-		} while (showMode != m);
+		} while (showMode !== m);
 		
 		return e;
 	}
 };
-
-
-/*
-	2E80 - 2EFF	CJK Radicals Supplement
-	2F00 - 2FDF	Kangxi Radicals
-	2FF0 - 2FFF	Ideographic Description
-p	3000 - 303F CJK Symbols and Punctuation
-x	3040 - 309F Hiragana
-x	30A0 - 30FF Katakana
-	3190 - 319F	Kanbun
-	31F0 - 31FF Katakana Phonetic Extensions
-	3200 - 32FF Enclosed CJK Letters and Months
-	3300 - 33FF CJK Compatibility
-x	3400 - 4DBF	CJK Unified Ideographs Extension A
-x	4E00 - 9FFF	CJK Unified Ideographs
-x	F900 - FAFF	CJK Compatibility Ideographs
-p	FF00 - FFEF Halfwidth and Fullwidth Forms
-x	FF66 - FF9D	Katakana half-width
-
-*/

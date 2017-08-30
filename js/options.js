@@ -4,41 +4,16 @@ function fillVals() {
 	document.optform.showHanzi.value = localStorage['showHanzi'];
 	document.optform.pinyin.value = localStorage['pinyin'];
 	document.optform.popupDelay.value = localStorage["popupDelay"];
-
-	// Highlight text or not
-	if (localStorage['highlight'] == 'true')
-		document.optform.highlightText.checked = true;
-	else
-		document.optform.highlightText.checked = false;
-
-	// Highlight text in input fields or not
-	if (localStorage['textboxhl'] == 'true')
-		document.optform.textboxhl.checked = true;
-	else
-		document.optform.textboxhl.checked = false;
-
-	// Display pinyin tones in color or not
-	if (localStorage['doColors'] == 'true')
-		document.optform.doColors.checked = true;
-	else
-		document.optform.doColors.checked = false;
-
-	// Show hotkey summary on enable or not
-	if (localStorage['miniHelp'] == 'true')
-		document.optform.miniHelp.checked = true;
-	else
-		document.optform.miniHelp.checked = false;
-
-	// Disable hotkeys or not
-	if (localStorage['disableKeys'] == 'true')
-		document.optform.disableKeys.checked = true;
-	else
-		document.optform.disableKeys.checked = false;
+    document.optform.highlightText.checked = localStorage['highlight']; // Highlight text or not
+    document.optform.textboxhl.checked = localStorage['textboxhl']; // Highlight text in input fields or not
+    document.optform.doColors.checked = localStorage['doColors']; // Display pinyin tones in color or not
+    document.optform.miniHelp.checked = localStorage['miniHelp']; // Show hotkey summary on enable or not
+    document.optform.disableKeys.checked = localStorage['disableKeys']; // Disable hotkeys or not
 
 	// Line ending for Copy to Clipboard functionality
 	store = localStorage['lineEnding'];
 	for (var i = 0; i < document.optform.lineEnding.length; ++i) {
-		if (document.optform.lineEnding[i].value == store) {
+		if (document.optform.lineEnding[i].value === store) {
 			document.optform.lineEnding[i].selected = true;
 			break;
 		}
@@ -47,7 +22,7 @@ function fillVals() {
 	// Separator for Copy to Clipboard functionality
 	store = localStorage['copySeparator'];
 	for (var i = 0; i < document.optform.copySeparator.length; ++i) {
-		if (document.optform.copySeparator[i].value == store) {
+		if (document.optform.copySeparator[i].value === store) {
 			document.optform.copySeparator[i].selected = true;
 			break;
 		}
