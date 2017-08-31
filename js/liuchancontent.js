@@ -110,7 +110,9 @@ var lcxContent = {
 			css = topdoc.createElementNS('http://www.w3.org/1999/xhtml', 'link');
 			css.setAttribute('rel', 'stylesheet');
 			css.setAttribute('type', 'text/css');
-			cssdoc = window.liuchan.config.css;
+			cssdoc = localStorage['popupColor'];
+            console.log("showPopup " + localStorage['popupColor']);
+            console.log(cssdoc);
 			css.setAttribute('href', chrome.extension.getURL('css/popup-' + cssdoc + '.css'));
 			css.setAttribute('id', 'liuchan-css');
 			topdoc.getElementsByTagName('head')[0].appendChild(css);
@@ -125,7 +127,7 @@ var lcxContent = {
 					ev.stopPropagation();
 				}, true);
 		} else {
-			cssdoc = window.liuchan.config.css;
+			cssdoc = localStorage['popupColor'];
 			css = topdoc.getElementById("liuchan-css");
 			var href = chrome.extension.getURL('css/popup-' + cssdoc + '.css');
 			if (css.getAttribute('href') !== href) {
@@ -306,7 +308,7 @@ var lcxContent = {
 	},
 
 	_onKeyDown: function(ev) {
-		if (window.liuchan.config.showOnKey !== "" && (ev.altKey || ev.ctrlKey || ev.key === "AltGraph")) {
+		if (localStorage['showOnKey'] !== "" && (ev.altKey || ev.ctrlKey || ev.key === "AltGraph")) {
 			if (this.lastTarget !== null) {
 				var myEv = {
 					clientX: this.lastPos.x,
@@ -322,7 +324,7 @@ var lcxContent = {
 			return;
 		}
 		// TODO get rid of keyCode. Use `key` and `code`
-		if (window.liuchan.config.disableKeys === 'true' && (ev.keyCode !== 16)) return;
+		if (localStorage['disableKeys'] === 'true' && (ev.keyCode !== 16)) return;
 		if ((ev.shiftKey) && (ev.keyCode !== 16)) return;
 		if (this.keysDown[ev.keyCode]) return;
 		if (!this.isVisible()) return;
@@ -660,8 +662,8 @@ var lcxContent = {
 		
 		rp = tdata.prevRangeNode;
 		// Don't try to highlight form elements
-		if ((rp) && ((tdata.config.highlight === 'true' && !this.mDown && !('form' in tdata.prevTarget)) ||
-				(('form' in tdata.prevTarget) && tdata.config.textboxhl === 'true'))) {
+		if ((rp) && ((localStorage['highlight'] === 'true' && !this.mDown && !('form' in tdata.prevTarget)) ||
+				(('form' in tdata.prevTarget) && localStorage['textboxhl'] === 'true'))) {
 			var doc = rp.ownerDocument;
 			if (!doc) {
 				lcxContent.clearHi();
@@ -838,8 +840,8 @@ var lcxContent = {
 	tryUpdatePopup: function(ev) {
 		var altGraph = ev.getModifierState && ev.getModifierState("AltGraph");
 
-		if ((window.liuchan.config.showOnKey.includes("Alt") && !ev.altKey && !altGraph) ||
-			(window.liuchan.config.showOnKey.includes("Ctrl") && !ev.ctrlKey)) {
+		if ((localStorage['showOnKey'].includes("Alt") && !ev.altKey && !altGraph) ||
+			(localStorage['showOnKey'].includes("Ctrl") && !ev.ctrlKey)) {
 			this.clearHi();
 			this.hidePopup();
 			return;
@@ -939,14 +941,14 @@ var lcxContent = {
 		tdata.uofs = 0;
 		this.uofsNext = 1;
 
-		var delay = ev.noDelay ? 1 : window.liuchan.config.popupDelay; // !!ev.noDelay
+		var delay = ev.noDelay ? 1 : localStorage['popupDelay']; // !!ev.noDelay
 
 		if (rp && rp.data && ro < rp.data.length) {
 			tdata.popX = ev.clientX;
 			tdata.popY = ev.clientY;
 			tdata.timer = setTimeout(
 				function(rangeNode, rangeOffset) {
-					if (!window.liuchan || rangeNode !== window.liuchan.prevRangeNode || ro !== window.liuchan.prevRangeOfs) {
+					if (!tdata || rangeNode !== tdata.prevRangeNode || ro !== tdata.prevRangeOfs) {
 						return;
 					}
 					lcxContent.show(tdata, this.showMode);
@@ -972,7 +974,7 @@ var lcxContent = {
 			tdata.popY = ev.clientY;
 			tdata.timer = setTimeout(
 				function(tdata, title) {
-					if (!window.liuchan || title !== window.liuchan.title) {
+					if (!tdata || title !== tdata.title) {
 						return;
 					}
 					lcxContent.showTitle(tdata);
@@ -994,11 +996,12 @@ var lcxContent = {
 
 //Event Listeners
 chrome.runtime.onMessage.addListener(
+
 	function(request, sender, sendResponse) {
+        console.log('liuchancontent.js runtime.onMessage ' + request.type);
 		switch(request.type) {
 			case 'enable':
 				lcxContent.enableTab();
-				window.liuchan.config = request.config;
 				break;
 			case 'disable':
 				lcxContent.disableTab();
@@ -1013,6 +1016,6 @@ chrome.runtime.onMessage.addListener(
 );
 
 // When a page first loads, checks to see if it should enable script
-chrome.extension.sendRequest({
+chrome.extension.sendRequest(undefined, {
 	"type":"enable?"
 });

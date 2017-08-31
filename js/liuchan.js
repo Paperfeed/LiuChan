@@ -49,7 +49,8 @@ var lcxMain = {
 	// Just sends a message to the tab to enable itself if it hasn't
 	// already
 	onTabSelect: function(tab) {
-		//lcxMain._onTabSelect(tab.tabId);
+		console.log("lcxMain.onTabSelect" + tab);
+
 		if (this.enabled) {
 			chrome.tab.sendMessage(tab.tabId, {
 				"type":"enable"
@@ -67,9 +68,7 @@ var lcxMain = {
 	savePrep: function(clip, entry) {
 		var me, mk;
 		var text;
-		var i;
-		var f;
-		var e;
+		var i, f, e;
 
 		f = entry;
 		if ((!f) || (f.length === 0)) return null;
@@ -146,7 +145,7 @@ var lcxMain = {
 
 	// Function which enables the inline mode of rikaikun
 	// Unlike rikaichan there is no lookup bar so this is the only enable.
-	inlineEnable: function(tab, mode) {
+	inlineEnable: function(tab) {
 		if (!this.dict) {
 			try {
 				this.dict = new lcxDict();
@@ -156,31 +155,30 @@ var lcxMain = {
 			}
 		}
 		
-		this.dict.loadDictionary().then(this.onDictionaryLoaded.bind(this, tab, mode), this.onError.bind(this));
+		this.dict.loadDictionary().then(this.onDictionaryLoaded.bind(this, tab), this.onError.bind(this));
 	},
 
-	onDictionaryLoaded: function(tab, mode) {
+	onDictionaryLoaded: function(tab) {
+		console.log("lcxMain.onDictionaryLoaded " + tab);
 		// Send message to current tab to add listeners and create stuff
-		chrome.runtime.sendMessage(tab.id, {
-			"type":"enable", 
-			"config":lcxMain.config
+		chrome.tabs.sendMessage(tab.id, {
+			"type":"enable"
 		});
 		this.enabled = 1;
-		
-		if(mode === 1) {
-			if (localStorage['miniHelp'] === 'true')
-				// DEPRECATED
-				//chrome.tabs.sendRequest(tab.id, {
-				chrome.runtime.sendMessage(tab.id, {
-					"type":"showPopup", 
-					"text":lcxMain.miniHelp
-				});
-			else
-				chrome.tabs.sendMessage(tab.id, {
-					"type": "showPopup",
-					"text": 'LiuChan enabled!'
-				});
-		} 
+
+		if (localStorage['miniHelp'] === 'true') {
+            // DEPRECATED
+            //chrome.tabs.sendRequest(tab.id, {
+            chrome.tabs.sendMessage(tab.id, {
+                "type": "showPopup",
+                "text": lcxMain.miniHelp
+            });
+        } else {
+            chrome.tabs.sendMessage(tab.id, {
+                "type": "showPopup",
+                "text": 'LiuChan enabled!'
+            });
+        }
 		
 		chrome.browserAction.setIcon({
 			"path":"../images/toolbar-enabled.png"
@@ -203,7 +201,7 @@ var lcxMain = {
 	},
 
 	// This function disables the plugin
-	inlineDisable: function(tab, mode) {
+	inlineDisable: function(tab) {
 		// Delete dictionary object after we implement it
 		delete this.dict;
 		
@@ -220,6 +218,7 @@ var lcxMain = {
 		});
 
 		// Send a disable message to all browsers
+		//chrome.runtime.sendMessage(undefined, {"type":"disable"})
 		var windows = chrome.windows.getAll({
 			"populate":true
 			}, 
@@ -236,8 +235,12 @@ var lcxMain = {
 	},
 
 	inlineToggle: function(tab) {
-		if (lcxMain.enabled) lcxMain.inlineDisable(tab, 1);
-			else lcxMain.inlineEnable(tab, 1);
+		// Entry point for when extension's button is clicked
+		if (lcxMain.enabled) {
+            lcxMain.inlineDisable(tab, 1);
+        } else {
+            lcxMain.inlineEnable(tab, 1);
+        }
 	},
 	
 	search: function(text) {

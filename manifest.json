@@ -21,7 +21,11 @@
    "manifest_version": 2,
    "name": "LiuChan Chinese Popup Dictionary",
    "options_page": "html/options.html",
-   "permissions": [ "tabs", "clipboardWrite", "http://*/*" ],
+   "options_ui": {
+      "page": "html/options.html",
+      "chrome_style": true
+   },
+   "permissions": [ "tabs", "storage", "clipboardWrite", "http://*/*" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "1.0.0",
    "web_accessible_resources": [ "css/*", "js/liuchancontent.js", "images/*" ]

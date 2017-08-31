@@ -1,10 +1,12 @@
 lcxMain.inlineDisable();
 
+// This gets fired when the extension's button is clicked
 chrome.browserAction.onClicked.addListener(lcxMain.inlineToggle);
+
 // DEPRECATED chrome.tabs.onSelectionChanged.addListener(lcxMain.onTabSelect);
 chrome.tabs.onActivated.addListener(lcxMain.onTabSelect);
 
-//Fired when a message is sent from either an extension process (by runtime.sendMessage)
+// Fired when a message is sent from either an extension process (by runtime.sendMessage)
 // or a content script (by tabs.sendMessage).
 // chrome.runtime.onMessage.addListener(function callback)
 // function(any message, MessageSender sender, function sendResponse)
