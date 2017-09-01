@@ -737,8 +737,13 @@ var lcxContent = {
 		}
 
 		var range = doc.createRange();
-		range.setStart(rp, ro);
-		range.setEnd(selEnd.node, offset);
+		try {
+            range.setStart(rp, ro);
+            range.setEnd(selEnd.node, offset);
+        } catch(e) {
+			// Sometimes during mouse-overs we get out of range
+			return;
+		}
 
 		if ((sel.toString()) && (tdata.selText !== sel.toString()))
 			return;
@@ -967,7 +972,7 @@ var lcxContent = {
 					}
 					// todo Figure out what the use of this is
 					// doesn't do anything at the moment, so I've disabled it
-					//lcxContent.showTitle(tdata);
+					lcxContent.showTitle(tdata);
 				}, delay, tdata, tdata.title);
 		} else {
 			// Don't close just because we moved from a valid popup slightly over to a place with nothing
@@ -1012,4 +1017,4 @@ chrome.runtime.onMessage.addListener(
 );
 
 // When a page first loads, checks to see if it should enable script
-chrome.extension.sendRequest({ "type":"enable?" });
+chrome.runtime.sendMessage({ "type":"enable?" });

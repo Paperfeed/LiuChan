@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener(
 		//console.log(request);
 		switch(request.type) {
 			case 'enable?':
-				lcxMain.onTabSelect(sender.tab.id);
+				lcxMain.onTabSelect(sender.tab);
 				break;
 			case 'xsearch':
 				var e = lcxMain.dict.wordSearch(request.text);

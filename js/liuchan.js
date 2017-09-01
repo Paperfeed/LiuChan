@@ -67,6 +67,10 @@
 	// Sends a message to the tab to enable itself if it hasn't
 	onTabSelect: function(tab) {
 		// tab contains tabId windowId
+		if (undefined === tab.tabId) {
+			tab.tabId = tab.id;
+		}
+		
 		if (lcxMain.enabled) {
 			chrome.tabs.sendMessage(tab.tabId, {
 				"type":"enable",
@@ -163,10 +167,7 @@
 	onDictionaryLoaded: function(tab) {
 		// Send message to current tab to add listeners and create stuff
 		// It also passes along the extension's settings
-		chrome.tabs.sendMessage(tab.id, {
-			"type":"enable",
-			"config": lcxMain.config
-		});
+		lcxMain.sendAllTabs({"type":"enable", "config": lcxMain.config});
 
 		// All loading has succeeded, set enabled to true,
 		// change badge and show popup in active tab
