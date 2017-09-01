@@ -53,12 +53,6 @@ function lcxDict() {
 }
 
 lcxDict.prototype = {
-	config: {},
-
-	setConfig: function(c) {
-		this.config = c;
-	},
-
 	loadDictionaries: function() {
 		return Promise.all([
 			this.loadDictionary()
@@ -99,9 +93,6 @@ lcxDict.prototype = {
 	},
 
 	loadDictionary: function() {
-		//this.wordDict = this.fileRead(chrome.extension.getURL("data/dict.dat"));
-		//this.wordIndex = this.fileRead(chrome.extension.getURL("data/dict.idx"));
-
 		return Promise.all([
 			this.fileRead("data/dict.dat", "wordDict"),
 			this.fileRead("data/dict.idx", "wordIndex")
@@ -207,7 +198,7 @@ lcxDict.prototype = {
 		var trad, simp, pinyin, def;
 		var i, j, k, e;
 		
-		if (entry === null) return '';
+		if (entry == null) return '';
 
 		var b = [];
 		
@@ -225,9 +216,9 @@ lcxDict.prototype = {
 
 			//HANZI
 			k = "";
-			if ("botht" === localStorage['showHanzi'] || "boths" === localStorage['showHanzi']) {
-				var first  = localStorage['showHanzi'] === "botht" ? trad : simp;
-				var second = localStorage['showHanzi'] === "botht" ? simp : trad;
+			if ("botht" === lcxMain.config.showHanzi || "boths" === lcxMain.config.showHanzi) {
+				var first  = lcxMain.config.showHanzi === "botht" ? trad : simp;
+				var second = lcxMain.config.showHanzi === "botht" ? simp : trad;
 				
 				//add the repetition dot if trad == simp
 				var newsecond = [];
@@ -239,7 +230,7 @@ lcxDict.prototype = {
 				}
 				second = newsecond.join('');
 				
-				if (localStorage['doColors'] === "yes") {
+				if (lcxMain.config.doColors === true) {
 					for( j = 0; j < pinyin.tones.length; j++)
 						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + first[j] + '</span>';
 					k += '　';
@@ -250,8 +241,8 @@ lcxDict.prototype = {
 					k += '<span class="w-hanzi3">' + first + '</span>　<span class="w-hanzi3">'　+ second + '</span>';
 			}
 			else {
-				var hanzi = localStorage['showHanzi'] === "simp" ? simp : trad;
-				if (localStorage['doColors'] === "yes")
+				var hanzi = lcxMain.config.showHanzi === "simp" ? simp : trad;
+				if (lcxMain.config.doColors === true)
 					for( j = 0; j < pinyin.tones.length; j++)
 						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + hanzi[j] + '</span>';
 				else
@@ -260,8 +251,8 @@ lcxDict.prototype = {
 			
 			//PINYIN
 			k += '&#32;&#32; <span class="w-kana">';
-			if      ("tonenums" === localStorage['pinyin']) k += pinyin.tonenums  + '</span>';
-			else if ("zhuyin"   === localStorage['pinyin']) k += pinyin.zhuyin    + '</span>';
+			if      ("tonenums" === lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
+			else if ("zhuyin"   === lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
 			else 										   k += pinyin.tonemarks + '</span>';
 
 			b.push(k);
@@ -282,7 +273,7 @@ lcxDict.prototype = {
 		var i, j;
 		var t;
 
-		if (entry === null) return '';
+		if (entry == null) return '';
 
 		b = [];
 

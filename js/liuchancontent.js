@@ -42,18 +42,13 @@
 */
 
 var lcxContent = {
-
 	dictCount: 2,
 	altView: 0,
-	
-	//
-	//
-	//
-	//
+	config: {},
 
 	//Adds the listeners and stuff.
 	enableTab: function() {
-		if (window.liuchan === null) {
+		if (window.liuchan === undefined || window.liuchan === null) {
 			window.liuchan = {};
 			if (document.activeElement.nodeName === 'TEXTAREA' || document.activeElement.nodeName === 'INPUT') {
 				window.liuchan.oldTA = document.activeElement;
@@ -99,27 +94,25 @@ var lcxContent = {
 	},
 
 	showPopup: function(text, elem, x, y, looseWidth) {
-		topdoc = window.document;
+		var wd = window.document;
 
 		if ((isNaN(x)) || (isNaN(y))) x = y = 0;
 
 		var css, cssdoc;
 
-		var popup = topdoc.getElementById('liuchan-window');
+		var popup = wd.getElementById('liuchan-window');
 		if (!popup) {
-			css = topdoc.createElementNS('http://www.w3.org/1999/xhtml', 'link');
+			css = wd.createElementNS('http://www.w3.org/1999/xhtml', 'link');
 			css.setAttribute('rel', 'stylesheet');
 			css.setAttribute('type', 'text/css');
-			cssdoc = localStorage['popupColor'];
-            console.log("showPopup " + localStorage['popupColor']);
-            console.log(cssdoc);
+			cssdoc = lcxContent.config.popupColor;
 			css.setAttribute('href', chrome.extension.getURL('css/popup-' + cssdoc + '.css'));
 			css.setAttribute('id', 'liuchan-css');
-			topdoc.getElementsByTagName('head')[0].appendChild(css);
+			wd.getElementsByTagName('head')[0].appendChild(css);
 
-			popup = topdoc.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+			popup = wd.createElementNS('http://www.w3.org/1999/xhtml', 'div');
 			popup.setAttribute('id', 'liuchan-window');
-			topdoc.documentElement.appendChild(popup);
+			wd.documentElement.appendChild(popup);
 
 			popup.addEventListener('dblclick',
 				function (ev) {
@@ -127,8 +120,8 @@ var lcxContent = {
 					ev.stopPropagation();
 				}, true);
 		} else {
-			cssdoc = localStorage['popupColor'];
-			css = topdoc.getElementById("liuchan-css");
+			cssdoc = lcxContent.config.popupColor;
+			css = wd.getElementById("liuchan-css");
 			var href = chrome.extension.getURL('css/popup-' + cssdoc + '.css');
 			if (css.getAttribute('href') !== href) {
 				css.setAttribute('href', href);
@@ -137,7 +130,7 @@ var lcxContent = {
 
 		popup.style.setProperty('max-width', (looseWidth ? '' : '600px'), 'important');
 
-		if (lcxContent.getContentType(topdoc) === 'text/plain') {
+		if (lcxContent.getContentType(wd) === 'text/plain') {
 			var df = document.createDocumentFragment();
 			df.appendChild(document.createElementNS('http://www.w3.org/1999/xhtml', 'span'));
 			df.firstChild.innerHTML = text;
@@ -155,7 +148,7 @@ var lcxContent = {
 			popup.style.setProperty('left', '0px', 'important');
 			popup.style.display = '';
 
-			bbo = window;
+			//bbo = window;
 			var pW = popup.offsetWidth;
 			var pH = popup.offsetHeight;
 
@@ -291,11 +284,6 @@ var lcxContent = {
 	},
 	
 	lastFound: null,
-
-	configPage: function() {
-		window.openDialog('chrome://liuchan/content/prefs.xul', '', 'chrome,centerscreen');
-	},
-	
 	keysDown: [],
 	lastPos: {
 		x: null,
@@ -308,7 +296,7 @@ var lcxContent = {
 	},
 
 	_onKeyDown: function(ev) {
-		if (localStorage['showOnKey'] !== "" && (ev.altKey || ev.ctrlKey || ev.key === "AltGraph")) {
+		if (lcxContent.config.showOnKey !== "" && (ev.altKey || ev.ctrlKey || ev.key === "AltGraph")) {
 			if (this.lastTarget !== null) {
 				var myEv = {
 					clientX: this.lastPos.x,
@@ -324,7 +312,7 @@ var lcxContent = {
 			return;
 		}
 		// TODO get rid of keyCode. Use `key` and `code`
-		if (localStorage['disableKeys'] === 'true' && (ev.keyCode !== 16)) return;
+		if (lcxContent.config.disableKeys === true && (ev.keyCode !== 16)) return;
 		if ((ev.shiftKey) && (ev.keyCode !== 16)) return;
 		if (this.keysDown[ev.keyCode]) return;
 		if (!this.isVisible()) return;
@@ -346,11 +334,11 @@ var lcxContent = {
 			this.show(ev.currentTarget.liuchan);
 			break;
 		case 67:	// c
-				chrome.extension.sendMessage({
-					"type": "copyToClip",
-					"entry": lcxContent.lastFound
-				});
-				break;
+			chrome.runtime.sendMessage({
+				"type": "copyToClip",
+				"entry": lcxContent.lastFound
+			});
+			break;
 		case 66:	// b
 			var ofs = ev.currentTarget.liuchan.uofs;
 			for (i = 50; i > 0; --i) {
@@ -362,7 +350,7 @@ var lcxContent = {
 			}
 			break;
 		case 68: // d
-			chrome.extension.sendMessage({
+			chrome.runtime.sendMessage({
 				"type": "switchOnlyReading"
 			});
 			this.show(ev.currentTarget.liuchan);
@@ -546,7 +534,7 @@ var lcxContent = {
 		var nextNode;
 
 		if ((nextNode = node.nextSibling) !== null)
-			return nextNode
+			return nextNode;
 		if (((nextNode = node.parentNode) !== null) && this.isInline(nextNode))
 			return this.getNext(nextNode);
 
@@ -626,15 +614,15 @@ var lcxContent = {
 		//selection end data
 		var selEndList = [];
 		var text = this.getTextFromRange(rp, ro, selEndList, 13 /*maxlength*/);
-		
+
 		lastSelEnd = selEndList;
 		lastRo = ro;
-		chrome.extension.sendMessage({
+
+		chrome.runtime.sendMessage({
 				"type": "xsearch",
 				"text": text,
 				"showmode": this.showMode
-			},
-			lcxContent.processEntry);
+			}, lcxContent.processEntry);
 
 		return 1;
 		
@@ -645,9 +633,9 @@ var lcxContent = {
 	},
 	
 	processEntry: function(e) {
-        var tdata = window.liuchan;
-        var ro = lastRo;
-        var selEndList = lastSelEnd;
+        tdata = window.liuchan;
+        ro = lastRo;
+        selEndList = lastSelEnd;
 	
 		if (!e) {
 			lcxContent.hidePopup();
@@ -662,8 +650,8 @@ var lcxContent = {
 		
 		rp = tdata.prevRangeNode;
 		// Don't try to highlight form elements
-		if ((rp) && ((localStorage['highlight'] === 'true' && !this.mDown && !('form' in tdata.prevTarget)) ||
-				(('form' in tdata.prevTarget) && localStorage['textboxhl'] === 'true'))) {
+		if ((rp) && ((lcxContent.config.highlight === true && !this.mDown && !('form' in tdata.prevTarget)) ||
+				(('form' in tdata.prevTarget) && lcxContent.config.textboxhl === true))) {
 			var doc = rp.ownerDocument;
 			if (!doc) {
 				lcxContent.clearHi();
@@ -674,14 +662,14 @@ var lcxContent = {
 			tdata.prevSelView = doc.defaultView;
 		}
 
-		chrome.extension.sendMessage({
+		chrome.runtime.sendMessage({
 			"type": "makehtml",
 			"entry": e
 		}, lcxContent.processHtml);
 	},
 
 	processHtml: function(html) {
-		tdata = window.liuchan;
+		var tdata = window.liuchan;
 		lcxContent.showPopup(html, tdata.prevTarget, tdata.popX, tdata.popY, false);
 		return 1;
 	},
@@ -760,11 +748,10 @@ var lcxContent = {
 	},
 
 	showTitle: function(tdata) {
-		chrome.extension.sendMessage({
+		chrome.runtime.sendMessage({
 				"type": "translate",
 				"title": tdata.title
-			},
-			lcxContent.processTitle);
+			}, lcxContent.processTitle);
 	},
 	
 	processTitle: function(e) {
@@ -782,7 +769,7 @@ var lcxContent = {
 
 		this.lastFound = [e];
 		
-		chrome.extension.sendMessage({
+		chrome.runtime.sendMessage({
 			"type": "makehtml",
 			"entry": e
 		}, lcxContent.processHtml);
@@ -837,11 +824,12 @@ var lcxContent = {
 		lcxContent.lastTarget = ev.target;
 		lcxContent.tryUpdatePopup(ev);
 	},
+
 	tryUpdatePopup: function(ev) {
 		var altGraph = ev.getModifierState && ev.getModifierState("AltGraph");
-
-		if ((localStorage['showOnKey'].includes("Alt") && !ev.altKey && !altGraph) ||
-			(localStorage['showOnKey'].includes("Ctrl") && !ev.ctrlKey)) {
+		var str = lcxContent.config.showOnKey;
+		if ((str.includes("Alt") && !ev.altKey && !altGraph) ||
+			(str.includes("Ctrl") && !ev.ctrlKey)) {
 			this.clearHi();
 			this.hidePopup();
 			return;
@@ -850,7 +838,7 @@ var lcxContent = {
 		var fake;
 		var tdata = window.liuchan; // per-tab data
 		var range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
-		if (range === null) return;
+		if (range == null) return;
 		var rp = range.startContainer;
 		var ro = range.startOffset;
 		// Put this in a try catch so that an exception here doesn't prevent editing due to div
@@ -884,7 +872,7 @@ var lcxContent = {
 				// Otherwise we're on the right and can take the next sibling of the
 				// inline element
 				else {
-					rp = rp.parentNode.nextSibling
+					rp = rp.parentNode.nextSibling;
 					ro = 0;
 				}
 			}
@@ -911,7 +899,7 @@ var lcxContent = {
 			// 2) we give the text area data so it can act normal
 			if (fake) {
 				rp = ev.target;
-				rp.data = rp.value
+				rp.data = rp.value;
 				var newRange = document.caretRangeFromPoint(ev.clientX, ev.clientY);
 				ro = newRange.startOffset;
 			}
@@ -941,7 +929,7 @@ var lcxContent = {
 		tdata.uofs = 0;
 		this.uofsNext = 1;
 
-		var delay = ev.noDelay ? 1 : localStorage['popupDelay']; // !!ev.noDelay
+		var delay = ev.noDelay ? 1 : lcxContent.config.popupDelay; // !!ev.noDelay
 
 		if (rp && rp.data && ro < rp.data.length) {
 			tdata.popX = ev.clientX;
@@ -977,7 +965,9 @@ var lcxContent = {
 					if (!tdata || title !== tdata.title) {
 						return;
 					}
-					lcxContent.showTitle(tdata);
+					// todo Figure out what the use of this is
+					// doesn't do anything at the moment, so I've disabled it
+					//lcxContent.showTitle(tdata);
 				}, delay, tdata, tdata.title);
 		} else {
 			// Don't close just because we moved from a valid popup slightly over to a place with nothing
@@ -991,17 +981,17 @@ var lcxContent = {
 		}
 
 	}
-}
-
+};
 
 //Event Listeners
 chrome.runtime.onMessage.addListener(
-
 	function(request, sender, sendResponse) {
-        console.log('liuchancontent.js runtime.onMessage ' + request.type);
+        console.log('content received message:');
+        console.log(request);
 		switch(request.type) {
 			case 'enable':
 				lcxContent.enableTab();
+				lcxContent.config = request.config;
 				break;
 			case 'disable':
 				lcxContent.disableTab();
@@ -1009,6 +999,12 @@ chrome.runtime.onMessage.addListener(
 			case 'showPopup':
 				lcxContent.showPopup(request.text);
 				break;
+			case 'title':
+                lcxContent.processTitle(request.text);
+                break;
+			case 'config':
+                lcxContent.config = request.config;
+                break;
 			default:
 				console.log(request);
 		}
@@ -1016,6 +1012,4 @@ chrome.runtime.onMessage.addListener(
 );
 
 // When a page first loads, checks to see if it should enable script
-chrome.extension.sendRequest(undefined, {
-	"type":"enable?"
-});
+chrome.extension.sendRequest({ "type":"enable?" });

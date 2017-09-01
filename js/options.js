@@ -2,7 +2,6 @@
 // https://developer.chrome.com/extensions/options
 // Saves options to chrome.storage
 function saveOptions() {
-    console.log("Saving Settings!")
     var popupColor = document.getElementById('popupColor').value;
     var showHanzi = document.getElementById('showHanzi').value;
     var pinyin = document.getElementById('pinyin').value;
@@ -17,7 +16,7 @@ function saveOptions() {
     var maxClipCopyEntries = document.getElementById('maxClipCopyEntries').value;
     var showOnKey = document.querySelector('input[name="showOnKey"]:checked').value;
 
-    chrome.storage.sync.set({
+    var newConfig = {
         popupColor: popupColor,
         showHanzi: showHanzi,
         pinyin: pinyin,
@@ -31,7 +30,9 @@ function saveOptions() {
         copySeparator: copySeparator,
         maxClipCopyEntries: maxClipCopyEntries,
         showOnKey: showOnKey
-    }, function() {
+    };
+    chrome.storage.sync.set(newConfig, function() {
+        chrome.runtime.sendMessage({"type":"config", "config":newConfig});
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
         status.className += 'statusOn';
@@ -60,8 +61,6 @@ function restoreOptions() {
         maxClipCopyEntries: 7,
         showOnKey: ""
     }, function(items) {
-        console.log("Restoring Settings");
-        console.log(items);
         document.getElementById('popupColor').value = items.popupColor;
         document.getElementById('showHanzi').value = items.showHanzi;
         document.getElementById('pinyin').value = items.pinyin;
@@ -89,8 +88,6 @@ document.addEventListener('DOMContentLoaded', restoreOptions);
 
 window.onload = function () {
     var inputs = document.querySelectorAll('.config');
-    console.log("Binding inputs");
-    console.log(inputs);
     for (var i = 0; i < inputs.length; ++i) {
         inputs[i].addEventListener('change', saveOptions);
         var type = inputs[i].getAttribute('type');
