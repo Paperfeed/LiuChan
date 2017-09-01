@@ -25,7 +25,6 @@
       "16": "images/icon16.png",
       "48": "images/icon48.png"
    },
-   "omnibox": {"keyword" : "liuchan"},
    "permissions": [ "tabs", "storage", "clipboardWrite", "http://*/*" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "1.0.0",

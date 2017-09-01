@@ -986,8 +986,8 @@ var lcxContent = {
 //Event Listeners
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-        console.log('content received message:');
-        console.log(request);
+        //console.log('content received message:');
+        //console.log(request);
 		switch(request.type) {
 			case 'enable':
 				lcxContent.enableTab();

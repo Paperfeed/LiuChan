@@ -9,6 +9,7 @@
 chrome.omnibox.onInputEntered.addListener(function(text) {
     alert('You just typed "' + text + '"');
 });*/
+//manifest: "omnibox": {"keyword" : "liuchan"},
 
 // This gets fired when the extension's button is clicked
 chrome.browserAction.onClicked.addListener(lcxMain.toggleExtension);
@@ -19,7 +20,7 @@ chrome.tabs.onActivated.addListener(lcxMain.onTabSelect);
 // content script that gets loaded on matching urls (as per the manifest)
 chrome.runtime.onMessage.addListener(
 	function(request, sender, response) {
-		console.log(request);
+		//console.log(request);
 		switch(request.type) {
 			case 'enable?':
 				lcxMain.onTabSelect(sender.tab.id);
