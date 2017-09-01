@@ -70,7 +70,7 @@
 		if (undefined === tab.tabId) {
 			tab.tabId = tab.id;
 		}
-		
+
 		if (lcxMain.enabled) {
 			chrome.tabs.sendMessage(tab.tabId, {
 				"type":"enable",
@@ -188,12 +188,13 @@
 		chrome.browserAction.setIcon({
 			"path":"../images/toolbar-enabled.png"
 		});
-		chrome.browserAction.setBadgeBackgroundColor({
+		
+		/*chrome.browserAction.setBadgeBackgroundColor({
 			"color": [255, 0, 0, 255]
 		});
 		chrome.browserAction.setBadgeText({
 			"text": "On"
-		});
+		});*/
 	},
 
 	onError: function() {
