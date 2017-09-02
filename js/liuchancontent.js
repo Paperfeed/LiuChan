@@ -93,7 +93,7 @@ var lcxContent = {
 		return null;
 	},
 
-	showPopup: function(text, elem, x, y, looseWidth) {
+	showPopup: function(text, elem, x, y) {
 		var wd = window.document;
 
 		if (isNaN(x) || isNaN(y)) {
@@ -101,6 +101,8 @@ var lcxContent = {
 			y = 0;
         }
 
+		// todo Fix config sometimes not being loaded soon enough,
+		// making the initial popup not show up
 		var css, cssdoc;
 		var popup = wd.getElementById('liuchan-window');
 		if (!popup) {
@@ -129,8 +131,6 @@ var lcxContent = {
 				css.setAttribute('href', href);
 			}
 		}
-
-		popup.style.setProperty('max-width', (looseWidth ? '' : '600px'), 'important');
 
 		if (lcxContent.getContentType(wd) === 'text/plain') {
 			var df = document.createDocumentFragment();
@@ -672,7 +672,7 @@ var lcxContent = {
 
 	processHtml: function(html) {
 		var tdata = window.liuchan;
-		lcxContent.showPopup(html, tdata.prevTarget, tdata.popX, tdata.popY, false);
+		lcxContent.showPopup(html, tdata.prevTarget, tdata.popX, tdata.popY);
 		return 1;
 	},
 

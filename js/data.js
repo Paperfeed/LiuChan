@@ -221,13 +221,14 @@ lcxDict.prototype = {
                         k += '<span class="tone' + pinyin.tones[j] + '">' + first[j] + '</span>';
                     }
 
-					k += '<div class="spacer"></div>[';
+					k += '<span class="spacer"></span><span class="brace">[</span>';
 					for (j = 0; j < pinyin.tones.length; j++) {
 						k += '<span class="tone' + pinyin.tones[j] + '">' + second[j] + '</span>';
 					}
-					k += ']'
+					k += '<span class="brace">]</span>'
                 } else {
-                    k += '<span class="tone3">' + first + '</span><div class="spacer"></div><span class="tone3">[' + second + ']</span>';
+                    k += '<span class="tone3">' + first + '</span><span class="spacer"></span>' +
+                        '<span class="tone3"><span class="brace">[</span>' + second + '<span class="brace">]</span></span>';
                 }
 
             } else {

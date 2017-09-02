@@ -47,7 +47,6 @@ Charcoal Theme
 }
 
 #liuchan-window .spacer {
-	display: inline-block;
 	padding-left: 5px;
 }
 
@@ -59,6 +58,8 @@ Charcoal Theme
 	font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
 	margin-right: 10px;
 }
+
+#liuchan-window .brace { color: #fff; }
 
 #liuchan-window .pinyin {
 	float: left;
