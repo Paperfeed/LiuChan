@@ -96,10 +96,12 @@ var lcxContent = {
 	showPopup: function(text, elem, x, y, looseWidth) {
 		var wd = window.document;
 
-		if ((isNaN(x)) || (isNaN(y))) x = y = 0;
+		if (isNaN(x) || isNaN(y)) {
+			x = 0;
+			y = 0;
+        }
 
 		var css, cssdoc;
-
 		var popup = wd.getElementById('liuchan-window');
 		if (!popup) {
 			css = wd.createElementNS('http://www.w3.org/1999/xhtml', 'link');
@@ -965,15 +967,20 @@ var lcxContent = {
 		if (tdata.title) {
 			tdata.popX = ev.clientX;
 			tdata.popY = ev.clientY;
-			tdata.timer = setTimeout(
-				function(tdata, title) {
-					if (!tdata || title !== tdata.title) {
-						return;
-					}
-					// todo Figure out what the use of this is
-					// doesn't do anything at the moment, so I've disabled it
-					lcxContent.showTitle(tdata);
+            // todo Figure out what the use of this is
+            // doesn't do anything at the moment, so I've disabled it
+            /*
+    		tdata.timer = setTimeout(
+    			function(tdata, title) {
+
+				if (!tdata || title !== tdata.title) {
+					return;
+				}
+
+				lcxContent.showTitle(tdata);
+
 				}, delay, tdata, tdata.title);
+			*/
 		} else {
 			// Don't close just because we moved from a valid popup slightly over to a place with nothing
 			var dx = tdata.popX - ev.clientX;

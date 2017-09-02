@@ -44,9 +44,6 @@
 
             // Tell all tabs to disable themselves
 			lcxMain.sendAllTabs({"type":"disable"});
-            // todo see if this can be used:
-            // Send a disable message to all
-            //chrome.runtime.sendMessage({"type":"disable"})
         } else {
         	// Enable extension
             if (!lcxMain.dict) {
@@ -188,7 +185,7 @@
 		chrome.browserAction.setIcon({
 			"path":"../images/toolbar-enabled.png"
 		});
-		
+
 		/*chrome.browserAction.setBadgeBackgroundColor({
 			"color": [255, 0, 0, 255]
 		});
@@ -204,29 +201,5 @@
 		chrome.browserAction.setBadgeText({
 			"text": "Err"
 		});
-	},
-	
-	search: function(text) {
-		//leaving this shit in here for the future if i wanna do a hanzi dict
-		var showMode = 0;
-		var m = showMode;
-		var e = null;
-
-
-		// todo wtf is going on here? probably not necessary
-		do {
-			switch (showMode) {
-			case 0:
-				e = this.dict.wordSearch(text);
-				break;
-			//case this.hanziN:
-				//e = this.dict.kanjiSearch(text.charAt(0));
-//				break;
-			}
-			if (e) break;
-			showMode = (showMode + 1) % this.dictCount;
-		} while (showMode !== m);
-		
-		return e;
 	}
 };

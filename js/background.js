@@ -49,6 +49,9 @@ chrome.runtime.onMessage.addListener(
 				// updates settings onTabSelect as well, but might change that later on
 				lcxMain.sendAllTabs(request);
 				break;
+			case 'switchOnlyReading':
+                lcxMain.dict.noDefinition = !lcxMain.dict.noDefinition;
+				break;
 			default:
 				console.log(request);
 		}
