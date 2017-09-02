@@ -1,18 +1,22 @@
-/* this is to reset almost everything under the popup to a sane value */
+/*
+Charcoal Theme
+*/
 
-#liuchan-window, #liuchan-window * { 
+/* Popup reset */
+#liuchan-window {
 	width: auto;
+	max-width: 500px;
 	height: auto;
 	background: transparent;
-	color: #FFFFFF;
-	border: none !important;
-	border-spacing: 0px;
-	margin: 0px;
-	padding: 0px;
+	color: #000;
+	border: none;
+	border-spacing: 0;
+	margin: 0;
+	padding: 0;
 	letter-spacing: normal;
 	text-align: left;
 	text-decoration: none;
-	text-indent: 0px;
+	text-indent: 0;
 	text-transform: none;
 	white-space: normal;
 	word-spacing: normal;
@@ -20,254 +24,72 @@
 	visibility: visible;
 }
 
-#liuchan-window[dropdown] { 
-    margin: 0 auto;
-    width: 900px; 
-    top: 0px;
-    visibility: hidden;
-}
-
-#liuchan-window { 
+/* Main Popup Styling*/
+#liuchan-window {
+	position: absolute;
+	min-width: 150px;
+	padding: 6px 8px;
+	border: 2px solid #BCBCBC;
+	border-radius: 8px 8px 8px 8px;
   	background: url("hash.png") repeat scroll 0 0 #2D2D2D;
-    border: 2px solid #BCBCBC !important;
-    border-radius: 8px 8px 8px 8px;
-    box-shadow: 0 0 15px #878787;
-    min-width: 100px;
-    padding: 6px 8px;
-    position: absolute;
+	box-shadow: 0 0 15px #878787;
     z-index: 99999999999;
 }
 
-#liuchan-dropdown { 
-    background: url("dropdown-small.png") no-repeat scroll 0 0 #2D2D2D;
-    border: 2px solid #BCBCBC !important;
-    border-radius: 0px 0px 8px 8px;
-    box-shadow: 0 0 15px #878787;
-    height: 220px;
-    padding: 1px 8px;
-    position: absolute;
-    top: -6px;
-    width: 322px;
-	left: 50%; 
-	margin-left: -161px;
-    z-index: 99999999999;
+#liuchan-window .liuchan-container {
+	display: flex;
+	flex-direction: column;
 }
 
-/* used for word definitions */
-#liuchan-window .w-title {
-    background: none repeat scroll 0 0 #303030;
-    border-radius: 8px 8px 8px 8px;
-    color: #8C9196;
-    display: block;
-    font-size: 12px;
-    margin: 0 -4px 5px;
-    padding: 3px 6px 3px 3px;
-    text-align: right;
+/* Entry positioning */
+#liuchan-window .entry {
+	font-family: "Roboto", sans-serif;
 }
 
-#liuchan-window .w-kanji {
+#liuchan-window .spacer {
+	display: inline-block;
+	padding-left: 5px;
+}
+
+/* Entry Styling */
+#liuchan-window .hanzi{
+	float: left;
 	font-size: 18px;
-	color: #7070E0;
-	margin-right: 0.7em;
+	font-weight: bold;
+	font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
+	margin-right: 10px;
 }
 
-
-#liuchan-window .w-hanzi1 {
-	font-size: 18px;
-	color: #F2777A;
-}
-
-#liuchan-window .w-hanzi2 {
-	font-size: 18px;
-	color: #99CC99;
-}
-
-#liuchan-window .w-hanzi3 {
-	font-size: 18px;
-	color: #6699CC;
-}
-
-#liuchan-window .w-hanzi4 {
-	font-size: 18px;
-	color: #CC99CC;
-}
-
-#liuchan-window .w-hanzi5 {
-	font-size: 18px;
-	color: #CCCCCC;
-}
-
-#liuchan-window .w-kana {
+#liuchan-window .pinyin {
+	float: left;
+	height: fit-content;
+	line-height: 24px;
 	font-size: 16px;
-	margin-left: 0.7em;
+	font-weight: bold;
 	color: #66CCCC;
 }
 
-#liuchan-window .w-conj {
-	color: #A0A0A0;
+#liuchan-window .def {
+	clear: left;
+	color: #FFFFFF;
 	font-size: 12px;
 }
 
-#liuchan-window .w-def {
-	color: #FFFFFF;
-	font-size: 12px;
+#liuchan-window .tone1 { color: #F2777A; }
+#liuchan-window .tone2 { color: #99CC99; }
+#liuchan-window .tone3 { color: #6699CC; }
+#liuchan-window .tone4 { color: #CC99CC; }
+#liuchan-window .tone5 { color: #CCCCCC; }
+
+/* used for word definitions */
+#liuchan-window .title {
 	display: block;
-}
-
-#liuchan-window .w-na-tb td {
-	vertical-align: top;
-	padding-right: 0.8em;
-}
-
-/* used for kanji information */
-
-#liuchan-window .k-main-tb {
-	width: 300px;
-}
-
-#liuchan-window .k-kanji {
-	font-family: serif;
-	font-size: 48px;
-	color: #FFFFFF;
-}
-
-#liuchan-window .k-eigo {
+	margin: 0 -4px 5px;
+	padding: 3px 6px 3px 3px;
+	border-radius: 8px 8px 8px 8px;
+	color: #8C9196;
 	font-size: 12px;
-}
-
-/* kanji: readings */
-
-#liuchan-window .k-yomi {
-	font-size: 14px;
-	color: #20A020;
-	margin: 4px 0px;
-}
-
-#liuchan-window .k-yomi-hi {
-	color: #7070E0;
-	border: 1px solid red;
-}
-
-#liuchan-window .k-yomi-ti {
-	font-size: 11px;
-	color: #E0E0E0;
-}
-
-/* kanji radical, grade, freq, strokes box */
-
-#liuchan-window .k-abox-tb {
-	width: 120px;
-	margin-bottom: 4px;
-	float: right;
-	clear: right;
-}
-
-#liuchan-window .k-abox-r {
-	font-size: 12px;
-	text-align: center;
-	padding: 1px 4px;
-	background: #505050;
-	color: #E0E0E0;
-}
-
-#liuchan-window .k-abox-g {
-	font-size: 12px;
-	text-align: center;
-	padding: 1px 4px;
-	background: #303030;
-	color: #F0F0F0;
-}
-
-#liuchan-window .k-abox-f {
-	font-size: 12px;
-	text-align: center;
-	padding: 1px 4px;
-	background: #303030;
-	color: #F0F0F0;
-}
-
-#liuchan-window .k-abox-s {
-	font-size: 12px;
-	text-align: center;
-	padding: 1px 4px;
-	background: #505050;
-	color: #E0E0E0;
-}
-
-/* kanji components box */
-
-#liuchan-window .k-bbox-tb {
-	width: 120px;
-	margin-bottom: 4px;
-	float: right;
-	clear: right;
-}
-
-#liuchan-window .k-bbox-0a {
-	vertical-align: top;
-	font-size: 11px;
-	padding: 1px 3px;
-	background: #505050;
-	color: #E0E0E0;
-}
-
-#liuchan-window .k-bbox-0b {
-	vertical-align: top;
-	font-size: 11px;
-	padding: 1px 3px;
-	background: #505050;
-	color: #E0E0E0;
-}
-
-#liuchan-window .k-bbox-1a {
-	vertical-align: top;
-	font-size: 11px;
-	padding: 1px 3px;
-	background: #303030;
-	color: #F0F0F0;
-}
-
-#liuchan-window .k-bbox-1b {
-	vertical-align: top;
-	font-size: 11px;
-	padding: 1px 3px;
-	background: #303030;
-	color: #F0F0F0;
-}
-
-
-/* kanji: misc index */
-
-#liuchan-window .k-mix-tb {
-	width: 100%
-}
-
-#liuchan-window .k-mix-td0 {
-	font-size: 12px;
-	background: #505050;
-	color: #F0F0F0;
-}
-
-#liuchan-window .k-mix-td1 {
-	font-size: 12px;
-	background: #303030;
-	color: #E0E0E0;
-}
-
-
-/* manual query */
-
-#liuchan-window .q-tb td {
-}
-
-#liuchan-window .q-w {
-	border-right: 1px dotted #B0B0B0 !important;
-	padding: 0px 2px;
-	vertical-align: top;
-	min-width: 300px;
-}
-
-#liuchan-window .q-k {
-	padding: 0px 2px;
-	vertical-align: top;
+	font-weight: bold;
+	text-align: right;
+	background: none repeat scroll 0 0 #303030;
 }

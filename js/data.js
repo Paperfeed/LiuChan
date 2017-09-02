@@ -53,12 +53,8 @@ function lcxDict() {
 }
 
 lcxDict.prototype = {
-	loadDictionaries: function() {
-		return Promise.all([
-			this.loadDictionary()
-		]);
-	},
-	
+	noDefinition: false,
+
 	fileRead: function(filename, field) {
 		var self = this;
 		return new Promise(function(resolve, reject) {
@@ -82,14 +78,6 @@ lcxDict.prototype = {
 			req.open("GET", chrome.extension.getURL(filename));
 			req.send(null);
 		});
-	},
-
-	fileReadArray: function(name, charset) {
-		var a = this.fileRead(name, charset).split('\n');
-		// Is this just in case there is blank shit in the file.  It was writtin by Jon though.
-		// I suppose this is more robust
-		while ((a.length > 0) && (a[a.length - 1].length === 0)) a.pop();
-		return a;
 	},
 
 	loadDictionary: function() {
@@ -176,34 +164,16 @@ lcxDict.prototype = {
 		return entryobj;
     },
 
-	parseCEdictLine: function (entry) {
-		var space1 = entry.indexOf(" ");
-		var space2 = entry.indexOf(" ", space1 + 1);
-		var bracket1 = entry.indexOf("[");
-		var bracket2 = entry.indexOf("]");
-		var slash1 = entry.indexOf("/");
-		var slash2 = entry.lastIndexOf("/");
-		
-		var params = {};
-		
-		params.trad = entry.substr(0, space1);
-		params.simp = entry.substr(space1 + 1, space2 - space1 - 1);
-		params.pinyin = this.parsePinyin( entry.substr(bracket1 + 1, bracket2 - bracket1 - 1) );
-		params.def = entry.substr(slash1 + 1, slash2 - slash1 - 1);
-		
-		return params;
-	},
-	
 	makeHtml: function(entry) {
-		var trad, simp, pinyin, def;
-		var i, j, k, e;
-		
-		if (entry == null) return '';
+        if (entry == null) return '';
 
-		var b = [];
-		
-		if (entry.title)
-			b.push('<div class="w-title">' + entry.title + '</div>');
+		var trad, simp, pinyin, def;
+		var i, j, k, e, b = [];
+
+		b.push('<div class="liuchan-container">');
+		if (entry.title) {
+            b.push('<div class="title">' + entry.title + '</div>');
+        }
 
 		for (i = 0; i < entry.data.length; ++i) {
 			e = entry.data[i][0].match(/^(.+?)\s+(?:\[(.*?)\])?\s*\/(.+)\//);
@@ -214,43 +184,62 @@ lcxDict.prototype = {
 			pinyin = this.parsePinyin(e[2]);
 			def = e[3];
 
-			//HANZI
-			k = "";
-			if ("botht" === lcxMain.config.showHanzi || "boths" === lcxMain.config.showHanzi) {
-				var first  = lcxMain.config.showHanzi === "botht" ? trad : simp;
-				var second = lcxMain.config.showHanzi === "botht" ? simp : trad;
-				
-				//add the repetition dot if trad == simp
-				var newsecond = [];
-				for (j = 0; j < first.length; j++) {
-					if (first[j] === second[j])
-						newsecond.push('\u30FB');
-					else
-						newsecond.push(second[j]);
-				}
-				second = newsecond.join('');
-				
-				if (lcxMain.config.doColors === true) {
-					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + first[j] + '</span>';
-					k += '　';
-					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + second[j] + '</span>';
-				}
-				else
-					k += '<span class="w-hanzi3">' + first + '</span>　<span class="w-hanzi3">'　+ second + '</span>';
+			// Select whether to show traditional or simple first/only
+			// Note: Fallthrough is on purpose!
+			var first, second, addSecond = false;
+			switch (lcxMain.config.showHanzi) {
+				case "boths":
+                	addSecond = true;
+                	second = trad;
+                case "simp":
+                    first = simp;
+                    break;
+				case "botht":
+					addSecond = true;
+                    second = simp;
+				case "trad":
+					first = trad;
 			}
-			else {
-				var hanzi = lcxMain.config.showHanzi === "simp" ? simp : trad;
+
+            //HANZI
+            k = '<div class="entry"><div class="hanzi">';
+
+            // If simple and traditional characters are completely identical, skip this
+			if ((first !== second) && addSecond) {
+                // Replace identical characters (eg. simple == traditional) with a dot/hyphen
+                var newsecond = [];
+                for (j = 0; j < first.length; j++) {
+                    if (first[j] === second[j])
+                        newsecond.push('\u30FB');
+                    else
+                        newsecond.push(second[j]);
+                }
+                second = newsecond.join('');
+
+                if (lcxMain.config.doColors === true) {
+                    for (j = 0; j < pinyin.tones.length; j++) {
+                        k += '<span class="tone' + pinyin.tones[j] + '">' + first[j] + '</span>';
+                    }
+
+					k += '<div class="spacer"></div>[';
+					for (j = 0; j < pinyin.tones.length; j++) {
+						k += '<span class="tone' + pinyin.tones[j] + '">' + second[j] + '</span>';
+					}
+					k += ']'
+                } else {
+                    k += '<span class="tone3">' + first + '</span><div class="spacer"></div><span class="tone3">[' + second + ']</span>';
+                }
+
+            } else {
 				if (lcxMain.config.doColors === true)
 					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + hanzi[j] + '</span>';
+						k += '<span class="tone' + pinyin.tones[j] + '">' + first[j] + '</span>';
 				else
-					k += '<span class="w-hanzi3">' + hanzi + '</span>';
+					k += '<span class="tone3">' + first + '</span>';
 			}
 			
 			//PINYIN
-			k += '&#32;&#32; <span class="w-kana">';
+			k += '</div><div class="pinyin">';
 			if      ("tonenums" === lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
 			else if ("zhuyin"   === lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
 			else 										   k += pinyin.tonemarks + '</span>';
@@ -258,8 +247,12 @@ lcxDict.prototype = {
 			b.push(k);
 
 			//DEFINITION
-			def = e[3].replace(/\//g, '; ');
-			b.push('<br/><span class="w-def">' + def + '</span>');
+			if (!lcxMain.dict.noDefinition) {
+                def = e[3].replace(/\//g, '; ');
+                b.push('</div><div class="def">' + def + '</div></div>');
+            } else {
+				b.push('</div></div>');
+			}
 		}
 		
 		if (entry.more) b.push('...<br/>');
@@ -268,10 +261,7 @@ lcxDict.prototype = {
 	},
 
 	makeText: function(entry, max) {
-		var e;
-		var b;
-		var i, j;
-		var t;
+		var e, b, i, t;
 
 		if (entry == null) return '';
 

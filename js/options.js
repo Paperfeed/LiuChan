@@ -47,7 +47,7 @@ function saveOptions() {
 function restoreOptions() {
     // Use default value color = 'red' and likesColor = true.
     chrome.storage.sync.get({
-        popupColor: 'charcoal',
+        popupColor: 'liuchan',
         showHanzi: 'boths',
         pinyin: 'tonemarks',
         popupDelay: 1,
