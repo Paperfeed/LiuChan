@@ -1,4 +1,4 @@
-![Logo](/images/icon128.png) ##LiuChan Popup Dictionary
+![Logo](/images/icon128.png)
 
 LiuChan (*liú chàng*) is a mouse-over Chinese pop up dictionary for Chrome.
 
