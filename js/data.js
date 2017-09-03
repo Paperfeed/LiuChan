@@ -1,4 +1,9 @@
 ﻿/*
+	LiuChan - A port of Rikaikun to Chinese
+	By Aldert Vaandering (2017)
+	https://gitlab.com/paperfeed/liuchan
+
+	---
 
 	Rikaikun
 	Copyright (C) 2010 Erek Speed
@@ -38,230 +43,205 @@
 	when modifying any of the files. - Jon
 
 */
+
+/**
+ * LiuChan Dictionary Class
+ * @constructor
+ */
 function lcxDict() {
 	//this.loadDictionary();
 }
-  
+
 lcxDict.prototype = {
-	config: {},
+	noDefinition: false,
 
-	setConfig: function(c) {
-		this.config = c;
-	},
-
-	loadDictionaries: function() {
-		return Promise.all([
-			this.loadDictionary()
-		]);
-	},
-	
 	fileRead: function(filename, field) {
 		var self = this;
 		return new Promise(function(resolve, reject) {
-			var req = new XMLHttpRequest();
-			req.onreadystatechange = function() {
-				if (this.readyState !== XMLHttpRequest.DONE) {
-					return;
-				}
-				if (this.status !== 200) {
-					console.error("Can't load", filename);
-					reject("sorry");
-					return;
-				}
-				if (field) {
-					self[field] = this.responseText;
-					resolve(true);
-				} else {
-					resolve(this.responseText);
-				}
-			};
-			req.open("GET", chrome.extension.getURL(filename));
-			req.send(null);
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", chrome.extension.getURL(filename));
+
+            xhr.onload = function () {
+                self.parseDict(this.responseText, field);
+                resolve();
+            };
+
+            xhr.onerror = function (e) {
+                reject(e);
+            };
+
+            xhr.send(null);
 		});
 	},
 
-	fileReadArray: function(name, charset) {
-		var a = this.fileRead(name, charset).split('\n');
-		// Is this just in case there is blank shit in the file.  It was writtin by Jon though.
-		// I suppose this is more robust
-		while ((a.length > 0) && (a[a.length - 1].length == 0)) a.pop();
-		return a;
-	},
+    parseDict: function (dict, field) {
+        var reg = /(.+?)\s(.+?)\s\[(.+?)\]\s\/(.+)\//gi;
+        var array = [], result;
 
-	loadDictionary: function() {
-		//this.wordDict = this.fileRead(chrome.extension.getURL("data/dict.dat"));
-		//this.wordIndex = this.fileRead(chrome.extension.getURL("data/dict.idx"));
+        while (result = reg.exec(dict)) {
+            var traditional = result[1];
+            var simplified = result[2];
+            var pinyin = result[3];
+            var definition = result[4].split("/");
 
+            array.push({
+				"simp": simplified,
+				"trad": traditional,
+				"pinyin": pinyin,
+				"def": definition});
+        }
+
+        this[field] = array;
+    },
+
+	loadDictionary: function(tab) {
 		return Promise.all([
-			this.fileRead("data/dict.dat", "wordDict"),
-			this.fileRead("data/dict.idx", "wordIndex")
-		]);
+			this.fileRead("data/cedict_ts.u8", "hanzi")
+		]).then(function () {
+			lcxMain.onDictionaryLoaded(tab);
+			}
+		);
 	},
 
-	getUniqueArray: function(arr) {
-		var a = [];
-	    var l = arr.length;
-	    for(var i=0; i<l; i++) {
-	      for(var j=i+1; j<l; j++) {
-	        // If this[i] is found later in the array
-	        if (arr[i] === arr[j])
-	          j = ++i;
-	      }
-	      a.push(arr[i]);
-	    }
-	    return a;
-	},
-	
-	indexSearch: function (book, word) {
-		var hit, k, start, end;
-		var results = [];
-		var indexString;
-		var hanzisep = "\u30FB";
-		var indexsep = "\uFF1A";
-		
-		//find all hits for traditional characters
-		hit = book.indexOf( "\n" + word + hanzisep);
-		while (hit != -1) {
-			start = book.indexOf(indexsep, hit) + 1;
-			end = book.indexOf("\n", start);
-			indexString = book.substr(start, end - start); 
-			results.push(parseInt(indexString));
-			
-			hit = book.indexOf( "\n" + word + hanzisep, hit+1);
+    indexSearch: function (dict, char) {
+		// What this function does is quickly try to find all entries in the dictionary
+		// that match the first character of the word that we're trying to look up.
+		// It returns a start and end index number of the dictionary to use when looking for words
+
+		var foundMatch = false,
+			firstMatch, lastMatch;
+
+		for (var key in dict) {
+			if (dict.hasOwnProperty(key)) {
+				if (char === dict[key].simp.charAt(0) || char ===  dict[key].trad.charAt(0)) {
+					if (foundMatch === false) firstMatch = key;
+					foundMatch = true;
+				} else if (foundMatch > 0) {
+					lastMatch = key - 1;
+					break;
+				}
+			}
 		}
-		
-		//find all hits for simplified characters
-		hit = book.indexOf(hanzisep + word + indexsep);
-		while (hit != -1) {
-			start = book.indexOf(indexsep, hit) + 1;
-			end = book.indexOf("\n", start);
-			indexString = book.substr(start, end - start); 
-			results.push(parseInt(indexString));
-			
-			hit = book.indexOf(hanzisep + word + indexsep, hit+1);
-		}
-		
-		return this.getUniqueArray(results).sort();
+
+		if (!foundMatch) return null;
+		return [firstMatch, lastMatch]
 	},
-	
-	wordSearch: function (word) {
-		var i;
-		
-		var entryobj = {};
-		entryobj.data = [];
-		
-		var rawentries = [];
+
+    wordSearch: function (dict, word) {
+		var index = this.indexSearch(dict, word.charAt(0));
+		if (index === null) return;
+
+		var results = {};
+		results.data = [];
+
 		while (word.length > 0) {
-			//hits = start of the lines in the dict where the entries are
-		    var hits = this.indexSearch(this.wordIndex, word);
-		    
-			for (i = 0; i < hits.length; i++) {
-				var end = this.wordDict.indexOf("\n", hits[i]) - 1;
-				var entryline = this.wordDict.substr(hits[i], end - hits[i]);
-				rawentries.push(entryline);
+			for (i = index[0]; i <= index[1]; i++) {
+				if (dict[i].trad === word || dict[i].simp === word) {
+					results.data.push(dict[i]);
+				}
 			}
 			word = word.substr(0, word.length - 1);
 		}
 
-		entryobj.matchLen = 0;		
-		for (i = 0; i < rawentries.length; i++) {
-			//set highlight length to longest match
-			var hanziLen = rawentries[i].indexOf(" ");
-			if (hanziLen > entryobj.matchLen)
-				entryobj.matchLen = hanziLen;
-			
-			entryobj.data.push([rawentries[i], null]);
-		}
-		return entryobj;
-    },
-
-	parseCEdictLine: function (entry) {
-		var space1 = entry.indexOf(" ");
-		var space2 = entry.indexOf(" ", space1 + 1);
-		var bracket1 = entry.indexOf("[");
-		var bracket2 = entry.indexOf("]");
-		var slash1 = entry.indexOf("/");
-		var slash2 = entry.lastIndexOf("/");
-		
-		var params = {};
-		
-		params.trad = entry.substr(0, space1);
-		params.simp = entry.substr(space1 + 1, space2 - space1 - 1);
-		params.pinyin = this.parsePinyin( entry.substr(bracket1 + 1, bracket2 - bracket1 - 1) );
-		params.def = entry.substr(slash1 + 1, slash2 - slash1 - 1);
-		
-		return params;
-	},
-	
-	makeHtml: function(entry) {
-		var e; 
-		var k;
-		
-		var trad, simp, pinyin, def;
-		var i, j, k;
-		
-		if (entry == null) return '';
-
-		var b = [];
-		
-		if (entry.title)
-			b.push('<div class="w-title">' + entry.title + '</div>');
-
-		for (i = 0; i < entry.data.length; ++i) {
-			e = entry.data[i][0].match(/^(.+?)\s+(?:\[(.*?)\])?\s*\/(.+)\//);
-			if (!e) continue;
-
-			trad = e[1].split(" ")[0];
-			simp = e[1].split(" ")[1];
-			pinyin = this.parsePinyin(e[2]);
-			def = e[3];
-
-			//HANZI
-			k = "";
-			if ("botht" == lcxMain.config.showHanzi || "boths" == lcxMain.config.showHanzi) {
-				var first  = lcxMain.config.showHanzi == "botht" ? trad : simp;
-				var second = lcxMain.config.showHanzi == "botht" ? simp : trad;
-				
-				//add the repetition dot if trad == simp
-				var newsecond = [];
-				for (j = 0; j < first.length; j++) {
-					if (first[j] == second[j])
-						newsecond.push('\u30FB');
-					else
-						newsecond.push(second[j]);
-				}
-				second = newsecond.join('');
-				
-				if (lcxMain.config.doColors == "yes") {
-					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + first[j] + '</span>';
-					k += '　';
-					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + second[j] + '</span>';
-				}
-				else
-					k += '<span class="w-hanzi3">' + first + '</span>　<span class="w-hanzi3">'　+ second + '</span>';
+		results.matchLen = 0;
+		for (var key in results.data) {
+			// Set highlight length to longest match
+			if (results.data[key].simp.length > results.matchLen) {
+				results.matchLen = results.data[key].simp.length;
 			}
-			else {
-				var hanzi = lcxMain.config.showHanzi == "simp" ? simp : trad;
-				if (lcxMain.config.doColors == "yes")
-					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="w-hanzi' + pinyin.tones[j] + '">' + hanzi[j] + '</span>';
+		}
+
+		return results;
+	},
+
+	makeHtml: function(entry) {
+        if (entry == null) return '';
+
+		var trad, simp, pinyin, def;
+		var html, b = [];
+
+		b.push('<div class="liuchan-container">');
+		// todo Make use of title if wanted
+		/*if (entry.title) {
+            b.push('<div class="title">' + entry.title + '</div>');
+        }*/
+
+		for (var key in entry.data) {
+			// Parse pinyin, remove numbers, add tone marks etc
+			trad = entry.data[key].trad;
+			simp = entry.data[key].simp;
+			pinyin = this.parsePinyin(entry.data[key].pinyin);
+			def = entry.data[key].def;
+
+			// Select whether to show traditional or simple first/only
+			// Note: Fallthrough is on purpose!
+			var first, second, addSecond = false;
+			switch (lcxMain.config.showHanzi) {
+				case "boths":
+                	addSecond = true;
+                	second = trad;
+                case "simp":
+                    first = simp;
+                    break;
+				case "botht":
+					addSecond = true;
+                    second = simp;
+				case "trad":
+					first = trad;
+			}
+
+            //HANZI
+            html = '<div class="entry"><div class="hanzi">';
+
+            // If simple and traditional characters are completely identical, skip this
+			if ((first !== second) && addSecond) {
+                // Replace identical characters (eg. simple == traditional) with a dot/hyphen
+                var newsecond = [];
+                for (i = 0; i < first.length; i++) {
+                    if (first[i] === second[i])
+                        newsecond.push('\u30FB');
+                    else
+                        newsecond.push(second[i]);
+                }
+                second = newsecond.join('');
+
+                if (lcxMain.config.doColors === true) {
+                    for (i = 0; i < pinyin.tones.length; i++) {
+                        html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
+                    }
+
+					html += '<span class="spacer"></span><span class="brace">[</span>';
+					for (i = 0; i < pinyin.tones.length; i++) {
+						html += '<span class="tone' + pinyin.tones[i] + '">' + second.charAt(i) + '</span>';
+					}
+					html += '<span class="brace">]</span>'
+                } else {
+                    html += '<span class="tone3">' + first + '</span><span class="spacer"></span>' +
+                        '<span class="tone3"><span class="brace">[</span>' + second + '<span class="brace">]</span></span>';
+                }
+
+            } else {
+				if (lcxMain.config.doColors === true)
+					for( i = 0; i < pinyin.tones.length; i++)
+						html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
 				else
-					k += '<span class="w-hanzi3">' + hanzi + '</span>';
+					html += '<span class="tone3">' + first + '</span>';
 			}
 			
 			//PINYIN
-			k += '&#32;&#32; <span class="w-kana">';
-			if      ("tonenums" == lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
-			else if ("zhuyin"   == lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
-			else 										  k += pinyin.tonemarks + '</span>';
+			html += '</div><div class="pinyin">';
+			if      ("tonenums" === lcxMain.config.pinyin) html += pinyin.tonenums  + '</span>';
+			else if ("zhuyin"   === lcxMain.config.pinyin) html += pinyin.zhuyin    + '</span>';
+			else 										   html += pinyin.tonemarks + '</span>';
 
-			b.push(k);
+			b.push(html);
 
 			//DEFINITION
-			def = e[3].replace(/\//g, '; ');
-			b.push('<br/><span class="w-def">' + def + '</span>');
+			if (!lcxMain.dict.noDefinition) {
+                b.push('</div><div class="def">' + def + '</div></div>');
+            } else {
+				b.push('</div></div>');
+			}
 		}
 		
 		if (entry.more) b.push('...<br/>');
@@ -270,10 +250,7 @@ lcxDict.prototype = {
 	},
 
 	makeText: function(entry, max) {
-		var e;
-		var b;
-		var i, j;
-		var t;
+		var e, b, i, t;
 
 		if (entry == null) return '';
 
@@ -303,8 +280,8 @@ lcxDict.prototype = {
 	zhuyinref: ['\u311A','\u311E','\u3122','\u3124','\u3120','\u3105\u311A','\u3105\u311E','\u3105\u3122','\u3105\u3124','\u3105\u3120','\u3105\u311F','\u3105\u3123','\u3105\u3125','\u3105\u30FC','\u3105\u30FC\u3122','\u3105\u30FC\u3120','\u3105\u30FC\u311D','\u3105\u30FC\u3123','\u3105\u30FC\u3125','\u3105\u311B','\u3105\u3128','\u3118\u311A','\u3118\u311E','\u3118\u3122','\u3118\u3124','\u3118\u3120','\u3118\u311C','\u3118\u3123','\u3118\u3125','\u3114\u311A','\u3114\u311E','\u3114\u3122','\u3114\u3124','\u3114\u3120','\u3114\u311C','\u3114\u3123','\u3114\u3125','\u3114','\u3114\u3128\u3125','\u3114\u3121','\u3114\u3128','\u3114\u3128\u311A','\u3114\u3128\u311E','\u3114\u3128\u3122','\u3114\u3128\u3124','\u3114\u3128\u311F','\u3114\u3128\u3123','\u3114\u3128\u311B','\u3118','\u3118\u3128\u3125','\u3118\u3121','\u3118\u3128','\u3118\u3128\u3122','\u3118\u3128\u311F','\u3118\u3128\u3123','\u3118\u3128\u311B','\u3109\u311A','\u3109\u311E','\u3109\u3122','\u3109\u3124','\u3109\u3120','\u3109\u311C','\u3109\u3125','\u3109\u30FC','\u3109\u30FC\u3122','\u3109\u30FC\u3124','\u3109\u30FC\u3120','\u3109\u30FC\u311D','\u3109\u30FC\u3125','\u3109\u30FC\u3121','\u3109\u3128\u3125','\u3109\u3121','\u3109\u3128','\u3109\u3128\u3122','\u3109\u3128\u311F','\u3109\u3128\u3123','\u3109\u3128\u311B','\u311C','\u311F','\u3123','\u3126','\u3108\u311A','\u3108\u3122','\u3108\u3124','\u3108\u311F','\u3108\u3123','\u3108\u3125','\u3108\u311B','\u3108\u3121','\u3108\u3128','\u310D\u311A','\u310D\u311E','\u310D\u3122','\u310D\u3124','\u310D\u3120','\u310D\u311C','\u310D\u311F','\u310D\u3123','\u310D\u3125','\u310D\u3128\u3125','\u310D\u3121','\u310D\u3128','\u310D\u3128\u311A','\u310D\u3128\u311E','\u310D\u3128\u3122','\u310D\u3128\u3124','\u310D\u3128\u311F','\u310D\u3128\u3123','\u310D\u3128\u311B','\u310F\u311A','\u310F\u311E','\u310F\u3122','\u310F\u3124','\u310F\u3120','\u310F\u311C','\u310F\u311F','\u310F\u3123','\u310F\u3125','\u310F\u3128\u3125','\u310F\u3121','\u310F\u3128','\u310F\u3128\u311A','\u310F\u3128\u311E','\u310F\u3128\u3122','\u310F\u3128\u3124','\u310F\u3128\u311F','\u310F\u3128\u3123','\u310F\u3128\u311B','\u3110\u30FC','\u3110\u30FC\u311A','\u3110\u30FC\u3122','\u3110\u30FC\u3124','\u3110\u30FC\u3120','\u3110\u30FC\u311D','\u3110\u30FC\u3123','\u3110\u30FC\u3125','\u3110\u3129\u3125','\u3110\u30FC\u3121','\u3110\u3129','\u3110\u3129\u3122','\u3110\u3129\u311D','\u3110\u3129\u3123','\u310E\u311A','\u310E\u311E','\u310E\u3122','\u310E\u3124','\u310E\u3120','\u310E\u311C','\u310E\u3123','\u310E\u3125','\u310E\u3128\u3125','\u310E\u3121','\u310E\u3128','\u310E\u3128\u311A','\u310E\u3128\u311E','\u310E\u3128\u3122','\u310E\u3128\u3124','\u310E\u3128\u311F','\u310E\u3128\u3123','\u310E\u3128\u311B','\u310C\u311A','\u310C\u311E','\u310C\u3122','\u310C\u3124','\u310C\u3120','\u310C\u311C','\u310C\u311F','\u310C\u3125','\u310C\u30FC','\u310C\u30FC\u3122','\u310C\u30FC\u3124','\u310C\u30FC\u3120','\u310C\u30FC\u311D','\u310C\u30FC\u3123','\u310C\u30FC\u3125','\u310C\u30FC\u3121','\u310C\u3128\u3125','\u310C\u3121','\u310C\u3128','\u310C\u3129','\u310C\u3128\u3122','\u310C\u3129\u311D','\u310C\u3128\u3123','\u310C\u3128\u311B','\u3107\u311A','\u3107\u311E','\u3107\u3122','\u3107\u3124','\u3107\u3120','\u3107\u311C','\u3107\u311F','\u3107\u3123','\u3107\u3125','\u3107\u30FC','\u3107\u30FC\u3122','\u3107\u30FC\u3120','\u3107\u30FC\u311D','\u3107\u30FC\u3123','\u3107\u30FC\u3125','\u3107\u30FC\u3121','\u3107\u3128\u311B','\u3107\u3121','\u3107\u3128','\u310B\u311A','\u310B\u311E','\u310B\u3122','\u310B\u3124','\u310B\u3120','\u310B\u311B','\u310B\u311F','\u310B\u3123','\u310B\u3125','\u310B\u30FC','\u310B\u30FC\u311A','\u310B\u30FC\u3122','\u310B\u30FC\u3124','\u310B\u30FC\u3120','\u310B\u30FC\u311D','\u310B\u30FC\u3123','\u310B\u30FC\u3125','\u310B\u30FC\u3121','\u310B\u3128\u3125','\u310B\u3121','\u310B\u3128','\u310B\u3129','\u310B\u3128\u3122','\u310B\u3129\u311D','\u310B\u3128\u311B','\u310B\u3128\u3123','\u3121','\u3106\u311A','\u3106\u311E','\u3106\u3122','\u3106\u3124','\u3106\u3120','\u3106\u311F','\u3106\u3123','\u3106\u3125','\u3106\u30FC','\u3106\u30FC\u3122','\u3106\u30FC\u3120','\u3106\u30FC\u311D','\u3106\u30FC\u3123','\u3106\u30FC\u3125','\u3106\u3128\u311B','\u3106\u3121','\u3106\u3128','\u3111\u30FC','\u3111\u30FC\u311A','\u3111\u30FC\u3122','\u3111\u30FC\u3124','\u3111\u30FC\u3120','\u3111\u30FC\u311D','\u3111\u30FC\u3123','\u3111\u30FC\u3125','\u3111\u3129\u3125','\u3111\u30FC\u3121','\u3111\u3129','\u3111\u3129\u3122','\u3111\u3129\u311D','\u3111\u3129\u3123','\u3116\u3122','\u3116\u3124','\u3116\u3120','\u3116\u311C','\u3116\u3123','\u3116\u3125','\u3116','\u3116\u3128\u3125','\u3116\u3121','\u3116\u3128','\u3116\u3128\u3122','\u3116\u3128\u311F','\u3116\u3128\u3123','\u3116\u3128\u311B','\u3119\u311A','\u3119\u311E','\u3119\u3122','\u3119\u3124','\u3119\u3120','\u3119\u311C','\u3119\u311F','\u3119\u3123','\u3119\u3125','\u3115\u311A','\u3115\u311E','\u3115\u3122','\u3115\u3124','\u3115\u3120','\u3115\u311C','\u3115\u311F','\u3115\u3123','\u3115\u3125','\u3115','\u3115\u3121\u3125','\u3115\u3121','\u3115\u3128','\u3115\u3128\u311A','\u3115\u3128\u311E','\u3115\u3128\u3122','\u3115\u3128\u3124','\u3115\u3128\u311F','\u3115\u3128\u3123','\u3115\u3128\u311B','\u3119','\u3119\u3128\u3125','\u3119\u3121','\u3119\u3128','\u3119\u3128\u3122','\u3119\u3128\u311F','\u3119\u3128\u3123','\u3119\u3128\u311B','\u310A\u311A','\u310A\u311E','\u310A\u3122','\u310A\u3124','\u310A\u3120','\u310A\u311C','\u310A\u3125','\u310A\u30FC','\u310A\u30FC\u3122','\u310A\u30FC\u3120','\u310A\u30FC\u311D','\u310A\u30FC\u3125','\u310A\u3128\u3125','\u310A\u3121','\u310A\u3128','\u310A\u3128\u3122','\u310A\u3128\u311F','\u310A\u3128\u3123','\u310A\u3128\u311B','\u3128\u311A','\u3128\u311E','\u3128\u3122','\u3128\u3124','\u3128\u311F','\u3128\u3123','\u3128\u3125','\u3128\u311B','\u3128','\u3112\u30FC','\u3112\u30FC\u311A','\u3112\u30FC\u3122','\u3112\u30FC\u3124','\u3112\u30FC\u3120','\u3112\u30FC\u311D','\u3112\u30FC\u3123','\u3112\u30FC\u3125','\u3112\u3129\u3125','\u3112\u30FC\u3121','\u3112\u3129','\u3112\u3129\u3122','\u3112\u3129\u311D','\u3112\u3129\u3123','\u30FC\u311A','\u30FC\u311E','\u30FC\u3122','\u30FC\u3124','\u30FC\u3120','\u30FC\u311D','\u30FC','\u30FC\u3123','\u30FC\u3125','\u30FC\u311B','\u3129\u3125','\u30FC\u3121','\u3129','\u3129\u3122','\u3129\u311D','\u3129\u3123','\u3117\u311A','\u3117\u311E','\u3117\u3122','\u3117\u3124','\u3117\u3120','\u3117\u311C','\u3117\u311F','\u3117\u3123','\u3117\u3125','\u3113\u311A','\u3113\u311E','\u3113\u3122','\u3113\u3124','\u3113\u3120','\u3113\u311C','\u3113\u311F','\u3113\u3123','\u3113\u3125','\u3113','\u3113\u3128\u3125','\u3113\u3121','\u3113\u3128','\u3113\u3128\u311A','\u3113\u3128\u311E','\u3113\u3128\u3122','\u3113\u3128\u3124','\u3113\u3128\u311F','\u3113\u3128\u3123','\u3113\u3128\u311B','\u3117','\u3117\u3128\u3125','\u3117\u3121','\u3117\u3128','\u3117\u3128\u3122','\u3117\u3128\u311F','\u3117\u3128\u3123','\u3117\u3128\u311B'],
 	
 	isVowel: function (letter) {
-		if( letter == "a" || letter == "e" || letter == "i" ||
-		    letter == "o" || letter == "u" ) return true;
+		if( letter === "a" || letter === "e" || letter === "i" ||
+		    letter === "o" || letter === "u" ) return true;
 		return false; 
   	},
   	
@@ -330,10 +307,10 @@ lcxDict.prototype = {
 			
 			tonenums.push(pin);
 			
-	    	if( pin.indexOf("1") != -1 ) tone = 0;
-	    	else if( pin.indexOf("2") != -1 ) tone = 1;
-	    	else if( pin.indexOf("3") != -1 ) tone = 2;
-	    	else if( pin.indexOf("4") != -1 ) tone = 3;
+	    	if( pin.indexOf("1") !== -1 ) tone = 0;
+	    	else if( pin.indexOf("2") !== -1 ) tone = 1;
+	    	else if( pin.indexOf("3") !== -1 ) tone = 2;
+	    	else if( pin.indexOf("4") !== -1 ) tone = 3;
 	    	
 	    	result.tones.push(tone+1);
 	    	
@@ -341,9 +318,9 @@ lcxDict.prototype = {
 			var indx = this.pinyinref.indexOf(prepin.toLowerCase());
 		  	zhuyin.push(this.zhuyinref[indx] + ztone[tone]);
 
-	    	if( pin.indexOf("a") != -1 ) pin = pin.replace( "a", _a[tone] );
-	    	else if( pin.indexOf("e") != -1 ) pin = pin.replace( "e", _e[tone] );
-	    	else if( pin.indexOf("ou") != -1 ) pin = pin.replace( "o", _o[tone] );
+	    	if( pin.indexOf("a") !== -1 ) pin = pin.replace( "a", _a[tone] );
+	    	else if( pin.indexOf("e") !== -1 ) pin = pin.replace( "e", _e[tone] );
+	    	else if( pin.indexOf("ou") !== -1 ) pin = pin.replace( "o", _o[tone] );
 	    	else {
 	    	 for( var k = pin.length - 1; k >= 0; k--){
 	    		if( this.isVowel(pin[k]) ){
@@ -352,7 +329,7 @@ lcxDict.prototype = {
 	    			 case 'o':  pin = pin.replace( "o", _o[tone] ); break;
 	    			 case 'u':  pin = pin.replace( "u", _u[tone] ); break;
 	    			 case '\u00FC': pin = pin.replace( "\u00FC", _v[tone] ); break; 
-	    			 default: alert("some kind of wierd vowel");
+	    			 default: alert("some kind of weird vowel");
 	    			}
 	    		break;
 	    		}
@@ -364,5 +341,5 @@ lcxDict.prototype = {
 	    result.zhuyin = zhuyin.join(" ");
 	    result.tonenums = tonenums.join(" ");
 	   	return result;
-	},
+	}
 };

@@ -1,120 +1,98 @@
-function fillVals() {
-	// Dropdowns
-	document.optform.popupColor.value = localStorage['popupColor'];
-	document.optform.showHanzi.value = localStorage['showHanzi'];
-	document.optform.pinyin.value = localStorage['pinyin'];
-	document.optform.popupDelay.value = localStorage["popupDelay"];
 
-	// Highlight text or not
-	if (localStorage['highlight'] == 'true')
-		document.optform.highlightText.checked = true;
-	else
-		document.optform.highlightText.checked = false;
+// https://developer.chrome.com/extensions/options
+// Saves options to chrome.storage
+function saveOptions() {
+    var popupColor = document.getElementById('popupColor').value;
+    var showHanzi = document.getElementById('showHanzi').value;
+    var pinyin = document.getElementById('pinyin').value;
+    var popupDelay = document.getElementById('popupDelay').value;
+    var highlight = document.getElementById('highlight').checked;
+    var textboxhl = document.getElementById('textboxhl').checked;
+    var doColors = document.getElementById('doColors').checked;
+    var miniHelp = document.getElementById('miniHelp').checked;
+    var disableKeys = document.getElementById('disableKeys').checked;
+    var lineEnding = document.getElementById('lineEnding').value;
+    var copySeparator = document.getElementById('copySeparator').value;
+    var maxClipCopyEntries = document.getElementById('maxClipCopyEntries').value;
+    var showOnKey = document.querySelector('input[name="showOnKey"]:checked').value;
 
-	// Highlight text in input fields or not
-	if (localStorage['textboxhl'] == 'true')
-		document.optform.textboxhl.checked = true;
-	else
-		document.optform.textboxhl.checked = false;
-
-	// Display pinyin tones in color or not
-	if (localStorage['doColors'] == 'true')
-		document.optform.doColors.checked = true;
-	else
-		document.optform.doColors.checked = false;
-
-	// Show hotkey summary on enable or not
-	if (localStorage['miniHelp'] == 'true')
-		document.optform.miniHelp.checked = true;
-	else
-		document.optform.miniHelp.checked = false;
-
-	// Disable hotkeys or not
-	if (localStorage['disableKeys'] == 'true')
-		document.optform.disableKeys.checked = true;
-	else
-		document.optform.disableKeys.checked = false;
-
-	// Line ending for Copy to Clipboard functionality
-	store = localStorage['lineEnding'];
-	for (var i = 0; i < document.optform.lineEnding.length; ++i) {
-		if (document.optform.lineEnding[i].value == store) {
-			document.optform.lineEnding[i].selected = true;
-			break;
-		}
-	}
-
-	// Separator for Copy to Clipboard functionality
-	store = localStorage['copySeparator'];
-	for (var i = 0; i < document.optform.copySeparator.length; ++i) {
-		if (document.optform.copySeparator[i].value == store) {
-			document.optform.copySeparator[i].selected = true;
-			break;
-		}
-	}
-
-	document.optform.maxClipCopyEntries.value = parseInt(localStorage['maxClipCopyEntries']);
-
-	// Select which key should be held to display popup, if at all
-	store = localStorage['showOnKey'];
-	for (var i = 0; i < document.optform.showOnKey.length; ++i) {
-		if (document.optform.showOnKey[i].value === store) {
-			document.optform.showOnKey[i].checked = true;
-			break;
-		}
-	}
-
+    var newConfig = {
+        popupColor: popupColor,
+        showHanzi: showHanzi,
+        pinyin: pinyin,
+        popupDelay: popupDelay,
+        highlight: highlight,
+        textboxhl: textboxhl,
+        doColors: doColors,
+        miniHelp: miniHelp,
+        disableKeys: disableKeys,
+        lineEnding: lineEnding,
+        copySeparator: copySeparator,
+        maxClipCopyEntries: maxClipCopyEntries,
+        showOnKey: showOnKey
+    };
+    chrome.storage.sync.set(newConfig, function() {
+        chrome.runtime.sendMessage({"type":"config", "config":newConfig});
+        // Update status to let user know options were saved.
+        var status = document.getElementById('status');
+        status.className += 'statusOn';
+        setTimeout(function() {
+            status.className = '';
+        }, 750);
+    });
 }
 
-function getVals() {
-	localStorage['popupColor'] = document.optform.popupColor.value;
-	localStorage['showHanzi'] = document.optform.showHanzi.value;
-	localStorage['pinyin'] = document.optform.pinyin.value;
-	localStorage['highlight'] = document.optform.highlightText.checked;
-	localStorage['textboxhl'] = document.optform.textboxhl.checked;
-	localStorage['doColors'] = document.optform.doColors.checked;
-	localStorage['miniHelp'] = document.optform.miniHelp.checked;
-	localStorage['disableKeys'] = document.optform.disableKeys.checked;
-	localStorage['lineEnding'] = document.optform.lineEnding.value;
-	localStorage['copySeparator'] = document.optform.copySeparator.value;
-	localStorage['maxClipCopyEntries'] = document.optform.maxClipCopyEntries.value;
+// Restores select box and checkbox state using the preferences
+// stored in chrome.storage.
+function restoreOptions() {
+    // Use default value color = 'red' and likesColor = true.
+    chrome.storage.sync.get({
+        popupColor: 'liuchan',
+        showHanzi: 'boths',
+        pinyin: 'tonemarks',
+        popupDelay: 1,
+        highlight: true,
+        textboxhl: false,
+        doColors: true,
+        miniHelp: true,
+        disableKeys: true,
+        lineEnding: 'n',
+        copySeparator: 'tab',
+        maxClipCopyEntries: 7,
+        showOnKey: ""
+    }, function(items) {
+        document.getElementById('popupColor').value = items.popupColor;
+        document.getElementById('showHanzi').value = items.showHanzi;
+        document.getElementById('pinyin').value = items.pinyin;
+        document.getElementById('popupDelay').value = items.popupDelay;
+        document.getElementById('highlight').checked = items.highlight;
+        document.getElementById('textboxhl').checked = items.textboxhl;
+        document.getElementById('doColors').checked = items.doColors;
+        document.getElementById('miniHelp').checked = items.miniHelp;
+        document.getElementById('disableKeys').checked = items.disableKeys;
+        document.getElementById('lineEnding').value = items.lineEnding;
+        document.getElementById('copySeparator').value = items.copySeparator;
+        document.getElementById('maxClipCopyEntries').value = items.maxClipCopyEntries;
 
-	var popupDelay;
-	try {
-		popupDelay = parseInt(document.optform.popupDelay.value);
-		if (!isFinite(popupDelay)) {
-			throw Error('infinite');
-		}
-		localStorage['popupDelay'] = document.optform.popupDelay.value;
-	} catch (err) {
-		popupDelay = 150;
-		localStorage['popupDelay'] = "150";
-	}
-	localStorage['showOnKey'] = document.optform.showOnKey.value;
-
-	// TODO config can be used directly from localStorage. No need to copy it every time
-	chrome.extension.getBackgroundPage().lcxMain.config.css = localStorage["popupColor"];
-	chrome.extension.getBackgroundPage().lcxMain.config.showHanzi = localStorage["showHanzi"];
-	chrome.extension.getBackgroundPage().lcxMain.config.pinyin = localStorage["pinyin"];
-	chrome.extension.getBackgroundPage().lcxMain.config.highlight = localStorage["highlight"];
-	chrome.extension.getBackgroundPage().lcxMain.config.textboxhl = localStorage["textboxhl"];
-	chrome.extension.getBackgroundPage().lcxMain.config.doColors = localStorage["doColors"];
-	chrome.extension.getBackgroundPage().lcxMain.config.miniHelp = localStorage["miniHelp"];
-	chrome.extension.getBackgroundPage().lcxMain.config.popupDelay = popupDelay;
-	chrome.extension.getBackgroundPage().lcxMain.config.disableKeys = localStorage["disableKeys"];
-	chrome.extension.getBackgroundPage().lcxMain.config.showOnKey = localStorage["showOnKey"];
-	chrome.extension.getBackgroundPage().lcxMain.config.lineEnding = localStorage["lineEnding"];
-	chrome.extension.getBackgroundPage().lcxMain.config.copySeparator = localStorage["copySeparator"];
-	chrome.extension.getBackgroundPage().lcxMain.config.maxClipCopyEntries = localStorage["maxClipCopyEntries"];
-
+        // Get radio buttons and check the proper matching one
+        // Should perhaps replace this with a RadioNodeList
+        var radio = document.getElementsByName('showOnKey');
+        for(var i = 0; i < radio.length; i++){
+            if(radio[i].value === items.showOnKey){
+                radio[i].checked = true;
+            }
+        }
+    });
 }
-window.onload = fillVals;
+document.addEventListener('DOMContentLoaded', restoreOptions);
 
-var inputs = document.querySelectorAll('.config');
-for (var i = 0; i < inputs.length; ++i) {
-	inputs[i].addEventListener('change', getVals);
-	var type = inputs[i].getAttribute('type');
-	if (type === 'number' || type === 'text') {
-		inputs[i].addEventListener('input', getVals);
-	}
-}
+window.onload = function () {
+    var inputs = document.querySelectorAll('.config');
+    for (var i = 0; i < inputs.length; ++i) {
+        inputs[i].addEventListener('change', saveOptions);
+        var type = inputs[i].getAttribute('type');
+        if (type === 'number' || type === 'text') {
+            inputs[i].addEventListener('input', saveOptions);
+        }
+    }
+};

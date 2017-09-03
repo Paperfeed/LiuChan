@@ -1,0 +1,104 @@
+/*
+LiuChan Theme
+*/
+
+/* Popup reset */
+#liuchan-window {
+    width: auto;
+    max-width: 500px;
+    height: auto;
+    background: transparent;
+    color: #000;
+    border: none;
+    border-spacing: 0;
+    margin: 0;
+    padding: 0;
+    letter-spacing: normal;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0;
+    text-transform: none;
+    white-space: normal;
+    word-spacing: normal;
+    font: normal 14px sans-serif;
+    visibility: visible;
+}
+
+/* Main Popup Styling*/
+#liuchan-window {
+    position: absolute;
+    min-width: 150px;
+    padding: 5px;
+    background: lightyellow;
+    border: 2px solid #d7d3af;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 0 rgba(66,8,8,0.10);
+    z-index: 99999999999;
+}
+
+#liuchan-window .liuchan-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Entry positioning */
+#liuchan-window .entry {
+    font-family: Roboto, sans-serif;
+}
+d
+#liuchan-window .entry:not(:last-of-type) .def:after {
+    display: block;
+    content: '';
+    width: 100%;
+    margin: 5px -5px 3px -5px;
+    padding-left: 10px;
+    height: 1px;
+    background-color: #e3e3e3;
+}
+
+#liuchan-window .spacer {
+    padding-left: 5px;
+}
+
+/* Entry Styling */
+#liuchan-window .hanzi{
+    float: left;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
+    margin-right: 10px;
+}
+
+#liuchan-window .brace { color: #c9c2b1; }
+
+#liuchan-window .pinyin {
+    float: left;
+    height: fit-content;
+    line-height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #66CCCC;
+}
+
+#liuchan-window .def {
+    clear: left;
+    color: #524e45;
+    font-size: 13px;
+}
+
+#liuchan-window .tone1 { color: #F2777A; }
+#liuchan-window .tone2 { color: #99CC99; }
+#liuchan-window .tone3 { color: #6699CC; }
+#liuchan-window .tone4 { color: #CC99CC; }
+#liuchan-window .tone5 { color: #CCCCCC; }
+
+/* used for word definitions */
+#liuchan-window .title {
+    margin-bottom: 5px;
+    color: #524e45;
+    font-size: 16px;
+    font-weight: normal;
+    text-align: center;
+    font-family: "Roboto", sans-serif;
+}
+
