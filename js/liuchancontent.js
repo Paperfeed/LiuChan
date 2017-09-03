@@ -53,6 +53,8 @@ var lcxContent = {
 			if (document.activeElement.nodeName === 'TEXTAREA' || document.activeElement.nodeName === 'INPUT') {
 				window.liuchan.oldTA = document.activeElement;
 			}
+
+			lcxContent.prevTime = 999;
 			window.addEventListener('mousemove', this.onMouseMove, false);
 			window.addEventListener('keydown', this.onKeyDown, true);
 			window.addEventListener('keyup', this.onKeyUp, true);
@@ -713,7 +715,7 @@ var lcxContent = {
 				// being not text.  This is the most general way to deal with
 				// arbitrary types
 
-				// We set oldTA to null because we don't want to do weird stuf
+				// We set oldTA to null because we don't want to do weird stuff
 				// with buttons
 				tdata.oldTA = null;
 				console.log(err.message);
@@ -826,10 +828,14 @@ var lcxContent = {
 	},
 
 	onMouseMove: function(ev) {
-		lcxContent.lastPos.x = ev.clientX;
-		lcxContent.lastPos.y = ev.clientY;
-		lcxContent.lastTarget = ev.target;
-		lcxContent.tryUpdatePopup(ev);
+		// Put a delay to reduce CPU strain
+        if ((new Date().getTime() - lcxContent.prevTime) > 100) {
+            lcxContent.prevTime = new Date().getTime();
+            lcxContent.lastPos.x = ev.clientX;
+            lcxContent.lastPos.y = ev.clientY;
+            lcxContent.lastTarget = ev.target;
+            lcxContent.tryUpdatePopup(ev);
+        }
 	},
 
 	tryUpdatePopup: function(ev) {
