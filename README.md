@@ -1,4 +1,5 @@
-##![Logo](/images/icon128.png) LiuChan Popup Dictionary
+![Logo](/images/icon128.png) ##LiuChan Popup Dictionary
+
 LiuChan (*liú chàng*) is a mouse-over Chinese pop up dictionary for Chrome.
 
 It started out as a port of RikaiChan (and its Rikai derivatives) and has since grown into a sleek and functionality centered plugin that holds its own.
