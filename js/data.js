@@ -58,131 +58,120 @@ lcxDict.prototype = {
 	fileRead: function(filename, field) {
 		var self = this;
 		return new Promise(function(resolve, reject) {
-			var req = new XMLHttpRequest();
-			req.onreadystatechange = function() {
-				if (this.readyState !== XMLHttpRequest.DONE) {
-					return;
-				}
-				if (this.status !== 200) {
-					console.error("Can't load", filename);
-					reject("sorry");
-					return;
-				}
-				if (field) {
-					self[field] = this.responseText;
-					resolve(true);
-				} else {
-					resolve(this.responseText);
-				}
-			};
-			req.open("GET", chrome.extension.getURL(filename));
-			req.send(null);
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", chrome.extension.getURL(filename));
+
+            xhr.onload = function () {
+                self.parseDict(this.responseText, field);
+                resolve();
+            };
+
+            xhr.onerror = function (e) {
+                reject(e);
+            };
+
+            xhr.send(null);
 		});
 	},
 
-	loadDictionary: function() {
+    parseDict: function (dict, field) {
+        var reg = /(.+?)\s(.+?)\s\[(.+?)\]\s\/(.+)\//gi;
+        var array = [], result;
+
+        while (result = reg.exec(dict)) {
+            var traditional = result[1];
+            var simplified = result[2];
+            var pinyin = result[3];
+            var definition = result[4].split("/");
+
+            array.push({
+				"simp": simplified,
+				"trad": traditional,
+				"pinyin": pinyin,
+				"def": definition});
+        }
+
+        this[field] = array;
+    },
+
+	loadDictionary: function(tab) {
 		return Promise.all([
-			this.fileRead("data/dict.dat", "wordDict"),
-			this.fileRead("data/dict.idx", "wordIndex")
-		]);
+			this.fileRead("data/cedict_ts.u8", "hanzi")
+		]).then(function () {
+			lcxMain.onDictionaryLoaded(tab);
+			}
+		);
 	},
 
-	getUniqueArray: function(arr) {
-		var a = [];
-	    var l = arr.length;
-	    for(var i=0; i<l; i++) {
-	      for(var j=i+1; j<l; j++) {
-	        // If this[i] is found later in the array
-	        if (arr[i] === arr[j])
-	          j = ++i;
-	      }
-	      a.push(arr[i]);
-	    }
-	    return a;
-	},
-	
-	indexSearch: function (book, word) {
-		var hit, k, start, end;
-		var results = [];
-		var indexString;
-		var hanzisep = "\u30FB";
-		var indexsep = "\uFF1A";
-		
-		//find all hits for traditional characters
-		hit = book.indexOf( "\n" + word + hanzisep);
-		while (hit !== -1) {
-			start = book.indexOf(indexsep, hit) + 1;
-			end = book.indexOf("\n", start);
-			indexString = book.substr(start, end - start); 
-			results.push(parseInt(indexString));
-			
-			hit = book.indexOf( "\n" + word + hanzisep, hit+1);
+    indexSearch: function (dict, char) {
+		// What this function does is quickly try to find all entries in the dictionary
+		// that match the first character of the word that we're trying to look up.
+		// It returns a start and end index number of the dictionary to use when looking for words
+
+		var foundMatch = false,
+			firstMatch, lastMatch;
+
+		for (var key in dict) {
+			if (dict.hasOwnProperty(key)) {
+				if (char === dict[key].simp.charAt(0) || char ===  dict[key].trad.charAt(0)) {
+					if (foundMatch === false) firstMatch = key;
+					foundMatch = true;
+				} else if (foundMatch > 0) {
+					lastMatch = key - 1;
+					break;
+				}
+			}
 		}
-		
-		//find all hits for simplified characters
-		hit = book.indexOf(hanzisep + word + indexsep);
-		while (hit !== -1) {
-			start = book.indexOf(indexsep, hit) + 1;
-			end = book.indexOf("\n", start);
-			indexString = book.substr(start, end - start); 
-			results.push(parseInt(indexString));
-			
-			hit = book.indexOf(hanzisep + word + indexsep, hit+1);
-		}
-		
-		return this.getUniqueArray(results).sort();
+
+		if (!foundMatch) return null;
+		return [firstMatch, lastMatch]
 	},
-	
-	wordSearch: function (word) {
-		var i;
-		
-		var entryobj = {};
-		entryobj.data = [];
-		
-		var rawentries = [];
+
+    wordSearch: function (dict, word) {
+		var index = this.indexSearch(dict, word.charAt(0));
+		if (index === null) return;
+
+		var results = {};
+		results.data = [];
+
 		while (word.length > 0) {
-			//hits = start of the lines in the dict where the entries are
-		    var hits = this.indexSearch(this.wordIndex, word);
-		    
-			for (i = 0; i < hits.length; i++) {
-				var end = this.wordDict.indexOf("\n", hits[i]) - 1;
-				var entryline = this.wordDict.substr(hits[i], end - hits[i]);
-				rawentries.push(entryline);
+			for (i = index[0]; i <= index[1]; i++) {
+				if (dict[i].trad === word || dict[i].simp === word) {
+					results.data.push(dict[i]);
+				}
 			}
 			word = word.substr(0, word.length - 1);
 		}
 
-		entryobj.matchLen = 0;		
-		for (i = 0; i < rawentries.length; i++) {
-			//set highlight length to longest match
-			var hanziLen = rawentries[i].indexOf(" ");
-			if (hanziLen > entryobj.matchLen)
-				entryobj.matchLen = hanziLen;
-			
-			entryobj.data.push([rawentries[i], null]);
+		results.matchLen = 0;
+		for (var key in results.data) {
+			// Set highlight length to longest match
+			if (results.data[key].simp.length > results.matchLen) {
+				results.matchLen = results.data[key].simp.length;
+			}
 		}
-		return entryobj;
-    },
+
+		return results;
+	},
 
 	makeHtml: function(entry) {
         if (entry == null) return '';
 
 		var trad, simp, pinyin, def;
-		var i, j, k, e, b = [];
+		var html, b = [];
 
 		b.push('<div class="liuchan-container">');
-		if (entry.title) {
+		// todo Make use of title if wanted
+		/*if (entry.title) {
             b.push('<div class="title">' + entry.title + '</div>');
-        }
+        }*/
 
-		for (i = 0; i < entry.data.length; ++i) {
-			e = entry.data[i][0].match(/^(.+?)\s+(?:\[(.*?)\])?\s*\/(.+)\//);
-			if (!e) continue;
-
-			trad = e[1].split(" ")[0];
-			simp = e[1].split(" ")[1];
-			pinyin = this.parsePinyin(e[2]);
-			def = e[3];
+		for (var key in entry.data) {
+			// Parse pinyin, remove numbers, add tone marks etc
+			trad = entry.data[key].trad;
+			simp = entry.data[key].simp;
+			pinyin = this.parsePinyin(entry.data[key].pinyin);
+			def = entry.data[key].def;
 
 			// Select whether to show traditional or simple first/only
 			// Note: Fallthrough is on purpose!
@@ -202,54 +191,53 @@ lcxDict.prototype = {
 			}
 
             //HANZI
-            k = '<div class="entry"><div class="hanzi">';
+            html = '<div class="entry"><div class="hanzi">';
 
             // If simple and traditional characters are completely identical, skip this
 			if ((first !== second) && addSecond) {
                 // Replace identical characters (eg. simple == traditional) with a dot/hyphen
                 var newsecond = [];
-                for (j = 0; j < first.length; j++) {
-                    if (first[j] === second[j])
+                for (i = 0; i < first.length; i++) {
+                    if (first[i] === second[i])
                         newsecond.push('\u30FB');
                     else
-                        newsecond.push(second[j]);
+                        newsecond.push(second[i]);
                 }
                 second = newsecond.join('');
 
                 if (lcxMain.config.doColors === true) {
-                    for (j = 0; j < pinyin.tones.length; j++) {
-                        k += '<span class="tone' + pinyin.tones[j] + '">' + first[j] + '</span>';
+                    for (i = 0; i < pinyin.tones.length; i++) {
+                        html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
                     }
 
-					k += '<span class="spacer"></span><span class="brace">[</span>';
-					for (j = 0; j < pinyin.tones.length; j++) {
-						k += '<span class="tone' + pinyin.tones[j] + '">' + second[j] + '</span>';
+					html += '<span class="spacer"></span><span class="brace">[</span>';
+					for (i = 0; i < pinyin.tones.length; i++) {
+						html += '<span class="tone' + pinyin.tones[i] + '">' + second.charAt(i) + '</span>';
 					}
-					k += '<span class="brace">]</span>'
+					html += '<span class="brace">]</span>'
                 } else {
-                    k += '<span class="tone3">' + first + '</span><span class="spacer"></span>' +
+                    html += '<span class="tone3">' + first + '</span><span class="spacer"></span>' +
                         '<span class="tone3"><span class="brace">[</span>' + second + '<span class="brace">]</span></span>';
                 }
 
             } else {
 				if (lcxMain.config.doColors === true)
-					for( j = 0; j < pinyin.tones.length; j++)
-						k += '<span class="tone' + pinyin.tones[j] + '">' + first[j] + '</span>';
+					for( i = 0; i < pinyin.tones.length; i++)
+						html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
 				else
-					k += '<span class="tone3">' + first + '</span>';
+					html += '<span class="tone3">' + first + '</span>';
 			}
 			
 			//PINYIN
-			k += '</div><div class="pinyin">';
-			if      ("tonenums" === lcxMain.config.pinyin) k += pinyin.tonenums  + '</span>';
-			else if ("zhuyin"   === lcxMain.config.pinyin) k += pinyin.zhuyin    + '</span>';
-			else 										   k += pinyin.tonemarks + '</span>';
+			html += '</div><div class="pinyin">';
+			if      ("tonenums" === lcxMain.config.pinyin) html += pinyin.tonenums  + '</span>';
+			else if ("zhuyin"   === lcxMain.config.pinyin) html += pinyin.zhuyin    + '</span>';
+			else 										   html += pinyin.tonemarks + '</span>';
 
-			b.push(k);
+			b.push(html);
 
 			//DEFINITION
 			if (!lcxMain.dict.noDefinition) {
-                def = e[3].replace(/\//g, '; ');
                 b.push('</div><div class="def">' + def + '</div></div>');
             } else {
 				b.push('</div></div>');

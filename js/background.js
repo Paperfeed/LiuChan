@@ -26,7 +26,7 @@ chrome.runtime.onMessage.addListener(
 				lcxMain.onTabSelect(sender.tab);
 				break;
 			case 'xsearch':
-				var e = lcxMain.dict.wordSearch(request.text);
+				var e = lcxMain.dict.wordSearch(lcxMain.dict.hanzi, request.text);
 				response(e);
 				break;
             case 'translate':

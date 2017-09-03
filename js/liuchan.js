@@ -54,9 +54,7 @@
                 }
 
             }
-            lcxMain.dict.loadDictionary().then(
-            	lcxMain.onDictionaryLoaded.bind(lcxMain, tab), lcxMain.onError.bind(lcxMain)
-			);
+            lcxMain.dict.loadDictionary(tab);
         }
     },
 
