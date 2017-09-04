@@ -9,6 +9,7 @@
             popupColor: 'charcoal',
             showHanzi: 'boths',
             pinyin: 'tonemarks',
+            numdef: 'num',
             popupDelay: 1,
             highlight: true,
             textboxhl: false,
@@ -147,16 +148,15 @@
 		}
 	},
 
-	miniHelp: '<span style="font-weight:bold">LiuChan enabled!</span><br><br>' +
+	miniHelp: '<div class="title">LiuChan enabled!</div>' +
 		'<table cellspacing=5>' +
 		'<tr><td>A</td><td>Alternate popup location</td></tr>' +
-		'<tr><td>Y</td><td>Move popup location down</td></tr>' +
+		'<tr><td>Y</td><td>Move popup down</td></tr>' +
 		'<tr><td>C</td><td>Copy to clipboard</td></tr>' +
 		'<tr><td>D</td><td>Hide/show definitions</td></tr>' +
 		'<tr><td>B</td><td>Previous character</td></tr>' +
 		'<tr><td>M</td><td>Next character</td></tr>' +
 		'<tr><td>N</td><td>Next word</td></tr>' +
-		'<tr><td colspan="2">&nbsp;</td></tr>' +
 		'</table>',
 
 	onDictionaryLoaded: function(tab) {
@@ -172,11 +172,6 @@
             chrome.tabs.sendMessage(tab.id, {
                 "type": "showPopup",
                 "text": lcxMain.miniHelp
-            });
-        } else {
-            chrome.tabs.sendMessage(tab.id, {
-                "type": "showPopup",
-                "text": 'LiuChan enabled!'
             });
         }
 		

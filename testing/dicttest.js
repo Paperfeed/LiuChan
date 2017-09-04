@@ -63,13 +63,13 @@ test.loadDictionary();
 function onDictionaryLoaded(string) {
     console.log ("Dictionary Loaded:");
     //console.log(JSON.stringify(test.hanzi));
-    document.write(JSON.stringify(test.hanzi));
+    //document.write(JSON.stringify(test.hanzi));
     char = "光";
     chartrad = "龜";
     word = "铝合金脚";
     p = test.hanzi;
 
-    //wordSearch(test.hanzi, "铝合金脚");
+    wordSearch(test.hanzi, "视频");
     //wordSearch(test.hanzi, "合金脚");
     //wordSearch(test.hanzi, "提供安装说明书");
     //indexSearch(test.hanzi, chartrad);
@@ -79,19 +79,24 @@ function indexSearch(dict, char) {
     // What this function does is quickly try to find all entries in the dictionary
     // that match the first character of the word that we're trying to look up.
     // It returns a start and end index number of the dictionary to use when looking for words
-
+    console.log("Index Search");
     var foundMatch = false,
         firstMatch, lastMatch;
 
     for (var key in dict) {
-        if (dict.hasOwnProperty(key)) {
-            if (char === dict[key].simp.charAt(0) || char ===  dict[key].trad.charAt(0)) {
-                if (foundMatch === false) firstMatch = key;
-                foundMatch = true;
-            } else if (foundMatch > 0) {
-                lastMatch = key - 1;
-                break;
-            }
+        if (char === dict[key].simp.charAt(0) || char ===  dict[key].trad.charAt(0)) {
+
+            console.log(dict[key].simp, dict[key].def);
+            if (foundMatch === false) firstMatch = key;
+            foundMatch = true;
+        } else if (firstMatch == (key - 1)) {
+            // Some weird variants mess things up, so in that case keeps iterating. Inefficient,
+            //  but better than losing out on definitions
+            console.log(key-1);
+            foundMatch = false;
+        } else if (foundMatch) {
+            lastMatch = key - 1;
+            break;
         }
     }
 
@@ -100,12 +105,16 @@ function indexSearch(dict, char) {
 }
 
 function wordSearch(dict, word) {
+
     var index = indexSearch(dict, word.charAt(0));
+    //console.log("Word Search");
+    //console.log(index[0], index[1]);
     var results = {};
     results.data = [];
 
     while (word.length > 0) {
         for (i = index[0]; i <= index[1]; i++) {
+            //console.log('Iteration: ' + i)
             if (dict[i].trad === word || dict[i].simp === word) {
                 results.data.push(dict[i]);
             }
@@ -120,6 +129,6 @@ function wordSearch(dict, word) {
             results.matchLen = results.data[key].simp.length;
         }
     }
-
+    console.log(results);
     return results;
 }

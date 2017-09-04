@@ -116,7 +116,11 @@ lcxDict.prototype = {
 				if (char === dict[key].simp.charAt(0) || char ===  dict[key].trad.charAt(0)) {
 					if (foundMatch === false) firstMatch = key;
 					foundMatch = true;
-				} else if (foundMatch > 0) {
+                } else if (firstMatch == (key - 1)) {
+                    // Some weird variants mess things up, so in that case keeps iterating. Inefficient,
+                    //  but better than losing out on definitions
+                    foundMatch = false;
+                } else if (foundMatch) {
 					lastMatch = key - 1;
 					break;
 				}
@@ -157,7 +161,7 @@ lcxDict.prototype = {
 	makeHtml: function(entry) {
         if (entry == null) return '';
 
-		var trad, simp, pinyin, def;
+		var trad, simp, pinyin, def = '';
 		var html, b = [];
 
 		b.push('<div class="liuchan-container">');
@@ -167,11 +171,22 @@ lcxDict.prototype = {
         }*/
 
 		for (var key in entry.data) {
-			// Parse pinyin, remove numbers, add tone marks etc
+			// Parsing the pinyin removes numbers, adds tone marks, etc
 			trad = entry.data[key].trad;
 			simp = entry.data[key].simp;
+			def = '';
 			pinyin = this.parsePinyin(entry.data[key].pinyin);
-			def = entry.data[key].def;
+
+			// This adds numbers to each definition of a word
+
+			if (entry.data[key].def.length > 1 && lcxMain.config.numdef) {
+                for (var i = 0; i < entry.data[key].def.length; i++) {
+                    def += '<b>' + (i+1) + '</b> ' + entry.data[key].def[i] + ' ';
+                }
+                def.trim();
+            } else {
+				def = entry.data[key].def.join("; ");
+			}
 
 			// Select whether to show traditional or simple first/only
 			// Note: Fallthrough is on purpose!
@@ -227,7 +242,7 @@ lcxDict.prototype = {
 				else
 					html += '<span class="tone3">' + first + '</span>';
 			}
-			
+
 			//PINYIN
 			html += '</div><div class="pinyin">';
 			if      ("tonenums" === lcxMain.config.pinyin) html += pinyin.tonenums  + '</span>';
@@ -237,6 +252,7 @@ lcxDict.prototype = {
 			b.push(html);
 
 			//DEFINITION
+
 			if (!lcxMain.dict.noDefinition) {
                 b.push('</div><div class="def">' + def + '</div></div>');
             } else {

@@ -5,6 +5,7 @@ function saveOptions() {
     var popupColor = document.getElementById('popupColor').value;
     var showHanzi = document.getElementById('showHanzi').value;
     var pinyin = document.getElementById('pinyin').value;
+    var numdef = document.getElementById('numdef').value;
     var popupDelay = document.getElementById('popupDelay').value;
     var highlight = document.getElementById('highlight').checked;
     var textboxhl = document.getElementById('textboxhl').checked;
@@ -20,6 +21,7 @@ function saveOptions() {
         popupColor: popupColor,
         showHanzi: showHanzi,
         pinyin: pinyin,
+        numdef: numdef,
         popupDelay: popupDelay,
         highlight: highlight,
         textboxhl: textboxhl,
@@ -50,6 +52,7 @@ function restoreOptions() {
         popupColor: 'liuchan',
         showHanzi: 'boths',
         pinyin: 'tonemarks',
+        numdef: 'num',
         popupDelay: 1,
         highlight: true,
         textboxhl: false,
@@ -64,6 +67,7 @@ function restoreOptions() {
         document.getElementById('popupColor').value = items.popupColor;
         document.getElementById('showHanzi').value = items.showHanzi;
         document.getElementById('pinyin').value = items.pinyin;
+        document.getElementById('numdef').value = items.numdef;
         document.getElementById('popupDelay').value = items.popupDelay;
         document.getElementById('highlight').checked = items.highlight;
         document.getElementById('textboxhl').checked = items.textboxhl;

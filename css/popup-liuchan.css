@@ -45,7 +45,7 @@ LiuChan Theme
 #liuchan-window .entry {
     font-family: Roboto, sans-serif;
 }
-d
+
 #liuchan-window .entry:not(:last-of-type) .def:after {
     display: block;
     content: '';
@@ -86,6 +86,16 @@ d
     font-size: 13px;
 }
 
+#liuchan-window .def b {
+    /*color: #78635a;*/
+    font-size: 11px;
+    margin-right: 1px;
+}
+
+#liuchan-window .def b:not(:first-child) {
+    margin-left: 4px;
+}
+
 #liuchan-window .tone1 { color: #F2777A; }
 #liuchan-window .tone2 { color: #99CC99; }
 #liuchan-window .tone3 { color: #6699CC; }
@@ -102,3 +112,8 @@ d
     font-family: "Roboto", sans-serif;
 }
 
+/* MiniHelp Styling */
+#liuchan-window table tr td:nth-child(odd){
+    padding: 0 5px 2px 5px;
+    font-weight: bold;
+}

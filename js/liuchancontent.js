@@ -103,15 +103,14 @@ var lcxContent = {
 			y = 0;
         }
 
-		// todo Fix config sometimes not being loaded soon enough,
-		// making the initial popup not show up
 		var css, cssdoc;
 		var popup = wd.getElementById('liuchan-window');
 		if (!popup) {
 			css = wd.createElementNS('http://www.w3.org/1999/xhtml', 'link');
 			css.setAttribute('rel', 'stylesheet');
 			css.setAttribute('type', 'text/css');
-			cssdoc = lcxContent.config.popupColor;
+			// todo Config should be completely loaded before we even get here. This is a hack...
+			cssdoc = (lcxContent.config.popupColor !== undefined) ? lcxContent.config.popupColor : "liuchan";
 			css.setAttribute('href', chrome.extension.getURL('css/popup-' + cssdoc + '.css'));
 			css.setAttribute('id', 'liuchan-css');
 			wd.getElementsByTagName('head')[0].appendChild(css);
