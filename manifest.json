@@ -1,13 +1,15 @@
 {
    "manifest_version": 2,
    "name": "LiuChan Chinese Popup Dictionary",
+   "short_name": "LiuChan",
+   "version": "1.0.0",
    "options_page": "html/options.html",
    "options_ui": {
       "page": "html/options.html",
       "chrome_style": true
    },
    "background": {
-      "scripts": ["/js/data.js", "/js/liuchan.js", "/js/background.js"],
+      "scripts": ["/js/data.js", "/js/liuchan.js", "/js/background.js", "/js/fuzzysort.js"],
       "persistent": true
    },
    "browser_action": {
@@ -25,8 +27,8 @@
       "16": "images/icon16.png",
       "48": "images/icon48.png"
    },
+   "omnibox": {"keyword" : "lc"},
    "permissions": [ "tabs", "storage", "clipboardWrite", "http://*/*" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.0.0",
    "web_accessible_resources": [ "css/*", "js/liuchancontent.js", "images/*" ]
 }

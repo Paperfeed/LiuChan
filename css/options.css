@@ -1,102 +1,81 @@
 body, .tab, .tab table {
-	font-family: Roboto, sans-serif;
-	font-size: 1em;
-	font-weight: 300;
-}
+  font-family: Roboto, sans-serif;
+  font-size: 1em;
+  font-weight: 300; }
 
 #container {
-	width: fit-content;
-	min-width: 500px;
-}
+  width: fit-content;
+  min-width: 500px; }
 
 #status {
-	float: right;
-	padding: 0 10px;
-	color: white;
-	font-weight: normal;
-	opacity: 0;
-	-webkit-transition: all .3s ease-in;
-	-moz-transition: all .3s ease-in;
-	-ms-transition: all .3s ease-in;
-	-o-transition: all .3s ease-in;
-	transition: all .3s ease-in;
-}
-
-#status.statusOn{
-	color: #47637b;
-	opacity: 1;
-}
+  float: right;
+  padding: 0 10px;
+  color: white;
+  font-weight: normal;
+  opacity: 0;
+  -webkit-transition: all .3s ease-in;
+  -moz-transition: all .3s ease-in;
+  -ms-transition: all .3s ease-in;
+  -o-transition: all .3s ease-in;
+  transition: all .3s ease-in; }
+  #status.statusOn {
+    color: #47637b;
+    opacity: 1; }
 
 .tab {
-	padding: 10px;
-	margin-bottom: 10px;
-	background-color: aliceblue;
-	border-radius: 5px;
-}
-
-.tab h3 {
-	font-size: 1.17em;
-	font-weight: normal;
-	color: #47637b;
-	margin: 0 0 3px;
-}
-
-.tab h3:after {
-	content: "";
-	display: block;
-	background: #deedfb;
-	margin-top: 2px;
-	height: 2px;
-	width: 100%;
-}
-
-.tab p {
-	margin: 5px 0;
-}
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: aliceblue;
+  border-radius: 5px; }
+  .tab h3 {
+    font-size: 1.17em;
+    font-weight: normal;
+    color: #47637b;
+    margin: 0 0 3px; }
+  .tab h3:after {
+    content: "";
+    display: block;
+    background: #deedfb;
+    margin-top: 2px;
+    height: 2px;
+    width: 100%; }
+  .tab p {
+    margin: 5px 0; }
 
 .flex {
-	display: flex;
-	justify-content: space-between;
-}
+  display: flex;
+  justify-content: space-between; }
 
 .hotkeys {
-	background-color: lightyellow;
-	border-radius: 5px;
-	width: fit-content;
-	padding: 0 5px 10px;
-}
-
-.hotkeys p {
-	color: #92805f;
-	font-weight: normal;
-	margin: 5px;
-}
-.hotkeys table {
-	font-size: 0.9em;
-}
-.hotkeys table tr td:nth-child(odd){
-	font-weight: normal;
-}
+  background-color: lightyellow;
+  border-radius: 5px;
+  width: fit-content;
+  padding: 0 5px 10px; }
+  .hotkeys p {
+    color: #92805f;
+    font-weight: normal;
+    margin: 5px; }
+  .hotkeys table {
+    font-size: 0.9em; }
+  .hotkeys table tr td:nth-child(odd) {
+    font-weight: normal; }
 
 .leftbox {
-	position: relative;
-	flex-grow: 1;
-	padding-right: 10px;
-}
+  position: relative;
+  flex-grow: 1;
+  padding-right: 10px; }
 
 .bottom {
-	position:absolute;
-	bottom: 0;
-}
+  position: absolute;
+  bottom: 0; }
+
 input[type=checkbox], input[type=radio] {
-	margin: 0 5px 0 0;
-}
+  margin: 0 5px 0 0; }
 
 input[type=number], select {
-	width: 100px;
-	margin: 0 5px 0 0;
-	font-family: Roboto;
-	font-weight: 300;
-	border-radius: 2px;
-	border-style: hidden;
-}
+  width: 100px;
+  margin: 0 5px 0 0;
+  font-family: Roboto, sans-serif;
+  font-weight: 300;
+  border-radius: 2px;
+  border-style: hidden; }

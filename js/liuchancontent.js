@@ -1,50 +1,10 @@
-﻿/*
-
-	LiuChan - A port of Rikaikun to Chinese
-	By Aldert Vaandering (2017)
-	https://gitlab.com/paperfeed/liuchan
-	
-	---
-
-	Originally based on Rikaichan 1.07
-	by Jonathan Zarate
-	http://www.polarcloud.com/
-
-	---
-
-	Originally based on RikaiXUL 0.4 by Todd Rudick
-	http://www.rikai.com/
-	http://rikaixul.mozdev.org/
-
-	---
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-	---
-
-	Please do not change or remove any of the copyrights or links to web pages
-	when modifying any of the files. - Jon
-
-
-
-*/
+﻿'use strict';
 
 var lcxContent = {
 	dictCount: 2,
 	altView: 0,
 	config: {},
+	enabled: false,
 
 	//Adds the listeners and stuff.
 	enableTab: function() {
@@ -61,6 +21,7 @@ var lcxContent = {
 			window.addEventListener('mousedown', this.onMouseDown, false);
 			window.addEventListener('mouseup', this.onMouseUp, false);
 		}
+		lcxContent.enabled = true;
 	},
 	
 	//Removes the listeners and stuff
@@ -81,6 +42,7 @@ var lcxContent = {
 			this.clearHi();
 			delete window.liuchan;
 		}
+		lcxContent.enabled = false;
 	},
 	
 	getContentType: function(tDoc) {
@@ -314,6 +276,7 @@ var lcxContent = {
 			}
 			return;
 		}
+
 		// TODO get rid of keyCode. Use `key` and `code`
 		if (lcxContent.config.disableKeys === true && (ev.keyCode !== 16)) return;
 		if ((ev.shiftKey) && (ev.keyCode !== 16)) return;
@@ -323,11 +286,11 @@ var lcxContent = {
 		var i;
 
 		switch (ev.keyCode) {
-		case 16:	// shift
+		/*case 16:	// shift
 		case 13:	// enter
 			this.showMode = (this.showMode + 1) % this.dictCount;
 			this.show(ev.currentTarget.liuchan);
-			break;
+			break;*/
 		case 27:	// esc
 			this.hidePopup();
 			this.clearHi();
@@ -346,7 +309,6 @@ var lcxContent = {
 			var ofs = ev.currentTarget.liuchan.uofs;
 			for (i = 50; i > 0; --i) {
 				ev.currentTarget.liuchan.uofs = --ofs;
-				this.showMode = 0;
 				if (this.show(ev.currentTarget.liuchan) >= 0) {
 					if (ofs >= ev.currentTarget.liuchan.uofs) break;	// ! change later
 				}
@@ -354,7 +316,7 @@ var lcxContent = {
 			break;
 		case 68: // d
 			chrome.runtime.sendMessage({
-				"type": "switchOnlyReading"
+				"type": "toggleDefinition"
 			});
 			this.show(ev.currentTarget.liuchan);
 			break;
@@ -363,7 +325,6 @@ var lcxContent = {
 		case 78:	// n
 			for (i = 50; i > 0; --i) {
 				ev.currentTarget.liuchan.uofs += ev.currentTarget.liuchan.uofsNext;
-				this.showMode = 0;
 				if (this.show(ev.currentTarget.liuchan) >= 0) break;
 			}
 			break;
@@ -389,7 +350,7 @@ var lcxContent = {
 			return;
 		if (this.isVisible())
 			this.clearHi();
-		mDown = true;
+		lcxContent.mDown = true;
 
 		// If we click outside of a text box then we set
 		// oldCaret to -1 as an indicator not to restore position.
@@ -407,21 +368,12 @@ var lcxContent = {
 	_onMouseUp: function(ev) {
 		if (ev.button !== 0)
 			return;
-		mDown = false;
+		lcxContent.mDown = false;
 	},
 
 	onKeyUp: function(ev) {
 		if (lcxContent.keysDown[ev.keyCode]) lcxContent.keysDown[ev.keyCode] = 0;
 	},
-	
-		unicodeInfo: function(c) {
-		 hex = '0123456789ABCDEF';
-		 u = c.charCodeAt(0);
-		return c + ' U' + hex[(u >>> 12) & 15] + hex[(u >>> 8) & 15] + hex[(u >>> 4) & 15] + hex[u & 15];
-	},
-
-	kanjiN: 1,
-	namesN: 2,
 
 	inlineNames: {
 		// text node
@@ -468,9 +420,6 @@ var lcxContent = {
 		'RP': true
 	},
 
-	/*isInline: function(node) {
-		return this.inlineNames.hasOwnProperty(node.nodeName) || document.defaultView.getComputedStyle(node,null).getPropertyValue('display') == 'inline';
-	},*/
 	isInline: function(node) {
 		return node.nodeType === Node.COMMENT_NODE ||
 			this.inlineNames.hasOwnProperty(node.nodeName) ||
@@ -483,7 +432,7 @@ var lcxContent = {
 	},
 
 	// XPath expression which evaluates to text nodes
-	// tells liuchan which text to translate
+	// tells Liuchan which text to translate
 	// expression to get all text nodes that are not in (RP or RT) elements
 	textNodeExpr: 'descendant-or-self::text()[not(parent::rp) and not(ancestor::rt)]',
 
@@ -618,13 +567,12 @@ var lcxContent = {
 		var selEndList = [];
 		var text = this.getTextFromRange(rp, ro, selEndList, 13 /*maxlength*/);
 
-		lastSelEnd = selEndList;
-		lastRo = ro;
+		lcxContent.lastSelEnd = selEndList;
+		lcxContent.lastRo = ro;
 
 		chrome.runtime.sendMessage({
 				"type": "xsearch",
-				"text": text,
-				"showmode": this.showMode
+				"text": text
 			}, lcxContent.processEntry);
 
 		return 1;
@@ -636,9 +584,9 @@ var lcxContent = {
 	},
 	
 	processEntry: function(e) {
-        tdata = window.liuchan;
-        ro = lastRo;
-        selEndList = lastSelEnd;
+        var tdata = window.liuchan;
+        var ro = lcxContent.lastRo;
+        var selEndList = lcxContent.lastSelEnd;
 	
 		if (!e) {
 			lcxContent.hidePopup();
@@ -651,9 +599,9 @@ var lcxContent = {
 		tdata.uofsNext = e.matchLen;
 		tdata.uofs = (ro - tdata.prevRangeOfs);
 		
-		rp = tdata.prevRangeNode;
+		var rp = tdata.prevRangeNode;
 		// Don't try to highlight form elements
-		if ((rp) && ((lcxContent.config.highlight === true && !this.mDown && !('form' in tdata.prevTarget)) ||
+		if ((rp) && ((lcxContent.config.highlight === true && !lcxContent.mDown && !('form' in tdata.prevTarget)) ||
 				(('form' in tdata.prevTarget) && lcxContent.config.textboxhl === true))) {
 			var doc = rp.ownerDocument;
 			if (!doc) {
@@ -686,7 +634,7 @@ var lcxContent = {
 				if (rp.nodeName === 'TEXTAREA' || rp.nodeName === 'INPUT') {
 
 					// If there is already a selected region not caused by
-					// liuchan, leave it alone
+					// Liuchan, leave it alone
 					if ((sel.toString()) && (tdata.selText !== sel.toString()))
 						return;
 
@@ -696,7 +644,7 @@ var lcxContent = {
 					}
 
 					// If there is no selected region and the saved
-					// textbox is the same as teh current one
+					// textbox is the same as the current one
 					// then save the current cursor position.
 					// The second half of the condition lets us place the
 					// cursor in another text box without having it jump back
@@ -722,7 +670,7 @@ var lcxContent = {
 			return;
 		}
 
-		// Special case for leaving a text box to an outside japanese.
+		// Special case for leaving a text box.
 		// Even if we're not currently in a text area we should save
 		// the last one we were in
 		if (tdata.oldTA && !sel.toString() && tdata.oldCaret >= 0)
@@ -755,13 +703,7 @@ var lcxContent = {
 		tdata.selText = sel.toString();
 	},
 
-	showTitle: function(tdata) {
-		chrome.runtime.sendMessage({
-				"type": "translate",
-				"title": tdata.title
-			}, lcxContent.processTitle);
-	},
-	
+	/*
 	processTitle: function(e) {
         var tdata = window.liuchan;
 		
@@ -781,7 +723,7 @@ var lcxContent = {
 			"type": "makehtml",
 			"entry": e
 		}, lcxContent.processHtml);
-	},
+	},*/
 
 	getFirstTextChild: function(node) {
 		return document.evaluate('descendant::text()[not(parent::rp) and not(ancestor::rt)]',
@@ -807,28 +749,9 @@ var lcxContent = {
 		return fake;
 	},
 
-	getTotalOffset: function(parent, tNode, offset) {
-		var fChild = parent.firstChild;
-		var realO = offset;
-		if (fChild === tNode)
-			return offset;
-		do {
-			var val = 0;
-			if (fChild.nodeName === "BR") {
-				val = 1;
-			} else {
-				val = (fChild.data ? fChild.data.length : 0)
-			}
-			realO += val;
-		}
-		while ((fChild = fChild.nextSibling) !== tNode);
-
-		return realO;
-	},
-
 	onMouseMove: function(ev) {
 		// Put a delay to reduce CPU strain
-        if ((new Date().getTime() - lcxContent.prevTime) > 100) {
+        if ((new Date().getTime() - lcxContent.prevTime) > 20) {
             lcxContent.prevTime = new Date().getTime();
             lcxContent.lastPos.x = ev.clientX;
             lcxContent.lastPos.y = ev.clientY;
@@ -947,11 +870,11 @@ var lcxContent = {
 			tdata.popX = ev.clientX;
 			tdata.popY = ev.clientY;
 			tdata.timer = setTimeout(
-				function(rangeNode, rangeOffset) {
+				function(rangeNode) {
 					if (!tdata || rangeNode !== tdata.prevRangeNode || ro !== tdata.prevRangeOfs) {
 						return;
 					}
-					lcxContent.show(tdata, this.showMode);
+					lcxContent.show(tdata);
 				}, delay, rp, ro);
 			return;
 		}
@@ -969,14 +892,14 @@ var lcxContent = {
 			tdata.title = ev.target.options[ev.target.selectedIndex].text;
 		}
 
-		if (tdata.title) {
+		// todo doesn't do anything at the moment
+        /*
+    	if (tdata.title) {
 			tdata.popX = ev.clientX;
 			tdata.popY = ev.clientY;
-            // todo Figure out what the use of this is
-            // doesn't do anything at the moment, so I've disabled it
-            /*
-    		tdata.timer = setTimeout(
-    			function(tdata, title) {
+
+			tdata.timer = setTimeout(
+				function(tdata, title) {
 
 				if (!tdata || title !== tdata.title) {
 					return;
@@ -985,26 +908,23 @@ var lcxContent = {
 				lcxContent.showTitle(tdata);
 
 				}, delay, tdata, tdata.title);
-			*/
-		} else {
-			// Don't close just because we moved from a valid popup slightly over to a place with nothing
-			var dx = tdata.popX - ev.clientX;
-			var dy = tdata.popY - ev.clientY;
-			var distance = Math.sqrt(dx * dx + dy * dy);
-			if (distance > 4) {
-				this.clearHi();
-				this.hidePopup();
-			}
 		}
+		*/
 
+		// Don't close just because we moved from a valid popup slightly over to a place with nothing
+		var dx = tdata.popX - ev.clientX;
+		var dy = tdata.popY - ev.clientY;
+		var distance = Math.sqrt(dx * dx + dy * dy);
+		if (distance > 4) {
+			this.clearHi();
+			this.hidePopup();
+		}
 	}
 };
 
 //Event Listeners
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-        //console.log('content received message:');
-        //console.log(request);
 		switch(request.type) {
 			case 'enable':
 				lcxContent.enableTab();
@@ -1016,9 +936,9 @@ chrome.runtime.onMessage.addListener(
 			case 'showPopup':
 				lcxContent.showPopup(request.text);
 				break;
-			case 'title':
+			/*case 'title':
                 lcxContent.processTitle(request.text);
-                break;
+                break;*/
 			case 'config':
                 lcxContent.config = request.config;
                 break;
@@ -1029,4 +949,4 @@ chrome.runtime.onMessage.addListener(
 );
 
 // When a page first loads, checks to see if it should enable script
-chrome.runtime.sendMessage({ "type":"enable?" });
+chrome.runtime.sendMessage({ "type":"enable?", "enabled" : lcxContent.enabled });
