@@ -1,15 +1,4 @@
-// todo Add omnibox keyword dictionary searching
-/*chrome.omnibox.onInputChanged.addListener(function(text, suggest) {
-    suggest([
-        {content: text + " one", description: "the first one"},
-        {content: text + " number two", description: "the second entry"}
-    ]);
-});
-
-chrome.omnibox.onInputEntered.addListener(function(text) {
-    alert('You just typed "' + text + '"');
-});*/
-//manifest: "omnibox": {"keyword" : "liuchan"},
+'use strict';
 
 // This gets fired when the extension's button is clicked
 chrome.browserAction.onClicked.addListener(lcxMain.toggleExtension);
@@ -23,16 +12,12 @@ chrome.runtime.onMessage.addListener(
 		//console.log(request);
 		switch(request.type) {
 			case 'enable?':
-				lcxMain.onTabSelect(sender.tab);
+				if (request.enabled === false && lcxMain.enabled) lcxMain.onTabSelect(sender.tab);
 				break;
 			case 'xsearch':
 				var e = lcxMain.dict.wordSearch(lcxMain.dict.hanzi, request.text);
 				response(e);
 				break;
-            case 'translate':
-                //var e = lcxMain.dict.translate(request.title);
-                chrome.tabs.sendMessage(sender.tab.id, {"text":request.title});
-                break;
             case 'makehtml':
 				var html = lcxMain.dict.makeHtml(request.entry);
 				response(html);
@@ -42,14 +27,9 @@ chrome.runtime.onMessage.addListener(
 				break;
 			case 'config':
 				// This is to immediately update settings upon change occuring
-				// in the options page.
 				lcxMain.config = request.config;
-
-				// Kind of redundant because the tab currently
-				// updates settings onTabSelect as well, but might change that later on
-				//lcxMain.sendAllTabs(request);
 				break;
-			case 'switchOnlyReading':
+			case 'toggleDefinition':
                 lcxMain.dict.noDefinition = !lcxMain.dict.noDefinition;
 				break;
 			default:

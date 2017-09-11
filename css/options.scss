@@ -1,0 +1,109 @@
+$option-main: #47637b;
+$option-light: #deedfb;
+$hotkey-main: lightyellow;
+$hotkey-dark: #92805f;
+
+
+body, .tab, .tab table {
+	font-family: Roboto, sans-serif;
+	font-size: 1em;
+	font-weight: 300;
+}
+
+#container {
+	width: fit-content;
+	min-width: 500px;
+}
+
+#status {
+	float: right;
+	padding: 0 10px;
+	color: white;
+	font-weight: normal;
+	opacity: 0;
+	-webkit-transition: all .3s ease-in;
+	-moz-transition: all .3s ease-in;
+	-ms-transition: all .3s ease-in;
+	-o-transition: all .3s ease-in;
+	transition: all .3s ease-in;
+
+	&.statusOn {
+		color: $option-main;
+		opacity: 1;
+	}
+}
+
+.tab {
+	padding: 10px;
+	margin-bottom: 10px;
+	background-color: aliceblue;
+	border-radius: 5px;
+	h3 {
+		font-size: 1.17em;
+		font-weight: normal;
+		color: $option-main;
+		margin: 0 0 3px;
+	}
+
+	h3:after {
+		content: "";
+		display: block;
+		background: $option-light;
+		margin-top: 2px;
+		height: 2px;
+		width: 100%;
+	}
+
+	p {
+		margin: 5px 0;
+	}
+}
+
+.flex {
+	display: flex;
+	justify-content: space-between;
+}
+
+.hotkeys {
+	background-color: $hotkey-main;
+	border-radius: 5px;
+	width: fit-content;
+	padding: 0 5px 10px;
+
+	p {
+		color: $hotkey-dark;
+		font-weight: normal;
+		margin: 5px;
+	}
+
+	table {
+		font-size: 0.9em;
+	}
+
+	table tr td:nth-child(odd){
+		font-weight: normal;
+	}
+}
+
+.leftbox {
+	position: relative;
+	flex-grow: 1;
+	padding-right: 10px;
+}
+
+.bottom {
+	position:absolute;
+	bottom: 0;
+}
+input[type=checkbox], input[type=radio] {
+	margin: 0 5px 0 0;
+}
+
+input[type=number], select {
+	width: 100px;
+	margin: 0 5px 0 0;
+	font-family: Roboto, sans-serif;
+	font-weight: 300;
+	border-radius: 2px;
+	border-style: hidden;
+}
