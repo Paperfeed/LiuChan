@@ -49,7 +49,7 @@ var lcxMain = {
 
 	initConfig: function() {
         chrome.storage.sync.get({
-            popupColor: 'charcoal',
+            popupColor: 'liuchan',
             showHanzi: 'boths',
             pinyin: 'tonemarks',
             numdef: 'num',
