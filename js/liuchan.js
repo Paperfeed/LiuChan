@@ -82,7 +82,6 @@ var lcxMain = {
 
             // Clean up memory
             lcxMain.enabled = false;
-            delete lcxMain.dict.fuse;
             delete lcxMain.dict;
 
             // Set extension icon
@@ -112,12 +111,17 @@ var lcxMain = {
             lcxMain.dict.loadDictionary(tab);
             lcxMain.enabled = true;
 
-            if (lcxMain.config.miniHelp === true) {
-                chrome.tabs.sendMessage(tab.id, {
-                    "type": "showPopup",
-                    "text": lcxMain.miniHelp
+            // Update config on active tab and then show help popup if necessary
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {type: "config", config:lcxMain.config}, function(response) {
+                    if (lcxMain.config.miniHelp === true) {
+                        chrome.tabs.sendMessage(tab.id, {
+                            "type": "showPopup",
+                            "text": lcxMain.miniHelp
+                        })
+                    }
                 });
-            }
+            });
 
             chrome.browserAction.setIcon({
                 "path":"../images/toolbar-enabled.png"
@@ -142,7 +146,7 @@ var lcxMain = {
 	},
 
 	sendAllTabs: function(message) {
-        chrome.tabs.query({}, function(tabs) {
+        return chrome.tabs.query({}, function (tabs) {
             for (var i = 0; i < tabs.length; ++i) {
                 chrome.tabs.sendMessage(tabs[i].id, message);
             }
@@ -209,7 +213,7 @@ var lcxMain = {
 		}
 	},
 
-	miniHelp: '<div class="title">LiuChan enabled!</div>' +
+	miniHelp: '<div class="liutitle">LiuChan enabled!</div>' +
 		'<table cellspacing=5>' +
 		'<tr><td>A</td><td>Alternate popup location</td></tr>' +
 		'<tr><td>Y</td><td>Move popup down</td></tr>' +

@@ -80,31 +80,33 @@ lcxDict.prototype = {
 		// It returns a start and end index number of the dictionary to use when looking for words
 
 		var foundMatch = false,
-			firstMatch, lastMatch;
+            firstMatch = -1, lastMatch = -1, extraLoop = 0;
 
 		const dictLength = dict.length;
-		for (var i = 0; i <= dictLength; i++) {
-			if (char === dict[i].simp.charAt(0) || char ===  dict[i].trad.charAt(0)) {
-				if (foundMatch === false) firstMatch = i;
-				foundMatch = true;
-			// Must use type coercion:
-			} else if (firstMatch == (i - 1)) {
-				// Some weird variants mess things up, so in that case keeps iterating. Inefficient,
-				//  but better than losing out on definitions
-				foundMatch = false;
-			} else if (foundMatch) {
-				lastMatch = i - 1;
-				break;
-			}
-		}
+		for (var i = 0; i < dictLength; i++) {
+            if (char === dict[i].simp.charAt(0) || char === dict[i].trad.charAt(0)) {
+                if (foundMatch === false) firstMatch = i;
+                foundMatch = true;
+                lastMatch = i;
+                // Must use type coercion:
+            } else if (firstMatch == (i - 1)) {
+                // Found only one result - a singular old variant. Skipping and looking for more
+                foundMatch = false;
+            } else if (foundMatch && extraLoop <= 4) {
+                // Some weird variants mess things up, so we check for a couple of extra loops
+                extraLoop++;
+            } else if (foundMatch) {
+                break;
+            }
+        }
 
-		if (!foundMatch) return null;
+        if (lastMatch === -1) { lastMatch = firstMatch }
 		return [firstMatch, lastMatch]
 	},
 
     wordSearch: function (dict, word) {
 		var index = this.indexSearch(dict, word.charAt(0));
-		if (index === null) return;
+		if (index[0] === -1) return;
 
 		var results = {};
 		results.data = [];

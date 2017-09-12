@@ -69,7 +69,7 @@ timer = new Date().getTime();
 test.loadDictionary();
 
 
-function onDictionaryLoaded(string) {
+function onDictionaryLoaded() {
     var timeTaken = new Date().getTime() - timer;
     console.log ("Dictionary Loaded in " + (timeTaken/1000) + "s");
     //console.log(JSON.stringify(test.hanzi));
@@ -80,7 +80,10 @@ function onDictionaryLoaded(string) {
     p = test.hanzi;
     console.log(test);
     console.log(p);
-    // wordSearch(test.hanzi, "视频");
+    //wordSearch(test.hanzi, "视频");
+    //wordSearch(test.hanzi, "崯");
+    //wordSearch(test.hanzi, "崧");
+    //wordSearch(test.hanzi, "编辑");
     // wordSearch(test.hanzi, "gua zi");
     // wordSearch(test.hanzi, "liu");
     // wordSearch(test.hanzi, "hello");
@@ -96,38 +99,46 @@ function indexSearch(dict, char) {
     // It returns a start and end index number of the dictionary to use when looking for words
     console.log("Index Search");
     var foundMatch = false,
-        firstMatch, lastMatch;
+        firstMatch = -1, lastMatch = -1, extraLoop = 0;
 
-    for (var key in dict) {
-        if (char === dict[key].simp.charAt(0) || char ===  dict[key].trad.charAt(0)) {
-
-            console.log(dict[key].simp, dict[key].def);
-            if (foundMatch === false) firstMatch = key;
-            foundMatch = true;
-        } else if (firstMatch == (key - 1)) {
-            // Some weird variants mess things up, so in that case keeps iterating. Inefficient,
-            //  but better than losing out on definitions
-            console.log(key-1);
+    const dictLength = dict.length;
+    for (var i = 0; i < dictLength; i++) {
+        //console.log(i);
+        if (char === dict[i].simp.charAt(0) || char ===  dict[i].trad.charAt(0)) {
+            //console.log(dict[i].simp, dict[i].def);
+            if (foundMatch === false) {
+                firstMatch = i;
+                foundMatch = true;
+            }
+            if (foundMatch) lastMatch = i;
+        } else if (firstMatch == (i-1)) {
+            // Found only one result - a singular old variant. Skipping and looking for more
             foundMatch = false;
+        } else if (foundMatch && extraLoop <= 5) {
+            // Some weird variants mess things up, so we check for a couple of extra loops
+            extraLoop++;
         } else if (foundMatch) {
-            lastMatch = key - 1;
             break;
         }
     }
 
-    if (!foundMatch) return null;
+    // +31 for the initial comments and zero index in the dictionary file. Easier debugging
+    console.log((firstMatch+31),(lastMatch+31));
+    if (lastMatch === -1) { lastMatch = firstMatch }
     return [firstMatch, lastMatch]
 }
 
 function wordSearch(dict, word) {
     var index = indexSearch(dict, word.charAt(0));
-    //console.log("Word Search");
-    //console.log(index[0], index[1]);
+    if (index[0] === -1) return;
+    console.log("Word Search");
+    console.log(index);
+
     var results = {};
     results.data = [];
 
     while (word.length > 0) {
-        for (i = index[0]; i <= index[1]; i++) {
+        for (var i = index[0]; i <= index[1]; i++) {
             //console.log('Iteration: ' + i)
             if (dict[i].trad === word || dict[i].simp === word) {
                 results.data.push(dict[i]);

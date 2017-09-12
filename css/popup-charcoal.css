@@ -83,14 +83,32 @@ Charcoal Theme
 #liuchan-window .tone5 { color: #CCCCCC; }
 
 /* used for word definitions */
-#liuchan-window .title {
+#liuchan-window .liutitle {
 	display: block;
 	margin: 0 -4px 5px;
-	padding: 3px 6px 3px 3px;
-	border-radius: 8px 8px 8px 8px;
-	color: #8C9196;
+	padding: 3px;
+	border-radius: 5px;
+	color: #dce2e8;
 	font-size: 12px;
 	font-weight: bold;
-	text-align: right;
+	text-align: center;
 	background: none repeat scroll 0 0 #303030;
+}
+
+/* MiniHelp Styling */
+#liuchan-window table, #liuchan-window table * {
+	line-height: 1em;
+	border: 0;
+	margin: 0;
+	color: #FFFFFF;
+	font-family: "Roboto", sans-serif;
+}
+
+#liuchan-window table tr:nth-child(odd) {
+	background-color: rgba(255,255,255,0.1);
+}
+
+#liuchan-window table tr td:nth-child(odd){
+	padding: 4px 5px 4px 5px;
+	font-weight: bold;
 }

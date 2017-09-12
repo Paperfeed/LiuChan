@@ -80,14 +80,32 @@ Sepia Theme
 #liuchan-window .tone5 { color: #9A9595; }
 
 /* used for word definitions */
-#liuchan-window .title {
+#liuchan-window .liutitle {
 	display: block;
 	margin: 0 -3px 4px;
-	padding: 3px 5px 3px 3px;
-	border-radius: 7px 7px 7px 7px;
+	padding: 3px;
+	border-radius: 5px;
 	color: #FFFFFF;
 	font-size: 12px;
 	font-weight: bold;
-	text-align: right;
+	text-align: center;
 	background: none repeat scroll 0 0 #CDBCA8;
+}
+
+/* MiniHelp Styling */
+#liuchan-window table, #liuchan-window table * {
+	line-height: 1em;
+	border: 0;
+	margin: 0;
+	color: #573920;
+	font-family: "Roboto", sans-serif;
+}
+
+#liuchan-window table tr:nth-child(odd) {
+	background-color: rgba(0,0,0,0.04);
+}
+
+#liuchan-window table tr td:nth-child(odd){
+	padding: 2px 5px 2px 5px;
+	font-weight: bold;
 }

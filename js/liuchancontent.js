@@ -71,9 +71,7 @@ var lcxContent = {
 			css = wd.createElementNS('http://www.w3.org/1999/xhtml', 'link');
 			css.setAttribute('rel', 'stylesheet');
 			css.setAttribute('type', 'text/css');
-			// todo Config should be completely loaded before we even get here. This is a hack...
-			cssdoc = (lcxContent.config.popupColor !== undefined) ? lcxContent.config.popupColor : "liuchan";
-			css.setAttribute('href', chrome.extension.getURL('css/popup-' + cssdoc + '.css'));
+			css.setAttribute('href', chrome.extension.getURL('css/popup-' + lcxContent.config.popupColor + '.css'));
 			css.setAttribute('id', 'liuchan-css');
 			wd.getElementsByTagName('head')[0].appendChild(css);
 

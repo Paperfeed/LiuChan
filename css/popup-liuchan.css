@@ -103,7 +103,7 @@ LiuChan Theme
 #liuchan-window .tone5 { color: #CCCCCC; }
 
 /* used for word definitions */
-#liuchan-window .title {
+#liuchan-window .liutitle {
     margin-bottom: 5px;
     color: #524e45;
     font-size: 16px;
@@ -113,7 +113,19 @@ LiuChan Theme
 }
 
 /* MiniHelp Styling */
+#liuchan-window table, #liuchan-window table * {
+    line-height: 1em;
+    border: 0;
+    margin: 0;
+    color: #524e45;
+    font-family: "Roboto", sans-serif;
+}
+
+#liuchan-window table tr:nth-child(odd) {
+    background-color: rgba(0,0,0,0.04);
+}
+
 #liuchan-window table tr td:nth-child(odd){
-    padding: 0 5px 2px 5px;
+    padding: 4px 5px 4px 5px;
     font-weight: bold;
 }

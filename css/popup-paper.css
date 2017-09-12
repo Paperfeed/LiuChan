@@ -82,14 +82,32 @@ Paper Theme
 
 
 /* used for word definitions */
-#liuchan-window .title {
+#liuchan-window .liutitle {
 	display: block;
 	margin: 0 -4px 5px;
-	padding: 3px 6px 3px 3px;
-	border-radius: 8px 8px 8px 8px;
+	padding: 3px;
+	border-radius: 5px;
 	color: #707070;
 	font-size: 12px;
 	font-weight: bold;
-	text-align: right;
+	text-align: center;
 	background: none repeat scroll 0 0 #E8E8E8;
+}
+
+/* MiniHelp Styling */
+#liuchan-window table, #liuchan-window table * {
+	line-height: 1em;
+	border: 0;
+	margin: 0;
+	color: #000;
+	font-family: "Roboto", sans-serif;
+}
+
+#liuchan-window table tr:nth-child(odd) {
+	background-color: rgba(0,0,0,0.04);
+}
+
+#liuchan-window table tr td:nth-child(odd){
+	padding: 4px 5px 4px 5px;
+	font-weight: bold;
 }
