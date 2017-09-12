@@ -1,4 +1,4 @@
-![Logo](/images/icon128.png)
+![Logo](/release/marquee.png)
 ## LiuChan Chinese Popup Dictionary
 LiuChan (*liú chàng*) is an extension for chrome that allows you to mouse-over Chinese to instantly lookup the dictionary.
 
