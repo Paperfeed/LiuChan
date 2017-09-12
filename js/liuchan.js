@@ -242,8 +242,6 @@ var lcxMain = {
     },
 
 	omnibox: function(text, suggest) {
-	    console.log("running");
-		// todo for now just enable extension - will redo this later
 		if (lcxMain.dict === undefined) {
             lcxMain.toggleExtension(null);
         }
