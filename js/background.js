@@ -32,6 +32,11 @@ chrome.runtime.onMessage.addListener(
 			case 'toggleDefinition':
                 lcxMain.dict.noDefinition = !lcxMain.dict.noDefinition;
 				break;
+			case 'tts':
+				// mandarin: zh-CN, zh-TW cantonese: zh-HK
+				chrome.tts.speak(request.text,  {"lang": lcxMain.config.ttsDialect,
+					"rate": lcxMain.config.ttsSpeed});
+				break;
 			default:
 				console.log(request);
 		}

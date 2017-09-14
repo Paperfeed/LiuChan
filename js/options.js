@@ -16,6 +16,8 @@ function saveOptions() {
     var copySeparator = document.getElementById('copySeparator').value;
     var maxClipCopyEntries = document.getElementById('maxClipCopyEntries').value;
     var showOnKey = document.querySelector('input[name="showOnKey"]:checked').value;
+    var ttsDialect = document.getElementById('ttsDialect').value;
+    var ttsSpeed = parseFloat(document.getElementById('ttsSpeed').value);
 
     var newConfig = {
         popupColor: popupColor,
@@ -31,7 +33,9 @@ function saveOptions() {
         lineEnding: lineEnding,
         copySeparator: copySeparator,
         maxClipCopyEntries: maxClipCopyEntries,
-        showOnKey: showOnKey
+        showOnKey: showOnKey,
+        ttsDialect: ttsDialect,
+        ttsSpeed: ttsSpeed
     };
     chrome.storage.sync.set(newConfig, function() {
         chrome.runtime.sendMessage({"type":"config", "config":newConfig});
@@ -40,7 +44,7 @@ function saveOptions() {
         status.className += 'statusOn';
         setTimeout(function() {
             status.className = '';
-        }, 750);
+        }, 1400);
     });
 }
 
@@ -62,7 +66,9 @@ function restoreOptions() {
         lineEnding: 'n',
         copySeparator: 'tab',
         maxClipCopyEntries: 7,
-        showOnKey: ""
+        showOnKey: "",
+        ttsDialect: "zh-CN",
+        ttsSpeed: 0.9
     }, function(items) {
         document.getElementById('popupColor').value = items.popupColor;
         document.getElementById('showHanzi').value = items.showHanzi;
@@ -77,9 +83,12 @@ function restoreOptions() {
         document.getElementById('lineEnding').value = items.lineEnding;
         document.getElementById('copySeparator').value = items.copySeparator;
         document.getElementById('maxClipCopyEntries').value = items.maxClipCopyEntries;
+        document.getElementById('ttsDialect').value = items.ttsDialect;
+        document.getElementById('ttsSpeed').value = items.ttsSpeed;
+        document.getElementById("ttsSpeedValue").innerHTML = items.ttsSpeed;
 
         // Get radio buttons and check the proper matching one
-        // Should perhaps replace this with a RadioNodeList
+        // TODO Should replace this with a RadioNodeList
         var radio = document.getElementsByName('showOnKey');
         for(var i = 0; i < radio.length; i++){
             if(radio[i].value === items.showOnKey){
@@ -88,6 +97,12 @@ function restoreOptions() {
         }
     });
 }
+
+// Update slider in option page
+function showValue() {
+    document.getElementById("ttsSpeedValue").innerHTML= document.getElementById('ttsSpeed').value;
+}
+
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
 window.onload = function () {
@@ -99,4 +114,7 @@ window.onload = function () {
             inputs[i].addEventListener('input', saveOptions);
         }
     }
+
+    var ttsSpeedSlider = document.getElementById('ttsSpeed');
+    ttsSpeedSlider.addEventListener('change', showValue)
 };

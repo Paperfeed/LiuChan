@@ -219,24 +219,19 @@ var lcxContent = {
 		}
 
 		var sel = tdata.prevSelView.getSelection();
-		// If there is an empty selection or the selection was done by
-		// liuchan then we'll clear it
+		// If there is an empty selection or the selection was done by Liuchan then we'll clear it
 		if ((!sel.toString()) || (tdata.selText === sel.toString())) {
-			// In the case of no selection we clear the oldTA
-			// The reason for this is becasue if there's no selection
-			// we probably clicked somewhere else and we don't want to
-			// bounce back.
+			// In the case of no selection we clear the oldTA. The reason for this is because if there's no
+			// selection we probably clicked somewhere else and we don't want to bounce back.
 			if (!sel.toString())
 				tdata.oldTA = null;
 
 			// Clear all selections
 			sel.removeAllRanges();
 			// Text area stuff.
-			// If oldTA is still around that means we had a highlighted region
-			// which we just cleared and now we're going to jump back to where we were
-			// the cursor was before our lookup.
-			// If oldCaret is less than 0 it means we clicked outside the box and shouldn't
-			// come back
+			// If oldTA is still around that means we had a highlighted region which we just cleared and now we're
+			// going to jump back to where we were the cursor was before our lookup.
+			// If oldCaret is less than 0 it means we clicked outside the box and shouldn't come back
 			if (tdata.oldTA && tdata.oldCaret >= 0) {
 				tdata.oldTA.selectionStart = tdata.oldTA.selectionEnd = tdata.oldCaret;
 			}
@@ -259,87 +254,79 @@ var lcxContent = {
 	},
 
 	_onKeyDown: function(ev) {
-		if (lcxContent.config.showOnKey !== "" && (ev.altKey || ev.ctrlKey || ev.key === "AltGraph")) {
-			if (this.lastTarget !== null) {
-				var myEv = {
-					clientX: this.lastPos.x,
-					clientY: this.lastPos.y,
-					target: this.lastTarget,
-					altKey: ev.altKey || ev.key === "AltGraph",
-					ctrlKey: ev.ctrlKey,
-					shiftKey: ev.shiftKey,
-					noDelay: true
-				};
-				this.tryUpdatePopup(myEv);
-			}
-			return;
-		}
-
-		// TODO get rid of keyCode. Use `key` and `code`
-		if (lcxContent.config.disableKeys === true && (ev.keyCode !== 16)) return;
-		if ((ev.shiftKey) && (ev.keyCode !== 16)) return;
-		if (this.keysDown[ev.keyCode]) return;
-		if (!this.isVisible()) return;
+        if (lcxContent.config.disableKeys) return;
+        if ((ev.shiftKey) && (ev.keyCode !== 16)) return;
+        if (this.keysDown[ev.keyCode]) return;
+        if (!this.isVisible()) return;
 
 		var i;
-
-		switch (ev.keyCode) {
-		/*case 16:	// shift
-		case 13:	// enter
-			this.showMode = (this.showMode + 1) % this.dictCount;
-			this.show(ev.currentTarget.liuchan);
-			break;*/
-		case 27:	// esc
-			this.hidePopup();
-			this.clearHi();
-			break;
-		case 65:	// a
-			this.altView = (this.altView + 1) % 3;
-			this.show(ev.currentTarget.liuchan);
-			break;
-		case 67:	// c
-			chrome.runtime.sendMessage({
-				"type": "copyToClip",
-				"entry": lcxContent.lastFound
-			});
-			break;
-		case 66:	// b
-			var ofs = ev.currentTarget.liuchan.uofs;
-			for (i = 50; i > 0; --i) {
-				ev.currentTarget.liuchan.uofs = --ofs;
-				if (this.show(ev.currentTarget.liuchan) >= 0) {
-					if (ofs >= ev.currentTarget.liuchan.uofs) break;	// ! change later
+		switch (ev.key) {
+			/*case "Shift":	// shift
+			case "Enter":	// enter
+				this.showMode = (this.showMode + 1) % this.dictCount;
+				this.show(ev.currentTarget.liuchan);
+				break;*/
+			case "Escape":
+				this.hidePopup();
+				this.clearHi();
+				break;
+			case "a":
+				this.altView = (this.altView + 1) % 3;
+				this.show(ev.currentTarget.liuchan);
+				break;
+			case "c":
+				chrome.runtime.sendMessage({
+					"type": "copyToClip",
+					"entry": lcxContent.lastFound
+				});
+				break;
+			case "b":
+				var ofs = ev.currentTarget.liuchan.uofs;
+				for (i = 50; i > 0; --i) {
+					ev.currentTarget.liuchan.uofs = --ofs;
+					if (this.show(ev.currentTarget.liuchan) >= 0) {
+						if (ofs >= ev.currentTarget.liuchan.uofs) break;	// TODO change later
+					}
 				}
-			}
-			break;
-		case 68: // d
-			chrome.runtime.sendMessage({
-				"type": "toggleDefinition"
-			});
-			this.show(ev.currentTarget.liuchan);
-			break;
-		case 77:	// m
-			ev.currentTarget.liuchan.uofsNext = 1;
-		case 78:	// n
-			for (i = 50; i > 0; --i) {
-				ev.currentTarget.liuchan.uofs += ev.currentTarget.liuchan.uofsNext;
-				if (this.show(ev.currentTarget.liuchan) >= 0) break;
-			}
-			break;
-		case 89:	// y
-			this.altView = 0;
-			ev.currentTarget.liuchan.popY += 20;
-			this.show(ev.currentTarget.liuchan);
-			break;
-		default:
-			return;
+				break;
+			case "d":
+				chrome.runtime.sendMessage({
+					"type": "toggleDefinition"
+				});
+				this.show(ev.currentTarget.liuchan);
+				break;
+			case "m":
+				ev.currentTarget.liuchan.uofsNext = 1;
+				// Fallthrough on purpose
+			case "n":
+				for (i = 50; i > 0; --i) {
+					ev.currentTarget.liuchan.uofs += ev.currentTarget.liuchan.uofsNext;
+					if (this.show(ev.currentTarget.liuchan) >= 0) break;
+				}
+				break;
+			case "y":
+				this.altView = 0;
+				ev.currentTarget.liuchan.popY += 20;
+				this.show(ev.currentTarget.liuchan);
+				break;
+			case "t":
+                chrome.runtime.sendMessage({
+                    "type": "tts",
+					"text": this.lastFound[0].data[0].trad
+                });
+				break;
+			default:
+				return;
 		}
 
 		this.keysDown[ev.keyCode] = 1;
 	},
 
-	mDown: false,
+    onKeyUp: function(ev) {
+        if (lcxContent.keysDown[ev.keyCode]) lcxContent.keysDown[ev.keyCode] = 0;
+    },
 
+	mDown: false,
 	onMouseDown: function(ev) {
 		lcxContent._onMouseDown(ev)
 	},
@@ -350,10 +337,8 @@ var lcxContent = {
 			this.clearHi();
 		lcxContent.mDown = true;
 
-		// If we click outside of a text box then we set
-		// oldCaret to -1 as an indicator not to restore position.
-		// Otherwise, we switch our saved textarea to whereever
-		// we just clicked
+		// If we click outside of a text box then we set oldCaret to -1 as an indicator not to restore position.
+		// Otherwise, we switch our saved textarea to where we just clicked
 		if (!('form' in ev.target))
 			window.liuchan.oldCaret = -1;
 		else
@@ -367,10 +352,6 @@ var lcxContent = {
 		if (ev.button !== 0)
 			return;
 		lcxContent.mDown = false;
-	},
-
-	onKeyUp: function(ev) {
-		if (lcxContent.keysDown[ev.keyCode]) lcxContent.keysDown[ev.keyCode] = 0;
 	},
 
 	inlineNames: {
@@ -429,9 +410,8 @@ var lcxContent = {
 			);
 	},
 
-	// XPath expression which evaluates to text nodes
-	// tells Liuchan which text to translate
-	// expression to get all text nodes that are not in (RP or RT) elements
+	// XPath expression which evaluates to text nodes tells Liuchan which text to translate expression to get all
+	// text nodes that are not in (RP or RT) elements
 	textNodeExpr: 'descendant-or-self::text()[not(parent::rp) and not(ancestor::rt)]',
 
 	// XPath expression which evaluates to a boolean. If it evaluates to true
@@ -631,8 +611,7 @@ var lcxContent = {
 			try {
 				if (rp.nodeName === 'TEXTAREA' || rp.nodeName === 'INPUT') {
 
-					// If there is already a selected region not caused by
-					// Liuchan, leave it alone
+					// If there is already a selected region not caused by Liuchan, leave it alone
 					if ((sel.toString()) && (tdata.selText !== sel.toString()))
 						return;
 
@@ -641,11 +620,9 @@ var lcxContent = {
 						rp.focus();
 					}
 
-					// If there is no selected region and the saved
-					// textbox is the same as the current one
-					// then save the current cursor position.
-					// The second half of the condition lets us place the
-					// cursor in another text box without having it jump back
+					// If there is no selected region and the saved textbox is the same as the current one then save
+					// the current cursor position. The second half of the condition lets us place the cursor in
+					// another text box without having it jump back
 					// TODO rewrite selection store/restore to handle all and any selections
 					if (!sel.toString() && tdata.oldTA === rp) {
 						tdata.oldCaret = rp.selectionStart;
@@ -656,12 +633,9 @@ var lcxContent = {
 					tdata.selText = rp.value.substring(ro, matchLen + ro);
 				}
 			} catch (err) {
-				// If there is an error it is probably caused by the input type
-				// being not text.  This is the most general way to deal with
-				// arbitrary types
-
-				// We set oldTA to null because we don't want to do weird stuff
-				// with buttons
+				// If there is an error it is probably caused by the input type being not text.  This is the most
+				// general way to deal with arbitrary types
+				// We set oldTA to null because we don't want to do weird stuff with buttons
 				tdata.oldTA = null;
 				console.log(err.message);
 			}
@@ -669,8 +643,7 @@ var lcxContent = {
 		}
 
 		// Special case for leaving a text box.
-		// Even if we're not currently in a text area we should save
-		// the last one we were in
+		// Even if we're not currently in a text area we should save the last one we were in
 		if (tdata.oldTA && !sel.toString() && tdata.oldCaret >= 0)
 			tdata.oldCaret = tdata.oldTA.selectionStart;
 
@@ -736,7 +709,7 @@ var lcxContent = {
 		fake.scrollTop = real.scrollTop;
 		fake.scrollLeft = real.scrollLeft;
 		fake.style.position = "absolute";
-		fake.style.zIndex = 7777;
+		fake.style.zIndex = 99999999999;
 		fake.style.top = (window.scrollY + realRect.top) + 'px';
 		fake.style.left = (window.scrollX + realRect.left) + 'px';
 
@@ -759,9 +732,8 @@ var lcxContent = {
 	},
 
 	tryUpdatePopup: function(ev) {
-		var altGraph = ev.getModifierState && ev.getModifierState("AltGraph");
 		var str = lcxContent.config.showOnKey;
-		if ((str.includes("Alt") && !ev.altKey && !altGraph) ||
+		if ((str.includes("Alt") && !ev.altKey) ||
 			(str.includes("Ctrl") && !ev.ctrlKey)) {
 			this.clearHi();
 			this.hidePopup();
@@ -862,6 +834,7 @@ var lcxContent = {
 		tdata.uofs = 0;
 		this.uofsNext = 1;
 
+		// TODO Rewrite delay code - it's useless at the moment
 		var delay = ev.noDelay ? 1 : lcxContent.config.popupDelay; // !!ev.noDelay
 
 		if (rp && rp.data && ro < rp.data.length) {

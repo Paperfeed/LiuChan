@@ -65,6 +65,19 @@ lcxDict.prototype = {
         reg.exec('c');
     },
 
+    parseDefinitions: function (def) {
+        if (def.length === 1) { return def }
+        if (lcxMain.config.numdef === "num") {
+            var str = '';
+            for (var i = 0; i < def.length; i++) {
+                str += '<b>' + (i + 1) + '</b> ' + def[i] + ' ';
+            }
+            return str.trim();
+        } else {
+            return def.join(lcxMain.config.numdef);
+        }
+    },
+
 	loadDictionary: function(tab) {
 		return Promise.all([
 			this.fileRead("data/cedict_ts.u8", "hanzi")
@@ -149,17 +162,7 @@ lcxDict.prototype = {
 			simp = entry.data[key].simp;
 			def = '';
 			pinyin = entry.data[key].pinyin;
-
-			// This adds numbers to each definition of a word
-
-			if (entry.data[key].def.length > 1 && (lcxMain.config.numdef === "num")) {
-                for (var i = 0; i < entry.data[key].def.length; i++) {
-                    def += '<b>' + (i+1) + '</b> ' + entry.data[key].def[i] + ' ';
-                }
-                def.trim();
-            } else {
-				def = entry.data[key].def.join(lcxMain.config.numdef);
-			}
+            def = this.parseDefinitions(entry.data[key].def);
 
 			// Select whether to show traditional or simple first/only
 			// Note: Fallthrough is on purpose!
@@ -185,7 +188,7 @@ lcxDict.prototype = {
 			if ((first !== second) && addSecond) {
                 // Replace identical characters (eg. simple == traditional) with a dot/hyphen
                 var newsecond = [];
-                for (i = 0; i < first.length; i++) {
+                for (var i = 0; i < first.length; i++) {
                     if (first[i] === second[i])
                         newsecond.push('\u30FB');
                     else
@@ -231,37 +234,7 @@ lcxDict.prototype = {
 				b.push('</div></div>');
 			}
 		}
-		
-		if (entry.more) b.push('...<br/>');
 
-		return b.join('');
-	},
-
-	makeText: function(entry, max) {
-		var e, b, i, t;
-
-		if (entry == null) return '';
-
-		b = [];
-
-		if (max > entry.data.length) max = entry.data.length;
-		for (i = 0; i < max; ++i) {
-			e = entry.data[i][0].match(/^(.+?)\s+(?:\[(.*?)\])?\s*\/(.+)\//);
-			if (!e) continue;
-
-			if (e[2]) {
-				b.push(e[1] + '\t' + e[2]);
-			}
-			else {
-				b.push(e[1]);
-			}
-
-			t = e[3].replace(/\//g, '; ');
-			// todo Fix this:
-			if (false/* !this.config.wpos */) t = t.replace(/^\([^)]+\)\s*/, '');
-			if (false/* !this.config.wpop */) t = t.replace('; (P)', '');
-			b.push('\t' + t + '\n');
-		}
 		return b.join('');
 	},
 

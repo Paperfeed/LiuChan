@@ -8,15 +8,15 @@ body, .tab, .tab table {
   min-width: 500px; }
 
 #status {
-  float: right;
+  position: fixed;
+  top: 15px;
+  right: 10px;
   padding: 0 10px;
   color: white;
+  background: aliceblue;
   font-weight: normal;
   opacity: 0;
-  -webkit-transition: all .3s ease-in;
-  -moz-transition: all .3s ease-in;
-  -ms-transition: all .3s ease-in;
-  -o-transition: all .3s ease-in;
+  border-radius: 5px;
   transition: all .3s ease-in; }
   #status.statusOn {
     color: #47637b;
@@ -69,13 +69,77 @@ body, .tab, .tab table {
   position: absolute;
   bottom: 0; }
 
-input[type=checkbox], input[type=radio] {
-  margin: 0 5px 0 0; }
-
 input[type=number], select {
-  width: 100px;
-  margin: 0 5px 0 0;
+  width: 130px;
+  height: 30px;
+  margin: 0 5px 0 2px;
   font-family: Roboto, sans-serif;
+  font-size: 1em;
   font-weight: 300;
   border-radius: 2px;
   border-style: hidden; }
+
+input[type=number] {
+  padding-left: 5px; }
+
+/* Slider */
+input[type=range], input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; }
+
+input[type=range]:focus {
+  outline: none; }
+  input[type=range]:focus::-webkit-slider-thumb {
+    border: 1px solid #47637b; }
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: 1px solid #ccc;
+  height: 10px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  margin-top: -1px; }
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 130px;
+  height: 8px;
+  cursor: pointer;
+  background: #deedfb;
+  border-radius: 1.3px; }
+
+/* Checkboxes and Radio buttons */
+input[type=radio],
+input[type=checkbox] {
+  -webkit-appearance: none;
+  display: inline-block;
+  position: relative;
+  top: 1px;
+  height: 14px;
+  width: 14px;
+  margin: 0 5px 0 0;
+  background: #fff;
+  overflow: hidden;
+  border: 1px solid #deedfb;
+  border-radius: 2px; }
+  input[type=radio]:focus,
+  input[type=checkbox]:focus {
+    outline: none;
+    border: 1px solid -webkit-focus-ring-color; }
+  input[type=radio]:checked:after,
+  input[type=checkbox]:checked:after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -4px 0 0 -4px;
+    background: #93bee3;
+    width: 8px;
+    height: 8px;
+    border-radius: 1px; }
+
+input[type=radio] {
+  border-radius: 15px; }
+  input[type=radio]:checked:after {
+    border-radius: 15px; }

@@ -5,8 +5,7 @@
    "version": "1.0.1",
    "options_page": "html/options.html",
    "options_ui": {
-      "page": "html/options.html",
-      "chrome_style": true
+      "page": "html/options.html"
    },
    "background": {
       "scripts": ["/js/data.js", "/js/liuchan.js", "/js/background.js", "/js/fuzzysort.js"],
@@ -28,6 +27,6 @@
       "48": "images/icon48.png"
    },
    "omnibox": {"keyword" : "lc"},
-   "permissions": [ "tabs", "storage", "clipboardWrite", "http://*/*" ],
+   "permissions": [ "tabs", "storage", "tts", "clipboardWrite", "http://*/*" ],
    "web_accessible_resources": [ "css/*", "js/liuchancontent.js", "images/*" ]
 }

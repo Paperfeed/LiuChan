@@ -1,9 +1,9 @@
 <html>
 
 <head>
-	<link rel="stylesheet" type="text/css" href="/css/options.css" />
+	<link rel="stylesheet" type="text/css" href="../css/options.css" />
 	<title>LiuChan settings</title>
-	<script src="/js/options.js"></script>
+	<script src="../js/options.js"></script>
 </head>
 
 <body>
@@ -99,7 +99,7 @@
 						</tr>
 						<tr>
 							<td>
-								<input class="config" type="radio" name="showOnKey" value="" checked>N/A</input>
+								<input class="config" type="radio" name="showOnKey" value="" checked>None</input>
 							</td>
 						</tr>
 						<tr>
@@ -114,7 +114,7 @@
 						</tr>
 						<tr>
 							<td>
-								<input class="config" type="radio" name="showOnKey" value="Alt+Ctrl">Alt+Ctrl</input>
+								<input class="config" type="radio" name="showOnKey" value="CtrlAlt">Ctrl + Alt</input>
 							</td>
 						</tr>
 					</table>
@@ -154,11 +154,40 @@
 								<td>N</td>
 								<td>Next word</td>
 							</tr>
+							<tr>
+								<td>T</td>
+								<td>Text-To-Speech</td>
+							</tr>
 						</table>
 					</div>
 				</div>
 			</div>
 
+		</div>
+
+		<div class="tab">
+			<h3>Text-To-Speech</h3>
+			<table class="table" cellspacing=3>
+				<tr>
+					<td>Dialect:</td>
+					<td>
+						<select class="config" id="ttsDialect" name="ttsDialect">
+							<option value="zh-CN">Mandarin</option>
+							<option value="zh-TW">Taiwanese</option>
+							<option value="zh-HK">Cantonese</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>Speed:</td>
+					<td>
+						<input class="config" type="range" id="ttsSpeed" step=".1" min="0.1" max="1.5" value="1.0">
+					</td>
+					<td>
+						<p id="ttsSpeedValue">1.0</p>
+					</td>
+				</tr>
+			</table>
 		</div>
 
 		<div class="tab">
@@ -179,8 +208,8 @@
 					<td>
 						<select class="config" id="copySeparator" name="copySeparator">
 							<option value="tab">Tab</option>
-							<option value="comma">Comma</option>
-							<option value="space">Space</option>
+							<option value=",">Comma</option>
+							<option value=" ">Space</option>
 						</select>
 					</td>
 				</tr>

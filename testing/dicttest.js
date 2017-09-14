@@ -66,7 +66,7 @@ dictTest.prototype = {
 console.log("Starting...");
 test = new dictTest();
 timer = new Date().getTime();
-test.loadDictionary();
+//test.loadDictionary();
 
 
 function onDictionaryLoaded() {

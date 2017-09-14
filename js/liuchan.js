@@ -62,7 +62,9 @@ var lcxMain = {
             lineEnding: 'n',
             copySeparator: 'tab',
             maxClipCopyEntries: 7,
-            showOnKey: ""
+            showOnKey: "",
+            ttsDialect: "zh-CN",
+            ttsSpeed: 0.9
         }, function (items) {
             lcxMain.config = items;
 		});
@@ -114,7 +116,7 @@ var lcxMain = {
             // Update config on active tab and then show help popup if necessary
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
                 chrome.tabs.sendMessage(tabs[0].id, {type: "config", config:lcxMain.config}, function(response) {
-                    if (lcxMain.config.miniHelp === true) {
+                    if (lcxMain.config.miniHelp === true && !lcxMain.config.disableKeys) {
                         chrome.tabs.sendMessage(tab.id, {
                             "type": "showPopup",
                             "text": lcxMain.miniHelp
@@ -153,64 +155,41 @@ var lcxMain = {
         });
 	},
 
-	savePrep: function(clip, entry) {
-		var me, text = '';
-		var i, f, e;
-
-		f = entry;
-		if ((!f) || (f.length === 0)) return null;
-
-		if (clip) { // Save to clipboard
-			me = lcxMain.config.maxClipCopyEntries;
-		}
-
-		for (i = 0; i < f.length; ++i) {
-			e = f[i];
-			if (e.kanji) {
-				text += lcxMain.dict.makeText(e, 1);
-			} else {
-				if (me <= 0) continue;
-				text += lcxMain.dict.makeText(e, me);
-				me -= e.data.length;
-			}
-		}
-
-		switch (lcxMain.config.lineEnding) {
-			case "rn":
-                text = text.replace(/\n/g, '\r\n');
-                break;
-			case "r":
-                text = text.replace(/\n/g, '\r');
-                break;
-		}
-
-		switch (lcxMain.config.copySeparator) {
-			case "comma":
-                return text.replace(/\t/g, ",");
-                break;
-			case "space":
-                return text.replace(/\t/g, " ");
-                break;
-			default:
-				return text;
-		}
-	},
-
 	copyToClip: function(tab, entry) {
-		var text;
+        if (entry.length === 0) return null;
 
-		if ((text = lcxMain.savePrep(1, entry)) !== null) {
-			document.oncopy = function(event) {
-				event.clipboardData.setData("Text", text);
-				event.preventDefault();
-			};
-			document.execCommand("Copy");
-			document.oncopy = undefined;
-			chrome.tabs.sendMessage(tab.tabId, {
-				"type": "showPopup",
-				"text": 'Copied to clipboard.'
-			});
-		}
+        var text = '', sep, end;
+
+        switch (lcxMain.config.copySeparator) {
+            case "tab": sep = '\t'; break;
+            default: sep = lcxMain.config.copySeparator;}
+
+        switch (lcxMain.config.lineEnding) {
+            case "r": end = "\r"; break;
+            case "rn": end = "\r\n"; break;
+            default: end = "\n";}
+
+        const pinyinType = lcxMain.config.pinyin;
+	    var maxLoops = Math.min(lcxMain.config.maxClipCopyEntries, entry[0].data.length);
+	    for (var i = 0; i < maxLoops; i++) {
+	        text += entry[0].data[i].simp + sep +
+                entry[0].data[i].trad + sep +
+                entry[0].data[i].pinyin[pinyinType] + sep +
+                entry[0].data[i].def.join("; ") + end;
+                //lcxMain.dict.parseDefinitions(entry[0].data[i].def).replace(/<\/?b>/g, "") + end;
+        }
+
+        document.oncopy = function(event) {
+            event.clipboardData.setData("Text", text);
+            event.preventDefault();
+        };
+
+        document.execCommand("Copy");
+        document.oncopy = undefined;
+        chrome.tabs.sendMessage(tab.id, {
+            "type": "showPopup",
+            "text": 'Copied to clipboard.'
+        });
 	},
 
 	miniHelp: '<div class="liutitle">LiuChan enabled!</div>' +
@@ -222,6 +201,7 @@ var lcxMain = {
 		'<tr><td>B</td><td>Previous character</td></tr>' +
 		'<tr><td>M</td><td>Next character</td></tr>' +
 		'<tr><td>N</td><td>Next word</td></tr>' +
+		'<tr><td>T</td><td>&#x1F508;Text-To-Speech</td></tr>' +
 		'</table>',
 
 	onDictionaryLoaded: function(tab) {
