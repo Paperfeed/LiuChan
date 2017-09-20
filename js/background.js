@@ -37,6 +37,9 @@ chrome.runtime.onMessage.addListener(
 				chrome.tts.speak(request.text,  {"lang": lcxMain.config.ttsDialect,
 					"rate": lcxMain.config.ttsSpeed});
 				break;
+			case 'rebuild':
+                lcxMain.dict.loadDictionary(sender.tab);
+				break;
 			default:
 				console.log(request);
 		}

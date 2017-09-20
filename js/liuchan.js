@@ -49,22 +49,27 @@ var lcxMain = {
 
 	initConfig: function() {
         chrome.storage.sync.get({
-            popupColor: 'liuchan',
+            content: {
+                popupColor: 'liuchan',
+                popupDelay: 0,
+                highlight: true,
+                textboxhl: false,
+                showOnKey: "",
+                disableKeys: false
+            },
             showHanzi: 'boths',
             pinyin: 'tonemarks',
             numdef: 'num',
-            popupDelay: 1,
-            highlight: true,
-            textboxhl: false,
             doColors: true,
+            doPinyinColors: false,
             miniHelp: true,
-            disableKeys: true,
             lineEnding: 'n',
             copySeparator: 'tab',
             maxClipCopyEntries: 7,
-            showOnKey: "",
             ttsDialect: "zh-CN",
-            ttsSpeed: 0.9
+            ttsSpeed: 0.9,
+            useCustomTone: false,
+            customTones: ['#F2777A','#99CC99','#6699CC','#CC99CC','#CCCCCC', '#66CCCC']
         }, function (items) {
             lcxMain.config = items;
 		});
@@ -80,7 +85,7 @@ var lcxMain = {
             lcxMain.sendAllTabs({"type":"disable"});
 
             // Disable Omnibox wordsearch
-            chrome.omnibox.onInputChanged.removeListener(lcxMain._omnibox);
+            chrome.omnibox.onInputChanged.removeListener(lcxMain.omnibox);
 
             // Clean up memory
             lcxMain.enabled = false;
@@ -107,7 +112,7 @@ var lcxMain = {
             }
 
             // Enable Omnibox Wordsearch
-            chrome.omnibox.onInputChanged.addListener(lcxMain._omnibox);
+            chrome.omnibox.onInputChanged.addListener(lcxMain.omnibox);
             // chrome.omnibox.onInputEntered.addListener(function(text) { //Do sth on enter });
 
             lcxMain.dict.loadDictionary(tab);
@@ -115,8 +120,8 @@ var lcxMain = {
 
             // Update config on active tab and then show help popup if necessary
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {type: "config", config:lcxMain.config}, function(response) {
-                    if (lcxMain.config.miniHelp === true && !lcxMain.config.disableKeys) {
+                chrome.tabs.sendMessage(tabs[0].id, {type: "config", config:lcxMain.config.content}, function(response) {
+                    if (lcxMain.config.miniHelp === true && !lcxMain.config.content.disableKeys) {
                         chrome.tabs.sendMessage(tab.id, {
                             "type": "showPopup",
                             "text": lcxMain.miniHelp
@@ -142,7 +147,7 @@ var lcxMain = {
 		if (lcxMain.enabled) {
 			chrome.tabs.sendMessage(tab.tabId, {
 				"type":"enable",
-				"config":lcxMain.config
+				"config":lcxMain.config.content
 			});
 		}
 	},
@@ -205,23 +210,17 @@ var lcxMain = {
 		'</table>',
 
 	onDictionaryLoaded: function(tab) {
-        // todo could just change this to only enable active tab as it will
-        // already activate other tabs automatically on tab-change
-		chrome.tabs.sendMessage(tab.id, {"type":"enable", "config": lcxMain.config});
-
-		// Send message to all tabs to add listeners
-		// It also passes along the extension's settings
-		//lcxMain.sendAllTabs({"type":"enable", "config": lcxMain.config});
+	    // Activate tab and send along content script related settings
+        if (tab) chrome.tabs.sendMessage(tab.id, {"type":"enable", "config": lcxMain.config.content});
 	},
 
     // Prevent code from running while user is still typing
     timeout: 0,
-    _omnibox: function(text, suggest) {
+    omnibox: function(text, suggest) {
 	    clearTimeout(lcxMain.timeout);
-        lcxMain.timeout = setTimeout(lcxMain.omnibox, 400, text, suggest);
+        lcxMain.timeout = setTimeout(lcxMain._omnibox, 400, text, suggest);
     },
-
-	omnibox: function(text, suggest) {
+	_omnibox: function(text, suggest) {
 		if (lcxMain.dict === undefined) {
             lcxMain.toggleExtension(null);
         }

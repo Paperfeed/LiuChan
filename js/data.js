@@ -185,10 +185,11 @@ lcxDict.prototype = {
             html = '<div class="entry"><div class="hanzi">';
 
             // If simple and traditional characters are completely identical, skip this
+			// otherwise add both sets to the entry if user has chosen to do so
 			if ((first !== second) && addSecond) {
-                // Replace identical characters (eg. simple == traditional) with a dot/hyphen
+                // Replace identical characters from both sets with a dot/hyphen
                 var newsecond = [];
-                for (var i = 0; i < first.length; i++) {
+                for (var i = 0, len = first.length; i < len; i++) {
                     if (first[i] === second[i])
                         newsecond.push('\u30FB');
                     else
@@ -196,34 +197,110 @@ lcxDict.prototype = {
                 }
                 second = newsecond.join('');
 
+                // Add tone colors to every character
                 if (lcxMain.config.doColors === true) {
-                    for (i = 0; i < pinyin.tones.length; i++) {
-                        html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
-                    }
+                    // User has specified custom colors, use those instead
+                    if (lcxMain.config.useCustomTone) {
+                    	var tone;
+                        for (i = 0, len = pinyin.tones.length; i < len; i++) {
+                        	tone = pinyin.tones[i];
+                            html += '<span class="tone' + tone
+								+ '" style="color:' + lcxMain.config.customTones[tone-1] + '">'
+								+ first.charAt(i) + '</span>';
+                        }
 
-					html += '<span class="spacer"></span><span class="brace">[</span>';
-					for (i = 0; i < pinyin.tones.length; i++) {
-						html += '<span class="tone' + pinyin.tones[i] + '">' + second.charAt(i) + '</span>';
-					}
-					html += '<span class="brace">]</span>'
+                        html += '<span class="spacer"></span><span class="brace">[</span>';
+                        for (i = 0, len = pinyin.tones.length; i < len; i++) {
+                            tone = pinyin.tones[i];
+                            html += '<span class="tone' + tone
+								+ '" style="color:' + lcxMain.config.customTones[tone-1] + '">'
+								+ second.charAt(i) + '</span>';
+                        }
+                        html += '<span class="brace">]</span>'
+
+                    } else {
+						for (i = 0, len = pinyin.tones.length; i < len; i++) {
+							html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
+						}
+
+						html += '<span class="spacer"></span><span class="brace">[</span>';
+						for (i = 0, len = pinyin.tones.length; i < len; i++) {
+							html += '<span class="tone' + pinyin.tones[i] + '">' + second.charAt(i) + '</span>';
+						}
+						html += '<span class="brace">]</span>'
+                	}
                 } else {
                     html += '<span class="tone3">' + first + '</span><span class="spacer"></span>' +
                         '<span class="tone3"><span class="brace">[</span>' + second + '<span class="brace">]</span></span>';
                 }
 
             } else {
-				if (lcxMain.config.doColors === true)
-					for( i = 0; i < pinyin.tones.length; i++)
-						html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
-				else
-					html += '<span class="tone3">' + first + '</span>';
+                // Add tone colors to every character
+				if (lcxMain.config.doColors === true) {
+                    if (lcxMain.config.useCustomTone) {
+                        for (i = 0, len = pinyin.tones.length; i < len; i++) {
+                            tone = pinyin.tones[i];
+                            html += '<span class="tone' + tone
+								+ '" style="color:' + lcxMain.config.customTones[tone-1] + '">'
+								+ first.charAt(i) + '</span>';
+                        }
+                    } else {
+                        for (i = 0, len = pinyin.tones.length; i < len; i++) {
+                            html += '<span class="tone' + pinyin.tones[i] + '">' + first.charAt(i) + '</span>';
+                        }
+                    }
+                } else {
+                    html += '<span class="tone3">' + first + '</span>';
+                }
 			}
 
 			//PINYIN
-			html += '</div><div class="pinyin">';
-			if      ("tonenums" === lcxMain.config.pinyin) html += pinyin.tonenums  + '</span>';
-			else if ("zhuyin"   === lcxMain.config.pinyin) html += pinyin.zhuyin    + '</span>';
-			else 										   html += pinyin.tonemarks + '</span>';
+            html += '</div><div class="pinyin">';
+
+            if (lcxMain.config.doColors && lcxMain.config.doPinyinColors) {
+            	var str;
+				switch (lcxMain.config.pinyin) {
+					case "tonenums": str = pinyin.tonenums.split(" "); break;
+					case "zhuyin": str = pinyin.zhuyin.split(" "); break;
+					default: str = pinyin.tonemarks.split(" ");
+				}
+
+				//if (str.length !== pinyin.tones.length) console.log("this should not happen!", str, pinyin.tones);
+				if (lcxMain.config.useCustomTone) {
+                    for (i = 0, len = pinyin.tones.length; i < len; i++) {
+                        tone = pinyin.tones[i];
+                        html += '<span class="tone' + tone
+							+ '" style="color:' + lcxMain.config.customTones[tone-1] + '">'
+							+ str[i] + ' </span>';
+                    }
+				} else {
+                    for (i = 0, len = pinyin.tones.length; i < len; i++) {
+                        html += '<span class="tone' + pinyin.tones[i] + '">' + str[i] + ' </span>';
+                    }
+                }
+			} else {
+            	if (!lcxMain.config.doPinyinColors && lcxMain.config.useCustomTone) {
+                    switch (lcxMain.config.pinyin) {
+                        case "tonenums":
+                            html += '<span style="color:' + lcxMain.config.customTones[5] + '">' +
+                                pinyin.tonenums + '</span></span>';
+                            break;
+                        case "zhuyin":
+                            html += '<span style="color:' + lcxMain.config.customTones[5] + '">' +
+                                pinyin.zhuyin + '</span></span>';
+                            break;
+                        default:
+                            html += '<span style="color:' + lcxMain.config.customTones[5] + '">' +
+                                pinyin.tonemarks + '</span></span>';
+                    }
+				} else {
+					switch (lcxMain.config.pinyin) {
+						case "tonenums": html += pinyin.tonenums + '</span>'; break;
+						case "zhuyin": html += pinyin.zhuyin + '</span>'; break;
+						default: html += pinyin.tonemarks + '</span>';
+					}
+				}
+			}
 
 			b.push(html);
 

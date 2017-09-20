@@ -249,23 +249,27 @@ var lcxContent = {
 	},
 	lastTarget: null,
 
+	inputActive: false,
+    activeElementIsInput: function() {
+        //var expr = /radio|checkbox|undefined|file|range|week|month|submit|reset|number|date/;
+		var expr =  /text|email|password|search|tel|url|number/
+        if (expr.test(document.activeElement.type)) return true;
+        return false;
+    },
+
 	onKeyDown: function(ev) {
 		lcxContent._onKeyDown(ev)
 	},
-
 	_onKeyDown: function(ev) {
         if (lcxContent.config.disableKeys) return;
         if ((ev.shiftKey) && (ev.keyCode !== 16)) return;
         if (this.keysDown[ev.keyCode]) return;
         if (!this.isVisible()) return;
+        // If user has selected an input, disable hotkeys
+        if (this.inputActive) return;
 
 		var i;
 		switch (ev.key) {
-			/*case "Shift":	// shift
-			case "Enter":	// enter
-				this.showMode = (this.showMode + 1) % this.dictCount;
-				this.show(ev.currentTarget.liuchan);
-				break;*/
 			case "Escape":
 				this.hidePopup();
 				this.clearHi();
@@ -323,7 +327,11 @@ var lcxContent = {
 	},
 
     onKeyUp: function(ev) {
-        if (lcxContent.keysDown[ev.keyCode]) lcxContent.keysDown[ev.keyCode] = 0;
+        lcxContent._onKeyUp(ev);
+    },
+	_onKeyUp: function(ev) {
+        if (this.keysDown[ev.keyCode]) this.keysDown[ev.keyCode] = 0;
+        this.inputActive = this.activeElementIsInput();
     },
 
 	mDown: false,
@@ -352,6 +360,7 @@ var lcxContent = {
 		if (ev.button !== 0)
 			return;
 		lcxContent.mDown = false;
+        this.inputActive = this.activeElementIsInput();
 	},
 
 	inlineNames: {
@@ -579,8 +588,8 @@ var lcxContent = {
 		
 		var rp = tdata.prevRangeNode;
 		// Don't try to highlight form elements
-		if ((rp) && ((lcxContent.config.highlight === true && !lcxContent.mDown && !('form' in tdata.prevTarget)) ||
-				(('form' in tdata.prevTarget) && lcxContent.config.textboxhl === true))) {
+		if ((rp) && ((!lcxContent.inputActive && lcxContent.config.highlight && !lcxContent.mDown && !('form' in tdata.prevTarget)) ||
+				(!lcxContent.inputActive && ('form' in tdata.prevTarget) && lcxContent.config.textboxhl === true))) {
 			var doc = rp.ownerDocument;
 			if (!doc) {
 				lcxContent.clearHi();
@@ -834,19 +843,17 @@ var lcxContent = {
 		tdata.uofs = 0;
 		this.uofsNext = 1;
 
-		// TODO Rewrite delay code - it's useless at the moment
-		var delay = ev.noDelay ? 1 : lcxContent.config.popupDelay; // !!ev.noDelay
-
 		if (rp && rp.data && ro < rp.data.length) {
 			tdata.popX = ev.clientX;
 			tdata.popY = ev.clientY;
-			tdata.timer = setTimeout(
-				function(rangeNode) {
-					if (!tdata || rangeNode !== tdata.prevRangeNode || ro !== tdata.prevRangeOfs) {
-						return;
-					}
-					lcxContent.show(tdata);
-				}, delay, rp, ro);
+			if (lcxContent.config.popupDelay > 0) {
+				clearTimeout(tdata.timer);
+                tdata.timer = setTimeout(function () {
+                        lcxContent.show(tdata);
+				}, lcxContent.config.popupDelay);
+            } else {
+                lcxContent.show(tdata);
+			}
 			return;
 		}
 
@@ -862,25 +869,6 @@ var lcxContent = {
 		} else if (ev.target.nodeName === 'SELECT' && ev.target.options[ev.target.selectedIndex]) {
 			tdata.title = ev.target.options[ev.target.selectedIndex].text;
 		}
-
-		// todo doesn't do anything at the moment
-        /*
-    	if (tdata.title) {
-			tdata.popX = ev.clientX;
-			tdata.popY = ev.clientY;
-
-			tdata.timer = setTimeout(
-				function(tdata, title) {
-
-				if (!tdata || title !== tdata.title) {
-					return;
-				}
-
-				lcxContent.showTitle(tdata);
-
-				}, delay, tdata, tdata.title);
-		}
-		*/
 
 		// Don't close just because we moved from a valid popup slightly over to a place with nothing
 		var dx = tdata.popX - ev.clientX;
