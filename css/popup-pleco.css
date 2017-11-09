@@ -46,7 +46,7 @@ entry span = #e3e3e3
     z-index: 99999999999;
 }
 
-#liuchan-window:before {
+/*#liuchan-window:before {
     content: "";
     display: block;
     padding: 7px;
@@ -62,7 +62,7 @@ entry span = #e3e3e3
     background: #0078c3;
     color: #fff;
     margin: 5px -5px -7px -5px;
-}
+}*/
 
 #liuchan-window .liuchan-container {
     display: flex;

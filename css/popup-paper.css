@@ -29,7 +29,7 @@ Paper Theme
 	position: absolute;
 	min-width: 150px;
 	padding: 6px 8px;
-  	background: url("paper.png") repeat scroll 0 0 #2D2D2D;
+  	background: url("../css/paper.png") repeat scroll 0 0 #2D2D2D;
     border: 2px solid #BCBCBC !important;
     border-radius: 8px 8px 8px 8px;
     box-shadow: 0 0 15px #878787;

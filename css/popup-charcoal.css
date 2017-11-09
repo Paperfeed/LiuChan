@@ -31,7 +31,7 @@ Charcoal Theme
 	padding: 6px 8px;
 	border: 2px solid #BCBCBC;
 	border-radius: 8px 8px 8px 8px;
-  	background: url("hash.png") repeat scroll 0 0 #2D2D2D;
+  	background: url("../css/hash.png") repeat scroll 0 0 #2D2D2D;
 	box-shadow: 0 0 15px #878787;
     z-index: 99999999999;
 }

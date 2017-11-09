@@ -103,6 +103,28 @@ body, .tab, .tab table, button {
 	bottom: 0;
 }
 
+[tooltip] {
+	font-size: 0.9em;
+
+	&:before {
+		z-index: 999;
+		position: absolute;
+		background: lightyellow;
+		font-size: 1em;
+		font-weight: 400;
+		margin-left: 22px;
+		padding: 5px;
+		width: 250px;
+		border-radius: 5px;
+		content: attr(tooltip);
+		opacity: 0;
+
+	}
+	&:hover:before {
+		opacity : 1;
+	}
+}
+
 /* Buttons */
 button {
 	-webkit-appearance: none;

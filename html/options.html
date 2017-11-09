@@ -80,18 +80,6 @@
 				</tr>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="doColors" name="doColors">Show tone colors</input>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<div class="suboption">&#8627;</div><input class="config" type="checkbox" id="doPinyinColors"
-										   name="doPinyinColors">Color
-						Pinyin</input>
-					</td>
-				</tr>
-				<tr>
-					<td>
 						<input class="config" type="checkbox" id="miniHelp" name="miniHelp">Show mini help</input>
 					</td>
 				</tr>
@@ -177,7 +165,7 @@
 		</div>
 		<div class="tab">
 			<h3>Customize Theme</h3>
-			<div id="liuchan-window" style="position:relative;margin: 10px;z-index:0">
+			<div id="liuchan-window" style="position:relative;margin: 10px;z-index:0;">
 				<div class="liuchan-container">
 					<div class="entry">
 						<div class="hanzi"><span class="tone2">流</span><span class="tone4">畅</span><span
@@ -217,15 +205,94 @@
 				</div>
 			</div>
 			<h4>Tone Colors:</h4>
-			<input class="config" type="checkbox" id="useCustomTone" name="useCustomTone">Enable Custom
-			Tone Colors</input><button id="reset">Reset</button><br>
-			<input title="Color of first tone" id="tone1" class="config colorpicker" value="#F2777A">
-			<input title="Color of second tone" id="tone2" class="config colorpicker" value="#99CC99">
-			<input title="Color of third tone" id="tone3" class="config colorpicker" value="#6699CC">
-			<input title="Color of fourth tone" id="tone4" class="config colorpicker" value="#CC99CC">
-			<input title="Color of fifth tone" id="tone5" class="config colorpicker" value="#CCCCCC">
-			<input title="Color of pinyin (if 'color pinyin' is disabled)" id="pycol" class="config colorpicker"
-				   value="#66CCCC">
+			<table class="table" cellspacing=3>
+				<tr>
+					<td>
+						<input class="config" type="checkbox" id="doColors" name="doColors">Color hanzi by
+						tone </input><span
+							tooltip="If disabled, you can use the tone 1 color picker to change the color (Remember to enable
+										 custom tone colors!)">[?]</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input class="config" type="checkbox" id="doPinyinColors"
+							   name="doPinyinColors">Color pinyin by tone </input><span
+							tooltip="If disabled, you can use the pinyin color picker to change the color (Remember to enable
+										 custom tone colors!)">[?]</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input class="config" type="checkbox" id="useCustomTone" name="useCustomTone">Use custom
+					tone colors</input>
+					</td>
+					<td>
+						<button id="reset" style="margin: 0;">Reset</button>
+					</td>
+				</tr>
+			</table>
+
+			<div style="margin-bottom:8px;">
+				<input title="Color of first tone" id="tone1" class="config colorpicker" value="#F2777A">
+				<input title="Color of second tone" id="tone2" class="config colorpicker" value="#99CC99">
+				<input title="Color of third tone" id="tone3" class="config colorpicker" value="#6699CC">
+				<input title="Color of fourth tone" id="tone4" class="config colorpicker" value="#CC99CC">
+				<input title="Color of fifth tone" id="tone5" class="config colorpicker" value="#CCCCCC">
+				<input title="Color of pinyin (if 'color pinyin' is disabled)" id="tone6" class="config colorpicker"
+					   value="#66CCCC">
+			</div>
+			<h4>Popup:</h4>
+			<table class="table" cellspacing=3>
+				<tr>
+					<td>
+						<input class="config" type="checkbox" id="useCustomization" name="useCustomization">Enable
+						Custom Popup</input>
+					</td>
+					<td>
+						<button id="resetCustomization">Reset</button>
+					</td>
+				</tr>
+				<tr>
+					<td>Colors:</td>
+					<td>
+						<input title="Background Color" id="backgroundColor" class="config colorpicker"
+							   style="width:30px;height:30px;" value="#FFFFE0">
+						<input title="Border Color" id="borderColor" class="config colorpicker"
+							   style="width:30px;height:30px;" value="#D7D3AF">
+						<input title="Drop Shadow Color" id="dropShadowColor" class="config colorpicker"
+							   style="width:30px;height:30px;" value="#420808">
+					</td>
+				</tr>
+				<tr>
+					<td>Border Thickness:</td>
+					<td>
+						<input class="config" type="range" id="borderThickness" step=".1" min="0" max="10" value="2">
+					</td>
+					<td>
+						<p id="borderThicknessValue">2</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Border Radius:</td>
+					<td>
+						<input class="config" type="range" id="borderRadius" step="1" min="0" max="25" value="8">
+					</td>
+					<td>
+						<p id="borderRadiusValue">8</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Drop Shadow Opacity:</td>
+					<td>
+						<input class="config" type="range" id="dropShadowOpacity" step="0.01" min="0" max="1"
+							   value="0.10">
+					</td>
+					<td>
+						<p id="dropShadowOpacityValue">0.10</p>
+					</td>
+				</tr>
+			</table>
 		</div>
 		<div class="tab">
 			<h3>Text-To-Speech</h3>

@@ -1,240 +1,447 @@
-
 // chrome.storage.sync.clear() to clear all saved settings
 
 // https://developer.chrome.com/extensions/options
 // Saves options to chrome.storage
 
-// Used in content script:
-// popupColor
-// disableKeys
-// highlight
-// textboxhl
-// showOnKey
-// popupDelay
+let tones = [],
+    colors = [];
+
+let e;
+
+document.addEventListener('DOMContentLoaded', init);
+
+window.onload = function () {
+    // Add event listener to all config elements and save when it detects a change in values
+    let target = document.querySelectorAll('.config');
+
+    // Listeners to update values/colors on change
+    e.sliderTtsSpeed.addEventListener('input', updateSliderValue);
+    e.sliderBorderThickness.addEventListener('input', updatePreview);
+    e.sliderBorderRadius.addEventListener('input', updatePreview);
+    e.sliderDropShadowOpacity.addEventListener('input', updatePreview);
+    e.buttonResetTones.addEventListener('click', resetTones);
+    e.buttonResetCustomization.addEventListener('click', resetCustomization);
+    e.selectPopupTheme.addEventListener('change', changeTheme);
+    e.selectPronunciation.addEventListener('change', rebuildDictionary);
+    e.checkboxUseHanziToneColors.addEventListener('change', updateTones);
+    e.checkboxUseCustomTones.addEventListener('change', updateTones);
+    e.checkboxUsePinyinToneColors.addEventListener('change', updateTones);
+    e.checkboxUseCustomization.addEventListener('change', restorePreview);
+
+    for (let i = 0, len = target.length; i < len; ++i) {
+        target[i].addEventListener('change', saveOptions);
+        let type = target[i].getAttribute('type');
+        if (type === 'number' || type === 'text') {
+            target[i].addEventListener('input', saveOptions);
+        }
+    }
+};
+
+function init() {
+    let d = document;
+    e = {
+        sliderTtsSpeed: d.getElementById('ttsSpeed'),
+        sliderTtsSpeedValue: d.getElementById("ttsSpeedValue"),
+        sliderBorderThickness: d.getElementById('borderThickness'),
+        sliderBorderThicknessValue: d.getElementById("borderThicknessValue"),
+        sliderBorderRadius: d.getElementById('borderRadius'),
+        sliderBorderRadiusValue: d.getElementById("borderRadiusValue"),
+        sliderDropShadowOpacity: d.getElementById('dropShadowOpacity'),
+        sliderDropShadowOpacityValue: d.getElementById("dropShadowOpacityValue"),
+        buttonResetTones: d.getElementById('reset'),
+        buttonResetCustomization: d.getElementById('resetCustomization'),
+        selectPopupTheme: d.getElementById('popupColor'),
+        selectPronunciation: d.getElementById('pinyin'),
+        checkboxUseCustomization: d.getElementById('useCustomization'),
+        inputPopupDelay: d.getElementById('popupDelay'),
+        checkboxHighlightText: d.getElementById('highlight'),
+        checkboxHightlightInput: d.getElementById('textboxhl'),
+        checkboxDisableKeys: d.getElementById('disableKeys'),
+        selectHanziDisplay: d.getElementById('showHanzi'),
+        selectDefinitionSeparator: d.getElementById('numdef'),
+        checkboxUseHanziToneColors: d.getElementById('doColors'),
+        checkboxUseCustomTones: d.getElementById('useCustomTone'),
+        checkboxUsePinyinToneColors: d.getElementById('doPinyinColors'),
+        checkboxDisplayHelp: d.getElementById('miniHelp'),
+        selectLineEnding: d.getElementById('lineEnding'),
+        selectCopySeparator: d.getElementById('copySeparator'),
+        inputMaxCopyEntries: d.getElementById('maxClipCopyEntries'),
+        selectTtsDialect: d.getElementById('ttsDialect')
+    };
+
+    restoreOptions();
+}
 
 function saveOptions() {
-    var popupColor = document.getElementById('popupColor').value;
-    var popupDelay = document.getElementById('popupDelay').value;
-    var highlight = document.getElementById('highlight').checked;
-    var textboxhl = document.getElementById('textboxhl').checked;
-    var showOnKey = document.querySelector('input[name="showOnKey"]:checked').value;
-    var disableKeys = document.getElementById('disableKeys').checked;
+    // Used in content script:
+    // popupColor
+    // disableKeys
+    // highlight
+    // textboxhl
+    // showOnKey
+    // popupDelay
 
-    var showHanzi = document.getElementById('showHanzi').value;
-    var pinyin = document.getElementById('pinyin').value;
-    var numdef = document.getElementById('numdef').value;
-    var doColors = document.getElementById('doColors').checked;
-    var doPinyinColors = document.getElementById('doPinyinColors').checked;
-    var miniHelp = document.getElementById('miniHelp').checked;
-    var lineEnding = document.getElementById('lineEnding').value;
-    var copySeparator = document.getElementById('copySeparator').value;
-    var maxClipCopyEntries = document.getElementById('maxClipCopyEntries').value;
-    var ttsDialect = document.getElementById('ttsDialect').value;
-    var ttsSpeed = parseFloat(document.getElementById('ttsSpeed').value);
-    var useCustomTone = (document.getElementById('useCustomTone').checked);
-    var customTones = [
+    // Theme Customization
+    let customTones = [
             tones[0].value,
             tones[1].value,
             tones[2].value,
             tones[3].value,
             tones[4].value,
-            tones[5].value];
-    updateTones();
+            tones[5].value
+        ],
+        customColors = [
+            colors[0].value, // Background
+            colors[1].value, // Border
+            convertRGBA(colors[2].value)  // Drop Shadow
+        ];
 
-    var newConfig = {
+    let newConfig = {
         content: {
-            popupColor: popupColor,
-            popupDelay: popupDelay,
-            highlight: highlight,
-            textboxhl: textboxhl,
-            showOnKey: showOnKey,
-            disableKeys: disableKeys
+            popupColor: e.selectPopupTheme.value,
+            popupDelay: e.inputPopupDelay.value,
+            highlight: e.checkboxHighlightText.checked,
+            textboxhl: e.checkboxHightlightInput.checked,
+            showOnKey: document.querySelector('input[name="showOnKey"]:checked').value,
+            disableKeys: e.checkboxDisableKeys.checked
         },
-        showHanzi: showHanzi,
-        pinyin: pinyin,
-        numdef: numdef,
-        doColors: doColors,
-        doPinyinColors: doPinyinColors,
-        miniHelp: miniHelp,
-        lineEnding: lineEnding,
-        copySeparator: copySeparator,
-        maxClipCopyEntries: maxClipCopyEntries,
-        ttsDialect: ttsDialect,
-        ttsSpeed: ttsSpeed,
-        useCustomTone: useCustomTone,
-        customTones: customTones
+        showHanzi: e.selectHanziDisplay.value,
+        pinyin: e.selectPronunciation.value,
+        numdef: e.selectDefinitionSeparator.value,
+        doColors: e.checkboxUseHanziToneColors.checked,
+        doPinyinColors: e.checkboxUsePinyinToneColors.checked,
+        miniHelp: e.checkboxDisplayHelp.checked,
+        lineEnding: e.selectLineEnding.value,
+        copySeparator: e.selectCopySeparator.value,
+        maxClipCopyEntries: e.inputMaxCopyEntries.value,
+        ttsDialect: e.selectTtsDialect.value,
+        ttsSpeed: parseFloat(e.sliderTtsSpeed.value),
+        useCustomTone: e.checkboxUseCustomTones.checked,
+        customTones: customTones,
+        customColors: customColors,
+        borderThickness: parseFloat(e.sliderBorderThickness.value),
+        borderRadius: parseFloat(e.sliderBorderRadius.value)
     };
 
-    chrome.storage.sync.set(newConfig, function() {
-        chrome.runtime.sendMessage({"type":"config", "config":newConfig});
-        // Update status to let user know options were saved.
-        var status = document.getElementById('status');
-        status.className += 'statusOn';
-        setTimeout(function() {
-            status.className = '';
-        }, 1400);
-    });
+    try {
+        chrome.storage.sync.set(newConfig, function () {
+            chrome.runtime.sendMessage({"type": "config", "config": newConfig});
+            // Update status to let user know options were saved.
+            let status = document.getElementById('status');
+            status.className += 'statusOn';
+            setTimeout(function () {
+                status.className = '';
+            }, 1400);
+        });
+    } catch (err) {
+        console.error("Chome Settings Sync Failed");
+    }
 }
 
 // Restores user preferences stored in chrome.storage.
+// Only gets called once
 function restoreOptions() {
     tones = [document.getElementById('tone1'),
         document.getElementById('tone2'),
         document.getElementById('tone3'),
         document.getElementById('tone4'),
         document.getElementById('tone5'),
-        document.getElementById('pycol')];
+        document.getElementById('tone6')];
+
+    colors = [document.getElementById('backgroundColor'),
+        document.getElementById('borderColor'),
+        document.getElementById('dropShadowColor')
+    ];
 
     // Content Script settings are 'separate' in order to minimize overhead
-    chrome.storage.sync.get({
-        content: {
-            popupColor: 'liuchan',
-            popupDelay: 0,
-            highlight: true,
-            textboxhl: false,
-            showOnKey: "",
-            disableKeys: false
-        },
-        showHanzi: 'boths',
-        pinyin: 'tonemarks',
-        numdef: 'num',
-        doColors: true,
-        doPinyinColors: false,
-        miniHelp: true,
-        lineEnding: 'n',
-        copySeparator: 'tab',
-        maxClipCopyEntries: 7,
-        ttsDialect: "zh-CN",
-        ttsSpeed: 0.9,
-        useCustomTone: false,
-        customTones: ['#F2777A','#99CC99','#6699CC','#CC99CC','#CCCCCC', '#66CCCC']
-    }, function(items) {
-        document.getElementById('popupColor').value = items.content.popupColor;
-        document.getElementById('popupDelay').value = items.content.popupDelay;
-        document.getElementById('highlight').checked = items.content.highlight;
-        document.getElementById('textboxhl').checked = items.content.textboxhl;
-        // showOnKey radio button - see below
-        document.getElementById('disableKeys').checked = items.content.disableKeys;
+    try {
+        chrome.storage.sync.get({
+            content: {
+                popupColor: 'liuchan',
+                popupDelay: 0,
+                highlight: true,
+                textboxhl: false,
+                showOnKey: "",
+                disableKeys: false
+            },
+            showHanzi: 'boths',
+            pinyin: 'tonemarks',
+            numdef: 'num',
+            doColors: true,
+            doPinyinColors: false,
+            miniHelp: true,
+            lineEnding: 'n',
+            copySeparator: 'tab',
+            maxClipCopyEntries: 7,
+            ttsDialect: "zh-CN",
+            ttsSpeed: 0.9,
+            useCustomTone: false,
+            customTones: ['#F2777A', '#99CC99', '#6699CC', '#CC99CC', '#CCCCCC', '#66CCCC'],
+            customColors: ['#FFFFE0', '#D7D3AF', 'rgba(66,8,8,0.10)'],
+            borderThickness: 2,
+            borderRadius: 8,
+            useCustomization: false
+        }, function (items) {
+            e.selectPopupTheme.value = items.content.popupColor;
+            e.inputPopupDelay.value = items.content.popupDelay;
+            e.checkboxHighlightText.checked = items.content.highlight;
+            e.checkboxHightlightInput.checked = items.content.textboxhl;
+            // showOnKey radio button - see below
+            e.checkboxDisableKeys.checked = items.content.disableKeys;
 
-        document.getElementById('showHanzi').value = items.showHanzi;
-        document.getElementById('pinyin').value = items.pinyin;
-        document.getElementById('numdef').value = items.numdef;
-        document.getElementById('doColors').checked = items.doColors;
-        document.getElementById('doPinyinColors').checked = items.doPinyinColors;
-        document.getElementById('miniHelp').checked = items.miniHelp;
-        document.getElementById('lineEnding').value = items.lineEnding;
-        document.getElementById('copySeparator').value = items.copySeparator;
-        document.getElementById('maxClipCopyEntries').value = items.maxClipCopyEntries;
-        document.getElementById('ttsDialect').value = items.ttsDialect;
-        document.getElementById('ttsSpeed').value = items.ttsSpeed;
-        document.getElementById("ttsSpeedValue").innerHTML = items.ttsSpeed;
-        document.getElementById("useCustomTone").checked = items.useCustomTone;
+            e.selectHanziDisplay.value = items.showHanzi;
+            e.selectPronunciation.value = items.pinyin;
+            e.selectDefinitionSeparator.value = items.numdef;
+            e.checkboxUseHanziToneColors.checked = items.doColors;
+            e.checkboxUsePinyinToneColors.checked = items.doPinyinColors;
+            e.checkboxDisplayHelp.checked = items.miniHelp;
+            e.selectLineEnding.value = items.lineEnding;
+            e.selectCopySeparator.value = items.copySeparator;
+            e.inputMaxCopyEntries.value = items.maxClipCopyEntries;
+            e.selectTtsDialect.value = items.ttsDialect;
+            e.sliderTtsSpeed.value = items.ttsSpeed;
+            e.sliderTtsSpeed.innerHTML = items.ttsSpeed;
+            e.checkboxUseCustomTones.checked = items.useCustomTone;
+            e.sliderBorderThickness.value = items.borderThickness;
+            e.sliderBorderRadius.value = items.borderRadius;
+            e.checkboxUseCustomization.checked = items.useCustomization;
+            // Drop Shadow Opacity is updated in convertRGBA function
 
-        // Get radio buttons and check the matching one
-        // TODO Should replace this with a RadioNodeList
-        var radio = document.getElementsByName('showOnKey');
-        for(var i = 0; i < radio.length; i++){
-            if(radio[i].value === items.content.showOnKey){
-                radio[i].checked = true;
+            // Get radio buttons and check the matching one
+            // TODO Should replace this with a RadioNodeList
+            let radio = document.getElementsByName('showOnKey');
+            for (let i = 0; i < radio.length; i++) {
+                if (radio[i].value === items.content.showOnKey) {
+                    radio[i].checked = true;
+                }
             }
-        }
 
-        // Init user's custom tones into the inputs
-        // (won't be able to change through .value after initializing the color pickers)
-        tones[0].value = items.customTones[0];
-        tones[1].value = items.customTones[1];
-        tones[2].value = items.customTones[2];
-        tones[3].value = items.customTones[3];
-        tones[4].value = items.customTones[4];
-        tones[5].value = items.customTones[5];
+            // Init user's custom tones into the inputs
+            // (won't be able to change through .value after initializing the color pickers)
+            tones[0].value = items.customTones[0];
+            tones[1].value = items.customTones[1];
+            tones[2].value = items.customTones[2];
+            tones[3].value = items.customTones[3];
+            tones[4].value = items.customTones[4];
+            tones[5].value = items.customTones[5];
 
-        // Initialize color pickers
-        var picker;
-        var target = document.querySelectorAll('.colorpicker');
-        for (i = 0, len = target.length; i < len; ++i) {
-            picker = new CP(target[i]);
-            picker.on("change", function(color) {
-                this.target.value = "#" + color;
-                this.target.style.backgroundColor = "#" + color;
-                updateTones();
-            });
-            picker.on("exit", function() {
-                saveOptions();
-            });
-        }
-    });
+            colors[0].value = items.customColors[0];
+            colors[1].value = items.customColors[1];
+            colors[2].value = convertRGBA(items.customColors[2]); // To HEX
+
+            initializeColorPickers();
+        });
+    } catch (err) {
+        console.error("Chrome Settings Sync Failed");
+        initializeColorPickers();
+    }
+}
+
+// Initialize color pickers with with color values currently stored in the input
+// If restore options has been successfully executed, these should be the user defined colors
+function initializeColorPickers() {
+    let picker;
+    let target = document.querySelectorAll('.colorpicker');
+    for (let i = 0, len = target.length; i < len; ++i) {
+        picker = new CP(target[i]);
+        picker.on("change", function (color) {
+            this.target.value = "#" + color;
+            this.target.style.backgroundColor = "#" + color;
+            updateTones();
+            updatePreview();
+        });
+        picker.on("exit", function () {
+            saveOptions();
+        });
+    }
 }
 
 // Update slider in option page
-function showValue() {
-    document.getElementById("ttsSpeedValue").innerHTML = document.getElementById('ttsSpeed').value;
+function updateSliderValue() {
+    e.sliderTtsSpeedValue.innerHTML = e.sliderTtsSpeed.value + "x";
+    e.sliderBorderThicknessValue.innerHTML = e.sliderBorderThickness.value + "px";
+    e.sliderBorderRadiusValue.innerHTML = e.sliderBorderRadius.value + "px";
+    e.sliderDropShadowOpacityValue.innerHTML = Math.round(e.sliderDropShadowOpacity.value * 100) + "%";
 }
 
 function updateTones() {
-    var tone, target;
-    var colorPinyin = document.getElementById('doPinyinColors').checked;
-    for (var a = 0; a < tones.length; a++) {
-        switch (a) {
-            case 0: tone = "tone1"; break;
-            case 1: tone = "tone2"; break;
-            case 2: tone = "tone3"; break;
-            case 3: tone = "tone4"; break;
-            case 4: tone = "tone5"; break;
-            case 5: tone = "pinyin"; break;
-        }
+    // This function updates the theme preview with customized colors and settings
+    let target, toneColors = {},
+        useHanziTones = e.checkboxUseHanziToneColors.checked,
+        usePinyinTones = e.checkboxUsePinyinToneColors.checked,
+        useCustomTones = e.checkboxUseCustomTones.checked;
 
-        if (tone === 'pinyin' && !colorPinyin) {
-            target = document.querySelectorAll('.pinyin');
-            for (var i = 0, len = target.length; i < len; i++) {
-                var child = target[i].getElementsByTagName('span');
-                for (var j = 0; j < child.length; j++) {
-                    child[j].style.color = tones[a].value;
-                }
-            }
+    for (let i = 0; i < 5; i++) {
+        // Hanzi Tone Colors
+        if (useCustomTones) {
+            toneColors['tone' + (i + 1)] = tones[i].value;
         } else {
-            target = document.getElementsByClassName(tone);
-            for (var i = 0, len = target.length; i < len; i++) {
-                target[i].style.color = tones[a].value;
+            toneColors['tone' + (i + 1)] = getStyle(".tone" + (i + 1)).style.color;
+        }
+    }
+
+    if (useCustomTones) {
+        toneColors['pinyin'] = tones[5].value
+    } else {
+        toneColors['pinyin'] = getStyle(".pinyin").style.color;
+    }
+
+    let query = ['.hanzi', '.pinyin'];
+
+    for (let a = 0; a < 2; a++) {
+        // Get all .hanzi or .pinyin divs
+        target = document.querySelectorAll(query[a]);
+
+        // Loop through each .hanzi or .pinyin div and set each element to its color
+        for (let i = 0, len = target.length; i < len; i++) {
+            let child = target[i].getElementsByTagName('span');
+            for (let j = 0; j < child.length; j++) {
+                if (child[j].className === "brace") {continue}
+
+                if (!usePinyinTones && a === 1) {
+                    child[j].style.color = toneColors['pinyin'];
+                } else if (!useHanziTones && a === 0) {
+                    child[j].style.color = toneColors['tone1'];
+                } else {
+                    child[j].style.color = toneColors[child[j].className];
+                }
             }
         }
     }
 }
 
+function updatePreview() {
+    updateSliderValue();
+    updateTones();
+
+    if (e.checkboxUseCustomization.checked) {
+        liuchanWindow = document.getElementById("liuchan-window");
+        liuchanWindow.style.border = e.sliderBorderThickness.value + "px solid " + colors[1].value;
+        liuchanWindow.style.borderRadius = e.sliderBorderRadius.value + "px";
+        liuchanWindow.style.boxShadow = "4px 4px 0 0 " + convertRGBA(colors[2].value);
+        liuchanWindow.style.background = colors[0].value;
+    }
+}
+
+function restorePreview() {
+    if (!e.checkboxUseCustomization.checked) {
+        target = getStyle("#liuchan-window");
+        liuchanWindow = document.getElementById("liuchan-window");
+        liuchanWindow.style.border = target.style.border;
+        liuchanWindow.style.borderRadius = target.style.borderRadius;
+        liuchanWindow.style.boxShadow = target.style.boxShadow;
+        liuchanWindow.style.background = target.style.background;
+    }
+    updatePreview();
+}
+
 function resetTones() {
-    var defaults = ['F2777A','99CC99','6699CC','CC99CC','CCCCCC', '66CCCC'];
-    var i = 0;
-    CP.each(function ($){
-        $.trigger('change', [defaults[i]]);
-        $.set(defaults[i]);
-        i++;
-    });
+    let target;
+
+    for (let i = 0, len = tones.length; i < len; i++) {
+        if (i < 5) {
+            target = getStyle(".tone" + (i + 1));
+        } else {
+            target = getStyle('.pinyin');
+        }
+
+        CP.__instance__[tones[i].id].trigger('change', [convertRGBA(target.style.color).substr(1)]);
+        CP.__instance__[tones[i].id].set(convertRGBA(target.style.color).substr(1));
+    }
+
+    saveOptions();
+}
+
+function resetCustomization() {
+    let target, rgb, defaultColors = [],
+        borderThickness, borderRadius, dropShadowOpacity;
+
+    target = getStyle("#liuchan-window");
+
+    // Get background style
+    let regex = /(\d{1,3})[, ]+(\d{1,3})[, ]+(\d{1,3})/;
+    rgb = regex.exec(target.style.background);
+    defaultColors[0] = CP.RGB2HEX([rgb[1],rgb[2],rgb[3]]);
+    // Get border color, thickness and radius
+    rgb = regex.exec(target.style.border);
+    defaultColors[1] = CP.RGB2HEX([rgb[1],rgb[2],rgb[3]]);
+    borderThickness = target.style.border.split(" ", 1)[0].slice(0, -2);
+    borderRadius = target.style.borderRadius.slice(0, -2);
+    if (!borderRadius) { borderRadius = 0; }
+    // Get drop shadow color and opacity
+    rgb = regex.exec(target.style.boxShadow);
+    defaultColors[2] = CP.RGB2HEX([rgb[1],rgb[2],rgb[3]]);
+    let opacity = /\d{1,3}[, ]+\d{1,3}[, ]+\d{1,3}[, ]+(\d\.?\d{1,2})/.exec(target.style.boxShadow);
+    if (opacity) {
+        dropShadowOpacity = opacity[1];
+    } else {
+        dropShadowOpacity = 1;
+    }
+
+    console.log(borderThickness);
+    console.log(borderRadius);
+    console.log(dropShadowOpacity);
+    console.log(defaultColors);
+
+
+    for(let i = 0, len = colors.length; i < len; i++) {
+        CP.__instance__[colors[i].id].trigger('change', [defaultColors[i]]);
+        CP.__instance__[colors[i].id].set(defaultColors[i]);
+    }
+
+    e.sliderBorderThickness.value = borderThickness;
+    e.sliderBorderRadius.value = borderRadius;
+    e.sliderDropShadowOpacity.value = dropShadowOpacity;
+
+    restorePreview();
     saveOptions();
 }
 
 function changeTheme() {
-    var theme = document.getElementsByTagName("link").item(1);
+    let theme = document.getElementsByTagName("link").item(1);
     theme.href = '../css/popup-' + document.getElementById('popupColor').value + '.css';
+
+    // Slight pause to allow DOM to catch up with new stylesheet, don't know a better way yet
+    setTimeout(function () {
+        restorePreview();
+    }, 100);
 }
 
 function rebuildDictionary() {
-    chrome.runtime.sendMessage({"type":"rebuild"});
+    chrome.runtime.sendMessage({"type": "rebuild"});
 }
 
-var tones = [];
-document.addEventListener('DOMContentLoaded', restoreOptions);
+function convertRGBA(value){
+    // Converts HEX to RGBA (using the value from the opacity slider) and RGBA/RGB to HEX
+    let rgb, str;
+    if (value.charAt(0) === "#") {
+        // Is HEX value; convert to RGBA
+        rgb = CP.HEX2RGB(value.substr(1));
+        let opacity = document.getElementById('dropShadowOpacity').value;
+        str = "RGBA(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + opacity + ")";
+    } else {
+        if (value.startsWith("RGBA")) {
+            rgb = value.substr(5).slice(0, -1).split(",");
+            document.getElementById('dropShadowOpacity').value = rgb[3];
+        } else {
+            rgb = value.substr(4).slice(0, -1).split(",");
+        }
+        str = "#" + CP.RGB2HEX(rgb);
+        updateSliderValue();
+    }
 
-window.onload = function () {
-    var target = document.querySelectorAll('.config');
+    return str;
+}
 
-    for (var i = 0, len = target.length; i < len; ++i) {
-        target[i].addEventListener('change', saveOptions);
-        var type = target[i].getAttribute('type');
-        if (type === 'number' || type === 'text') {
-            target[i].addEventListener('input', saveOptions);
+function getStyle(className) {
+    let classes = document.styleSheets[1].rules || document.styleSheets[1].cssRules;
+    // Go backwards to ensure you get the strongest match
+    for (let i = classes.length; i > 0; i--) {
+        if (classes[i-1].selectorText.endsWith(className)) {
+            return classes[i-1];
         }
     }
-    document.getElementById('ttsSpeed').addEventListener('input', showValue);
-    document.getElementById('reset').addEventListener('click', resetTones);
-    document.getElementById('popupColor').addEventListener('change', changeTheme);
-    document.getElementById('pinyin').addEventListener('change', rebuildDictionary);
-};
+}
+
+
+
