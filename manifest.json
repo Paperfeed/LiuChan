@@ -8,7 +8,13 @@
       "page": "html/options.html"
    },
    "background": {
-      "scripts": ["/js/data.js", "/js/liuchan.js", "/js/background.js", "/js/fuzzysort.js"],
+      "scripts": [
+         "/js/chrome-promise.js",
+         "/js/liuchan.js",
+         "/js/data.js",
+         "/js/fuzzysort.js",
+         "/js/background.js"
+      ],
       "persistent": true
    },
    "browser_action": {
@@ -17,7 +23,8 @@
    },
    "content_scripts": [ {
       "all_frames": true,
-      "js": [ "js/liuchancontent.js" ],
+      "js": [
+         "js/liuchancontent.js" ],
       "matches": [ "\u003Call_urls>" ]
    } ],
    "description": "A modern lightweight mouse-over popup dictionary for Chinese!",
@@ -27,6 +34,6 @@
       "48": "images/icon48.png"
    },
    "omnibox": {"keyword" : "lc"},
-   "permissions": [ "tabs", "storage", "tts", "clipboardWrite", "http://*/*" ],
+   "permissions": [ "tabs", "storage", "tts", "http://*/*" ],
    "web_accessible_resources": [ "css/*", "js/liuchancontent.js", "images/*" ]
 }

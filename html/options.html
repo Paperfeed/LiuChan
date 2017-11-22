@@ -19,7 +19,7 @@
 				<tr>
 					<td>Popup Theme:</td>
 					<td>
-						<select class="config" id="popupColor" name="popupColor">
+						<select class="config" id="popupTheme" name="popupTheme">
 							<option value="liuchan">LiuChan</option>
 							<option value="pleco">Pleco</option>
 							<option value="charcoal">Charcoal</option>
@@ -31,7 +31,7 @@
 				<tr>
 					<td>Pronunciation:</td>
 					<td>
-						<select class="config" id="pinyin" name="pinyin">
+						<select class="config" id="pinyinType" name="pinyinType">
 							<option value="tonemarks">Tone Marks</option>
 							<option value="tonenums">Tone Numbers</option>
 							<option value="zhuyin">Zhuyin</option>
@@ -41,7 +41,7 @@
 				<tr>
 					<td>Definition Separator:</td>
 					<td>
-						<select class="config" id="numdef" name="numdef">
+						<select class="config" id="definitionSeparator" name="definitionSeparator">
 							<option value="num">Numbers</option>
 							<option value="; ">Semicolon</option>
 							<option value=" / ">Slash</option>
@@ -51,7 +51,7 @@
 				<tr>
 					<td>Hanzi Setting:</td>
 					<td>
-						<select class="config" id="showHanzi" name="showHanzi">
+						<select class="config" id="hanziType" name="hanziType">
 							<option value="simp">Simplified</option>
 							<option value="trad">Traditional</option>
 							<option value="boths">Simp, Trad</option>
@@ -70,17 +70,31 @@
 			<table class="table" cellspacing=5>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="highlight" name="highlightText">Highlight text</input>
+						<input class="config" type="checkbox" id="checkboxHighlightText"
+							   name="checkboxHighlightText">Highlight
+						text</input>
 					</td>
 				</tr>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="textboxhl" name="textboxhl">Highlight text inside of inputs</input>
+						<input class="config" type="checkbox" id="checkboxHighlightInput"
+							   name="checkboxHighlightInput">Highlight
+						text inside	of inputs</input>
 					</td>
 				</tr>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="miniHelp" name="miniHelp">Show mini help</input>
+						<input class="config" type="checkbox" id="displayHelp" name="displayHelp">Show help on enable
+						</input><span
+							tooltip="Show a reminder of the hotkeys when you enable Liuchan. It will not show if
+							hotkeys are disabled">[?]</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input class="config" type="checkbox" id="scaleOnZoom" name="scaleOnZoom">Scale popup on zoom
+						</input><span tooltip="If disabled, the popup will no longer scale along with the content of
+						the page if you zoom in">[?]</span>
 					</td>
 				</tr>
 			</table>
@@ -98,22 +112,33 @@
 						</tr>
 						<tr>
 							<td>
-								<input class="config" type="radio" name="showOnKey" value="" checked>None</input>
+								<input class="config" type="radio" name="showOnKey" value="0" checked>None</input>
 							</td>
 						</tr>
 						<tr>
 							<td>
-								<input class="config" type="radio" name="showOnKey" value="Alt">Alt</input>
+								<input class="config" type="radio" name="showOnKey" value="1">Ctrl</input>
 							</td>
 						</tr>
 						<tr>
 							<td>
-								<input class="config" type="radio" name="showOnKey" value="Ctrl">Ctrl</input>
+								<input class="config" type="radio" name="showOnKey" value="2">Alt</input>
 							</td>
 						</tr>
 						<tr>
 							<td>
-								<input class="config" type="radio" name="showOnKey" value="CtrlAlt">Ctrl + Alt</input>
+								<input class="config" type="radio" name="showOnKey" value="4">Shift</input>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<input class="config" type="radio" name="showOnKey" value="3">Ctrl + Alt</input>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<input class="config" type="radio" name="showOnKey" value="7">Ctrl
+								+ Alt + Shift</input>
 							</td>
 						</tr>
 					</table>
@@ -208,7 +233,7 @@
 			<table class="table" cellspacing=3>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="doColors" name="doColors">Color hanzi by
+						<input class="config" type="checkbox" id="useHanziToneColors" name="useHanziToneColors">Color hanzi by
 						tone </input><span
 							tooltip="If disabled, you can use the tone 1 color picker to change the color (Remember to enable
 										 custom tone colors!)">[?]</span>
@@ -216,19 +241,19 @@
 				</tr>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="doPinyinColors"
-							   name="doPinyinColors">Color pinyin by tone </input><span
+						<input class="config" type="checkbox" id="usePinyinToneColors"
+							   name="usePinyinToneColors">Color pinyin by tone </input><span
 							tooltip="If disabled, you can use the pinyin color picker to change the color (Remember to enable
 										 custom tone colors!)">[?]</span>
 					</td>
 				</tr>
 				<tr>
 					<td>
-						<input class="config" type="checkbox" id="useCustomTone" name="useCustomTone">Use custom
+						<input class="config" type="checkbox" id="useCustomTones" name="useCustomTones">Use custom
 					tone colors</input>
 					</td>
 					<td>
-						<button id="reset" style="margin: 0;">Reset</button>
+						<button id="resetTones" style="margin: 0;">Reset</button>
 					</td>
 				</tr>
 			</table>
@@ -239,7 +264,7 @@
 				<input title="Color of third tone" id="tone3" class="config colorpicker" value="#6699CC">
 				<input title="Color of fourth tone" id="tone4" class="config colorpicker" value="#CC99CC">
 				<input title="Color of fifth tone" id="tone5" class="config colorpicker" value="#CCCCCC">
-				<input title="Color of pinyin (if 'color pinyin' is disabled)" id="tone6" class="config colorpicker"
+				<input title="Color of pinyin (if 'Color pinyin by tone' is disabled)" id="tone6" class="config colorpicker"
 					   value="#66CCCC">
 			</div>
 			<h4>Popup:</h4>

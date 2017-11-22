@@ -108,20 +108,20 @@ body, .tab, .tab table, button {
 
 	&:before {
 		z-index: 999;
+		display: none;
 		position: absolute;
 		background: lightyellow;
 		font-size: 1em;
-		font-weight: 400;
+		font-weight: 300;
 		margin-left: 22px;
-		padding: 5px;
+		padding: 5px 10px;
 		width: 250px;
 		border-radius: 5px;
+		box-shadow: 3px 3px 0 0 rgba(66,8,8,0.10);
 		content: attr(tooltip);
-		opacity: 0;
-
 	}
-	&:hover:before {
-		opacity : 1;
+	&:hover::before {
+		display: inherit;
 	}
 }
 

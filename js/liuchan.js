@@ -40,56 +40,146 @@
 	when modifying any of the files. - Jon
 
 */
+const CURRENT_VERSION = "1.1.0";
 
-var lcxMain = {
-	dictCount: 1,
-	altView: 0,
-	enabled: false,
-	config: {},
+class LiuChan {
+    constructor() {
+        this.altView = 0;
+        this.enabled = false;
+        this.config = {};
+        this.displayHelp = '<div class="liutitle">LiuChan enabled!</div>' +
+        '<table cellspacing=5>' +
+        '<tr><td>A</td><td>Alternate popup location</td></tr>' +
+        '<tr><td>Y</td><td>Move popup down</td></tr>' +
+        '<tr><td>C</td><td>Copy to clipboard</td></tr>' +
+        '<tr><td>D</td><td>Hide/show definitions</td></tr>' +
+        '<tr><td>B</td><td>Previous character</td></tr>' +
+        '<tr><td>M</td><td>Next character</td></tr>' +
+        '<tr><td>N</td><td>Next word</td></tr>' +
+        '<tr><td>T</td><td>&#x1F508;Text-To-Speech</td></tr>' +
+        '</table>';
+        //this.timeout = 0;
 
-	initConfig: function() {
-        chrome.storage.sync.get({
+        this.omnibox = this.omnibox.bind(this);
+        this.initConfig();
+    }
+
+	initConfig() {
+        const defaultConfig = {
             content: {
-                popupColor: 'liuchan',
+                popupTheme: 'liuchan',
                 popupDelay: 0,
-                highlight: true,
-                textboxhl: false,
-                showOnKey: "",
+                highlightText: true,
+                highlightInput: false,
+                scaleOnZoom: true,
+                showOnKey: "0",
                 disableKeys: false
             },
-            showHanzi: 'boths',
-            pinyin: 'tonemarks',
-            numdef: 'num',
-            doColors: true,
-            doPinyinColors: false,
-            miniHelp: true,
+            styling: {
+                useCustomization: false,
+                customColors: ['#FFFFE0', '#D7D3AF', 'rgba(66,8,8,0.10)'],
+                borderThickness: 2,
+                borderRadius: 8
+            },
+            hanziType: 'boths',
+            pinyinType: 'tonemarks',
+            definitionSeparator: 'num',
+            useHanziToneColors: true,
+            usePinyinToneColors: false,
+            displayHelp: true,
             lineEnding: 'n',
             copySeparator: 'tab',
             maxClipCopyEntries: 7,
             ttsDialect: "zh-CN",
             ttsSpeed: 0.9,
-            useCustomTone: false,
-            customTones: ['#F2777A','#99CC99','#6699CC','#CC99CC','#CCCCCC', '#66CCCC']
-        }, function (items) {
-            lcxMain.config = items;
-		});
-	},
+            useCustomTones: false,
+            customTones: ['#F2777A', '#99CC99', '#6699CC', '#CC99CC', '#CCCCCC', '#66CCCC'],
+            version: CURRENT_VERSION
+        };
 
-    toggleExtension: function(tab) {
+        chromep.storage.sync.get(defaultConfig).then(items => {
+            // Ensure users don't lose their customized settings after updated where stuff has been changed around.
+            if (items.version !== CURRENT_VERSION) {
+                console.log("Liuchan has been updated; Attempting to convert old settings");
+                // Get ALL items from storage and compare them to the default config, reassigning old values to
+                // new keys where appropriate.
+                chrome.storage.sync.get(null, oldItems => {
+                    items = defaultConfig;
+                    for (let key in oldItems) {
+                        // if (!items.hasOwnProperty(key)) {console.log(key);} // for DEBUG purposes
+                        switch (key) {
+                            case "showOnKey":
+                                const str = oldItems.showOnKey;
+                                if (str === "Ctrl") {
+                                    items.showOnKey = 1;
+                                } else if (str === "Alt") {
+                                    items.showOnKey = 2;
+                                } else if (str === "CtrlAlt") {
+                                    items.showOnKey = 3;
+                                } else {
+                                    items.showOnKey = 0;
+                                }
+                                break;
+                            case "doColors":
+                                items.useHanziToneColors = oldItems.doColors;
+                                break;
+                            case "doPinyinColors":
+                                items.usePinyinToneColors = oldItems.doPinyinColors;
+                                break;
+                            case "miniHelp":
+                                items.displayHelp = oldItems.miniHelp;
+                                break;
+                            case "numdef":
+                                items.definitionSeparator = oldItems.numdef;
+                                break;
+                            case "pinyin":
+                                items.pinyinType = oldItems.pinyin;
+                                break;
+                            case "showHanzi":
+                                items.hanziType = oldItems.showHanzi;
+                                break;
+                            case "useCustomTone":
+                                items.useCustomTones = oldItems.useCustomTone;
+                                break;
+                            default:
+                                if (items.hasOwnProperty(key)) {
+                                    items[key] = oldItems[key];
+                                }
+                        }
+                        items.version = CURRENT_VERSION;
+                        this.config = items;
+                    }
+                    // Empty storage to get rid of deprecated keys and save the new updated list
+                    chrome.storage.sync.clear(() => {
+                        chrome.storage.sync.set(items, () => {
+                            console.log("Succesfully converted and saved settings!")
+                        });
+                    });
+                })
+            } else {
+                // Init any keys that don't exist yet with default values, then assign to LiuChan.config
+                const config = Object.assign(defaultConfig, items);
+                this.config = config;
+                chrome.storage.sync.set(config);
+            }
+        });
+	}
+
+    async toggleExtension() {
         // Entry point for when extension's button is clicked
         // Toggle addon on or off
-        if (lcxMain.enabled) {
+        if (this.enabled) {
             // Disable extension
 
             // Tell all tabs to disable themselves
-            lcxMain.sendAllTabs({"type":"disable"});
+            this.sendAllTabs({"type":"disable"});
 
             // Disable Omnibox wordsearch
-            chrome.omnibox.onInputChanged.removeListener(lcxMain.omnibox);
+            chrome.omnibox.onInputChanged.removeListener(this.omnibox);
 
             // Clean up memory
-            lcxMain.enabled = false;
-            delete lcxMain.dict;
+            this.enabled = false;
+            delete this.dict;
 
             // Set extension icon
             chrome.browserAction.setIcon({
@@ -103,85 +193,76 @@ var lcxMain = {
             });
         } else {
         	// Enable extension
-            if (!lcxMain.dict) {
+            if (!this.dict) {
                 try {
-                    lcxMain.dict = new lcxDict();
+                    this.dict = new Dictionary(liuChan);
 				} catch (ex) {
                     alert('Error loading dictionary: ' + ex);
                 }
             }
 
             // Enable Omnibox Wordsearch
-            chrome.omnibox.onInputChanged.addListener(lcxMain.omnibox);
-            // chrome.omnibox.onInputEntered.addListener(function(text) { //Do sth on enter });
+            chrome.omnibox.onInputChanged.addListener(this.omnibox);
+            //chrome.omnibox.onInputEntered.addListener(text => { //Do sth on enter });
 
-            lcxMain.dict.loadDictionary(tab);
-            lcxMain.enabled = true;
-
-            // Update config on active tab and then show help popup if necessary
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {type: "config", config:lcxMain.config.content}, function(response) {
-                    if (lcxMain.config.miniHelp === true && !lcxMain.config.content.disableKeys) {
-                        chrome.tabs.sendMessage(tab.id, {
-                            "type": "showPopup",
-                            "text": lcxMain.miniHelp
-                        })
-                    }
-                });
-            });
+            await this.dict.loadDictionary();
+            this.enabled = true;
 
             chrome.browserAction.setIcon({
                 "path":"../images/toolbar-enabled.png"
             });
         }
-    },
+    }
 
 	// The callback for chrome.tabs.onActivated
 	// Sends a message to the tab to enable itself if it hasn't
-	onTabSelect: function(tab) {
+	onTabSelect(tab) {
 		// tab contains tabId windowId
 		if (undefined === tab.tabId) {
 			tab.tabId = tab.id;
 		}
 
-		if (lcxMain.enabled) {
-			chrome.tabs.sendMessage(tab.tabId, {
+		if (this.enabled) {
+            chrome.tabs.sendMessage(tab.tabId, {
 				"type":"enable",
-				"config":lcxMain.config.content
+				"config":this.config.content
 			});
 		}
-	},
+	}
 
-	sendAllTabs: function(message) {
-        return chrome.tabs.query({}, function (tabs) {
-            for (var i = 0; i < tabs.length; ++i) {
-                chrome.tabs.sendMessage(tabs[i].id, message);
-            }
-        });
-	},
+	async sendAllTabs(message) {
+        const tabs = await chromep.tabs.query({});
 
-	copyToClip: function(tab, entry) {
+        for (let i = 0, len = tabs.length; i < len; ++i) {
+            chrome.tabs.sendMessage(tabs[i].id, message);
+        }
+	}
+
+	copyToClip(tab, entry) {
         if (entry.length === 0) return null;
 
-        var text = '', sep, end;
+        let text = '', sep, end;
 
-        switch (lcxMain.config.copySeparator) {
+        switch (this.config.copySeparator) {
             case "tab": sep = '\t'; break;
-            default: sep = lcxMain.config.copySeparator;}
+            default: sep = this.config.copySeparator;
+        }
 
-        switch (lcxMain.config.lineEnding) {
+        switch (this.config.lineEnding) {
             case "r": end = "\r"; break;
             case "rn": end = "\r\n"; break;
-            default: end = "\n";}
+            default: end = "\n";
+        }
 
-        const pinyinType = lcxMain.config.pinyin;
-	    var maxLoops = Math.min(lcxMain.config.maxClipCopyEntries, entry[0].data.length);
-	    for (var i = 0; i < maxLoops; i++) {
+        // TODO support custom separator
+        const pinyinType = this.config.pinyinType;
+	    const maxLoops = Math.min(this.config.maxClipCopyEntries, entry[0].data.length);
+	    for (let i = 0; i < maxLoops; i++) {
 	        text += entry[0].data[i].simp + sep +
                 entry[0].data[i].trad + sep +
                 entry[0].data[i].pinyin[pinyinType] + sep +
                 entry[0].data[i].def.join("; ") + end;
-                //lcxMain.dict.parseDefinitions(entry[0].data[i].def).replace(/<\/?b>/g, "") + end;
+                //this.dict.parseDefinitions(entry[0].data[i].def).replace(/<\/?b>/g, "") + end;
         }
 
         document.oncopy = function(event) {
@@ -193,36 +274,23 @@ var lcxMain = {
         document.oncopy = undefined;
         chrome.tabs.sendMessage(tab.id, {
             "type": "showPopup",
-            "text": 'Copied to clipboard.'
+            "text": '<div class="def">Copied to clipboard.</div>'
         });
-	},
+	}
 
-	miniHelp: '<div class="liutitle">LiuChan enabled!</div>' +
-		'<table cellspacing=5>' +
-		'<tr><td>A</td><td>Alternate popup location</td></tr>' +
-		'<tr><td>Y</td><td>Move popup down</td></tr>' +
-		'<tr><td>C</td><td>Copy to clipboard</td></tr>' +
-		'<tr><td>D</td><td>Hide/show definitions</td></tr>' +
-		'<tr><td>B</td><td>Previous character</td></tr>' +
-		'<tr><td>M</td><td>Next character</td></tr>' +
-		'<tr><td>N</td><td>Next word</td></tr>' +
-		'<tr><td>T</td><td>&#x1F508;Text-To-Speech</td></tr>' +
-		'</table>',
+    omnibox(text, suggest) {
+        // Timeout to prevent the CPU heavy fuzzysort from occuring too often while user hasn't finished typing yet
+	    clearTimeout(this.timeout);
+        this.timeout = setTimeout(this._omnibox(), 400, text, suggest);
+    }
 
-	onDictionaryLoaded: function(tab) {
-	    // Activate tab and send along content script related settings
-        if (tab) chrome.tabs.sendMessage(tab.id, {"type":"enable", "config": lcxMain.config.content});
-	},
-
-    // Prevent code from running while user is still typing
-    timeout: 0,
-    omnibox: function(text, suggest) {
-	    clearTimeout(lcxMain.timeout);
-        lcxMain.timeout = setTimeout(lcxMain._omnibox, 400, text, suggest);
-    },
-	_omnibox: function(text, suggest) {
-		if (lcxMain.dict === undefined) {
-            lcxMain.toggleExtension(null);
+	_omnibox(text, suggest) {
+		if (this.dict === undefined) {
+		    try {
+		        this.toggleExtension(null);
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         fuzzysort.highlightMatches = true;
@@ -232,43 +300,41 @@ var lcxMain = {
         //fuzzysort.limit = null;
 
         // Check if user input is hanzi or plain english
-		const reg = /[\u4e00-\u9fa5].*/u;
+        let useSimplified;
+		const reg = /[\u4e00-\u9fa5].*!/u;
 		const isHanzi = reg.test(text);
 		if (isHanzi) {
-			if (/simp|boths/.test(lcxMain.config.showHanzi)) {
-				// Search only simplified characters
-
-			} else {
-				// Search only trad characters
-
-            }
+			useSimplified = /simp|boths/.test(this.config.hanziType);
 		}
 
-        var results = [], tradScore, simpScore, pinyinScore, defScore, str = '';
-        const dict = lcxMain.dict.hanzi;
-        const dictLength = lcxMain.dict.hanzi.length;
-        const pinyinType = lcxMain.config.pinyin;
-        for(var i = 0; i < dictLength; i++) {
+        let results = [], tradScore, simpScore, pinyinScore, defScore, str = '';
+        const dict = this.dict.hanzi;
+        const dictLength = this.dict.hanzi.length;
+
+        for(let i = 0; i < dictLength; i++) {
         	if (isHanzi) {
-                tradScore = fuzzysort.single(text, dict[i].trad);
-                simpScore = fuzzysort.single(text, dict[i].simp);
+        	    if (useSimplified) {
+                    simpScore = fuzzysort.single(text, dict[i].simp);
+                } else {
+                    tradScore = fuzzysort.single(text, dict[i].trad);
+                }
             } else {
                 pinyinScore = fuzzysort.single(text, dict[i].pinyin.tonemarks); // TODO make this based on user pref
 
-                if (dict[i].def.length > 1 && (lcxMain.config.numdef === "num")) {
-                    for (var a = 0; a < dict[i].def.length; a++) {
+                if (dict[i].def.length > 1 && (this.config.definitionSeparator === "num")) {
+                    for (let a = 0; a < dict[i].def.length; a++) {
                         str += (a+1) + ' ' + dict[i].def[a] + '  ';
                     }
                     str.trim();
                 } else {
-                    str = dict[i].def.join(lcxMain.config.numdef);
+                    str = dict[i].def.join(this.config.definitionSeparator);
                 }
                 defScore = fuzzysort.single(text, str);
                 str = '';
             }
 
             // Create a custom combined score to sort by. +100 to the score makes it a worse match
-            var score = Math.min(tradScore?tradScore.score:1000,
+            let score = Math.min(tradScore?tradScore.score:1000,
 				simpScore?simpScore.score:1000,
 				pinyinScore?pinyinScore.score:1000,
 				defScore?defScore.score:1000);
@@ -277,7 +343,7 @@ var lcxMain = {
             results.push({
                 item: dict[i],
                 score: score,
-                tradHightlighted: tradScore ? tradScore.highlighted : dict[i].trad,
+                tradHighlighted: tradScore ? tradScore.highlighted : dict[i].trad,
                 simpHighlighted: simpScore ? simpScore.highlighted : dict[i].simp,
                 pinyinHighlighted: pinyinScore ? pinyinScore.highlighted : dict[i].pinyin.tonemarks,
                 defHighlighted: defScore ? defScore.highlighted : dict[i].def
@@ -287,56 +353,60 @@ var lcxMain = {
         results.sort(function (a, b) { return a.score - b.score });
         if (undefined === results) return;
 
-        var array = [];
-        for (i = 0; i < results.length; i++) {
+        let array = [];
+        for (let i = 0; i < results.length; i++) {
         	// Hanzi
-            var entry = '<url>';
+            let entry = '<url>';
 
-            // If csimplified and traditional are the same then just display one
+            // If simplified and traditional are the same then just display one
             if (results[i].item.trad === results[i].item.simp) {
                 entry += results[i].item.trad + " ";
             } else {
                 // Fallthrough on purpose:
-                switch (lcxMain.config.showHanzi) {
-                    case "botht": entry += results[i].tradHightlighted + " ";
+                switch (this.config.hanziType) {
+                    case "botht": entry += results[i].tradHighlighted + " ";
                     case "simp": entry += results[i].simpHighlighted;
                         break;
                     case "boths": entry += results[i].simpHighlighted + " ";
-                    case "trad": entry += results[i].tradHightlighted;
+                    case "trad": entry += results[i].tradHighlighted;
                         break;
                 }
             }
 
 			entry += "</url><dim>";
 
-            // TODO make other pinyin types hightlighted as well
+            // TODO make other pinyin types highlighted as well
 			// Pinyin
-			switch (lcxMain.config.pinyin) {
+			switch (this.config.pinyinType) {
 				case "tonemarks": entry += " " + results[i].pinyinHighlighted; break;
 				case "tonenums": entry += " " + results[i].item.pinyin.tonenums; break;
 				case "zhuyin": entry += " " + results[i].item.pinyin.zhuyin; break;
 			}
 
-            // TODO make content: trad or simp based on user pref
 			// Definition
+            let content;
+
 			entry += '</dim> ' + results[i].defHighlighted;
-        	array.push({content: results[i].item.simp, description: entry});
+			if (useSimplified) {
+			    content = results[i].item.simp;
+			} else {
+                content = results[i].item.trad;
+            }
+        	array.push({content: content, description: entry});
 
 			// Limit to 10 results
-			if (i == 9) { break; }
+			if (i === 9) { break; }
 		}
 
-		/*
+
 		// Can use popup to show results instead
-        chrome.tabs.query({ active:true, windowType:"normal", currentWindow: true },
-			function(tab){
+        /*chrome.tabs.query({ active:true, windowType:"normal", currentWindow: true },
+			tab => {
                 chrome.tabs.sendMessage(tab[0].id, {
                     "type": "showPopup",
                     "text": array.toString();
                 });
-        	});
-        */
-
+        	});*/
 		suggest(array);
 	}
-};
+}

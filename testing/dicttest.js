@@ -46,7 +46,7 @@ dictTest.prototype = {
             // Replace pinyin in definitions with user specified pinyin
             var hasPinyin = /\[((?:[a-z]+\d\s?)+)\]/gi;
             var res, def = result[4];
-            var showPinyin = "tonemarks"; //lcxMain.config.pinyin;
+            var showPinyin = "tonemarks"; //LiuChan.config.pinyinType;
             while(res = hasPinyin.exec(result[4])) {
                 def = def.replace(res[0], "[" + parsePinyin(res[1])[showPinyin] + "]");
             }
@@ -154,7 +154,6 @@ function wordSearch(dict, word) {
             results.matchLen = results.data[key].simp.length;
         }
     }
-    console.log(results);
     return results;
 }
 

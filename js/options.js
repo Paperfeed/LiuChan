@@ -22,7 +22,7 @@ window.onload = function () {
     e.buttonResetTones.addEventListener('click', resetTones);
     e.buttonResetCustomization.addEventListener('click', resetCustomization);
     e.selectPopupTheme.addEventListener('change', changeTheme);
-    e.selectPronunciation.addEventListener('change', rebuildDictionary);
+    e.selectPinyinType.addEventListener('change', rebuildDictionary);
     e.checkboxUseHanziToneColors.addEventListener('change', updateTones);
     e.checkboxUseCustomTones.addEventListener('change', updateTones);
     e.checkboxUsePinyinToneColors.addEventListener('change', updateTones);
@@ -48,21 +48,22 @@ function init() {
         sliderBorderRadiusValue: d.getElementById("borderRadiusValue"),
         sliderDropShadowOpacity: d.getElementById('dropShadowOpacity'),
         sliderDropShadowOpacityValue: d.getElementById("dropShadowOpacityValue"),
-        buttonResetTones: d.getElementById('reset'),
+        buttonResetTones: d.getElementById('resetTones'),
         buttonResetCustomization: d.getElementById('resetCustomization'),
-        selectPopupTheme: d.getElementById('popupColor'),
-        selectPronunciation: d.getElementById('pinyin'),
+        selectPopupTheme: d.getElementById('popupTheme'),
+        selectPinyinType: d.getElementById('pinyinType'),
         checkboxUseCustomization: d.getElementById('useCustomization'),
         inputPopupDelay: d.getElementById('popupDelay'),
-        checkboxHighlightText: d.getElementById('highlight'),
-        checkboxHightlightInput: d.getElementById('textboxhl'),
+        checkboxHighlightText: d.getElementById('checkboxHighlightText'),
+        checkboxHighlightInput: d.getElementById('checkboxHighlightInput'),
         checkboxDisableKeys: d.getElementById('disableKeys'),
-        selectHanziDisplay: d.getElementById('showHanzi'),
-        selectDefinitionSeparator: d.getElementById('numdef'),
-        checkboxUseHanziToneColors: d.getElementById('doColors'),
-        checkboxUseCustomTones: d.getElementById('useCustomTone'),
-        checkboxUsePinyinToneColors: d.getElementById('doPinyinColors'),
-        checkboxDisplayHelp: d.getElementById('miniHelp'),
+        selectHanziType: d.getElementById('hanziType'),
+        selectDefinitionSeparator: d.getElementById('definitionSeparator'),
+        checkboxUseHanziToneColors: d.getElementById('useHanziToneColors'),
+        checkboxUseCustomTones: d.getElementById('useCustomTones'),
+        checkboxUsePinyinToneColors: d.getElementById('usePinyinToneColors'),
+        checkboxDisplayHelp: d.getElementById('displayHelp'),
+        checkboxScaleOnZoom: d.getElementById('scaleOnZoom'),
         selectLineEnding: d.getElementById('lineEnding'),
         selectCopySeparator: d.getElementById('copySeparator'),
         inputMaxCopyEntries: d.getElementById('maxClipCopyEntries'),
@@ -74,10 +75,10 @@ function init() {
 
 function saveOptions() {
     // Used in content script:
-    // popupColor
+    // popupTheme
     // disableKeys
-    // highlight
-    // textboxhl
+    // highlightText
+    // highlightInput
     // showOnKey
     // popupDelay
 
@@ -98,29 +99,33 @@ function saveOptions() {
 
     let newConfig = {
         content: {
-            popupColor: e.selectPopupTheme.value,
+            popupTheme: e.selectPopupTheme.value,
             popupDelay: e.inputPopupDelay.value,
-            highlight: e.checkboxHighlightText.checked,
-            textboxhl: e.checkboxHightlightInput.checked,
-            showOnKey: document.querySelector('input[name="showOnKey"]:checked').value,
+            highlightText: e.checkboxHighlightText.checked,
+            highlightInput: e.checkboxHighlightInput.checked,
+            scaleOnZoom: e.checkboxScaleOnZoom.checked,
+            showOnKey: parseInt(document.querySelector('input[name="showOnKey"]:checked').value),
             disableKeys: e.checkboxDisableKeys.checked
         },
-        showHanzi: e.selectHanziDisplay.value,
-        pinyin: e.selectPronunciation.value,
-        numdef: e.selectDefinitionSeparator.value,
-        doColors: e.checkboxUseHanziToneColors.checked,
-        doPinyinColors: e.checkboxUsePinyinToneColors.checked,
-        miniHelp: e.checkboxDisplayHelp.checked,
+        styling: {
+            useCustomization: e.checkboxUseCustomization.checked,
+            customColors: customColors,
+            borderThickness: parseFloat(e.sliderBorderThickness.value),
+            borderRadius: parseFloat(e.sliderBorderRadius.value)
+        },
+        hanziType: e.selectHanziType.value,
+        pinyinType: e.selectPinyinType.value,
+        definitionSeparator: e.selectDefinitionSeparator.value,
+        useHanziToneColors: e.checkboxUseHanziToneColors.checked,
+        usePinyinToneColors: e.checkboxUsePinyinToneColors.checked,
+        displayHelp: e.checkboxDisplayHelp.checked,
         lineEnding: e.selectLineEnding.value,
         copySeparator: e.selectCopySeparator.value,
         maxClipCopyEntries: e.inputMaxCopyEntries.value,
         ttsDialect: e.selectTtsDialect.value,
         ttsSpeed: parseFloat(e.sliderTtsSpeed.value),
-        useCustomTone: e.checkboxUseCustomTones.checked,
-        customTones: customTones,
-        customColors: customColors,
-        borderThickness: parseFloat(e.sliderBorderThickness.value),
-        borderRadius: parseFloat(e.sliderBorderRadius.value)
+        useCustomTones: e.checkboxUseCustomTones.checked,
+        customTones: customTones
     };
 
     try {
@@ -155,63 +160,41 @@ function restoreOptions() {
 
     // Content Script settings are 'separate' in order to minimize overhead
     try {
-        chrome.storage.sync.get({
-            content: {
-                popupColor: 'liuchan',
-                popupDelay: 0,
-                highlight: true,
-                textboxhl: false,
-                showOnKey: "",
-                disableKeys: false
-            },
-            showHanzi: 'boths',
-            pinyin: 'tonemarks',
-            numdef: 'num',
-            doColors: true,
-            doPinyinColors: false,
-            miniHelp: true,
-            lineEnding: 'n',
-            copySeparator: 'tab',
-            maxClipCopyEntries: 7,
-            ttsDialect: "zh-CN",
-            ttsSpeed: 0.9,
-            useCustomTone: false,
-            customTones: ['#F2777A', '#99CC99', '#6699CC', '#CC99CC', '#CCCCCC', '#66CCCC'],
-            customColors: ['#FFFFE0', '#D7D3AF', 'rgba(66,8,8,0.10)'],
-            borderThickness: 2,
-            borderRadius: 8,
-            useCustomization: false
-        }, function (items) {
-            e.selectPopupTheme.value = items.content.popupColor;
+        chrome.storage.sync.get(null, items => {
+            e.selectPopupTheme.value = items.content.popupTheme;
             e.inputPopupDelay.value = items.content.popupDelay;
-            e.checkboxHighlightText.checked = items.content.highlight;
-            e.checkboxHightlightInput.checked = items.content.textboxhl;
+            e.checkboxHighlightText.checked = items.content.highlightText;
+            e.checkboxHighlightInput.checked = items.content.highlightInput;
+            e.checkboxScaleOnZoom.checked = items.content.scaleOnZoom;
             // showOnKey radio button - see below
             e.checkboxDisableKeys.checked = items.content.disableKeys;
 
-            e.selectHanziDisplay.value = items.showHanzi;
-            e.selectPronunciation.value = items.pinyin;
-            e.selectDefinitionSeparator.value = items.numdef;
-            e.checkboxUseHanziToneColors.checked = items.doColors;
-            e.checkboxUsePinyinToneColors.checked = items.doPinyinColors;
-            e.checkboxDisplayHelp.checked = items.miniHelp;
+            e.checkboxUseCustomization.checked = items.styling.useCustomization;
+            e.sliderBorderThickness.value = items.styling.borderThickness;
+            e.sliderBorderRadius.value = items.styling.borderRadius;
+            // Drop Shadow Opacity is updated in convertRGBA function
+
+            e.selectHanziType.value = items.hanziType;
+            e.selectPinyinType.value = items.pinyinType;
+            e.selectDefinitionSeparator.value = items.definitionSeparator;
+            e.checkboxUseHanziToneColors.checked = items.useHanziToneColors;
+            e.checkboxUsePinyinToneColors.checked = items.usePinyinToneColors;
+            e.checkboxDisplayHelp.checked = items.displayHelp;
             e.selectLineEnding.value = items.lineEnding;
             e.selectCopySeparator.value = items.copySeparator;
             e.inputMaxCopyEntries.value = items.maxClipCopyEntries;
             e.selectTtsDialect.value = items.ttsDialect;
             e.sliderTtsSpeed.value = items.ttsSpeed;
             e.sliderTtsSpeed.innerHTML = items.ttsSpeed;
-            e.checkboxUseCustomTones.checked = items.useCustomTone;
-            e.sliderBorderThickness.value = items.borderThickness;
-            e.sliderBorderRadius.value = items.borderRadius;
-            e.checkboxUseCustomization.checked = items.useCustomization;
-            // Drop Shadow Opacity is updated in convertRGBA function
+            e.checkboxUseCustomTones.checked = items.useCustomTones;
+
+
 
             // Get radio buttons and check the matching one
             // TODO Should replace this with a RadioNodeList
             let radio = document.getElementsByName('showOnKey');
             for (let i = 0; i < radio.length; i++) {
-                if (radio[i].value === items.content.showOnKey) {
+                if (parseInt(radio[i].value) === items.content.showOnKey) {
                     radio[i].checked = true;
                 }
             }
@@ -225,9 +208,9 @@ function restoreOptions() {
             tones[4].value = items.customTones[4];
             tones[5].value = items.customTones[5];
 
-            colors[0].value = items.customColors[0];
-            colors[1].value = items.customColors[1];
-            colors[2].value = convertRGBA(items.customColors[2]); // To HEX
+            colors[0].value = items.styling.customColors[0];
+            colors[1].value = items.styling.customColors[1];
+            colors[2].value = convertRGBA(items.styling.customColors[2]); // To HEX
 
             initializeColorPickers();
         });
@@ -315,7 +298,7 @@ function updatePreview() {
     updateTones();
 
     if (e.checkboxUseCustomization.checked) {
-        liuchanWindow = document.getElementById("liuchan-window");
+        const liuchanWindow = document.getElementById("liuchan-window");
         liuchanWindow.style.border = e.sliderBorderThickness.value + "px solid " + colors[1].value;
         liuchanWindow.style.borderRadius = e.sliderBorderRadius.value + "px";
         liuchanWindow.style.boxShadow = "4px 4px 0 0 " + convertRGBA(colors[2].value);
@@ -325,8 +308,8 @@ function updatePreview() {
 
 function restorePreview() {
     if (!e.checkboxUseCustomization.checked) {
-        target = getStyle("#liuchan-window");
-        liuchanWindow = document.getElementById("liuchan-window");
+        const target = getStyle("#liuchan-window");
+        const liuchanWindow = document.getElementById("liuchan-window");
         liuchanWindow.style.border = target.style.border;
         liuchanWindow.style.borderRadius = target.style.borderRadius;
         liuchanWindow.style.boxShadow = target.style.boxShadow;
@@ -353,21 +336,23 @@ function resetTones() {
 }
 
 function resetCustomization() {
-    let target, rgb, defaultColors = [],
+    let rgb, defaultColors = [],
         borderThickness, borderRadius, dropShadowOpacity;
 
-    target = getStyle("#liuchan-window");
+    const target = getStyle("#liuchan-window");
 
     // Get background style
     let regex = /(\d{1,3})[, ]+(\d{1,3})[, ]+(\d{1,3})/;
     rgb = regex.exec(target.style.background);
     defaultColors[0] = CP.RGB2HEX([rgb[1],rgb[2],rgb[3]]);
+
     // Get border color, thickness and radius
     rgb = regex.exec(target.style.border);
     defaultColors[1] = CP.RGB2HEX([rgb[1],rgb[2],rgb[3]]);
     borderThickness = target.style.border.split(" ", 1)[0].slice(0, -2);
     borderRadius = target.style.borderRadius.slice(0, -2);
     if (!borderRadius) { borderRadius = 0; }
+
     // Get drop shadow color and opacity
     rgb = regex.exec(target.style.boxShadow);
     defaultColors[2] = CP.RGB2HEX([rgb[1],rgb[2],rgb[3]]);
@@ -377,12 +362,6 @@ function resetCustomization() {
     } else {
         dropShadowOpacity = 1;
     }
-
-    console.log(borderThickness);
-    console.log(borderRadius);
-    console.log(dropShadowOpacity);
-    console.log(defaultColors);
-
 
     for(let i = 0, len = colors.length; i < len; i++) {
         CP.__instance__[colors[i].id].trigger('change', [defaultColors[i]]);
@@ -399,7 +378,7 @@ function resetCustomization() {
 
 function changeTheme() {
     let theme = document.getElementsByTagName("link").item(1);
-    theme.href = '../css/popup-' + document.getElementById('popupColor').value + '.css';
+    theme.href = '../css/popup-' + document.getElementById('popupTheme').value + '.css';
 
     // Slight pause to allow DOM to catch up with new stylesheet, don't know a better way yet
     setTimeout(function () {

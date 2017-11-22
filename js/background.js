@@ -1,8 +1,11 @@
 'use strict';
 
+const chromep = new ChromePromise();
+const liuChan = new LiuChan();
+
 // This gets fired when the extension's button is clicked
-chrome.browserAction.onClicked.addListener(lcxMain.toggleExtension);
-chrome.tabs.onActivated.addListener(lcxMain.onTabSelect);
+chrome.browserAction.onClicked.addListener(liuChan.toggleExtension.bind(liuChan));
+chrome.tabs.onActivated.addListener(liuChan.onTabSelect.bind(liuChan));
 
 // Fired when a message is sent from extension or content script
 // basically this allows the extension's background to communicate with the
@@ -12,37 +15,40 @@ chrome.runtime.onMessage.addListener(
 		//console.log(request);
 		switch(request.type) {
 			case 'enable?':
-				if (request.enabled === false && lcxMain.enabled) lcxMain.onTabSelect(sender.tab);
+                //chrome.tabs.sendMessage(sender.tab.id, {"type":"config", "config": liuChan.config.content});
+				if (request.enabled === false && liuChan.enabled) liuChan.onTabSelect(sender.tab);
 				break;
 			case 'xsearch':
-				var e = lcxMain.dict.wordSearch(lcxMain.dict.hanzi, request.text);
+				let e = liuChan.dict.wordSearch(liuChan.dict.hanzi, request.text);
 				response(e);
 				break;
             case 'makehtml':
-				var html = lcxMain.dict.makeHtml(request.entry);
+				let html = liuChan.dict.makeHtml(request.entry);
 				response(html);
 				break;
 			case 'copyToClip':
-				lcxMain.copyToClip(sender.tab, request.entry);
+                liuChan.copyToClip(sender.tab, request.entry);
 				break;
 			case 'config':
-				// This is to immediately update settings upon change occuring
-				lcxMain.config = request.config;
+				// Immediately update settings upon change occuring
+                liuChan.config = request.config;
 				break;
 			case 'toggleDefinition':
-                lcxMain.dict.noDefinition = !lcxMain.dict.noDefinition;
+                liuChan.dict.noDefinition = !liuChan.dict.noDefinition;
 				break;
 			case 'tts':
 				// mandarin: zh-CN, zh-TW cantonese: zh-HK
-				chrome.tts.speak(request.text,  {"lang": lcxMain.config.ttsDialect,
-					"rate": lcxMain.config.ttsSpeed});
+				chrome.tts.speak(request.text,  {"lang": liuChan.config.ttsDialect,
+					"rate": liuChan.config.ttsSpeed});
 				break;
 			case 'rebuild':
-                lcxMain.dict.loadDictionary(sender.tab);
+                liuChan.dict.loadDictionary();
 				break;
+			case 'customstyling':
+                response(liuChan.config.styling);
+                break;
 			default:
 				console.log(request);
 		}
 });
 
-lcxMain.initConfig();
