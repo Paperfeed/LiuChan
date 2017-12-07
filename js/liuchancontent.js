@@ -60,10 +60,12 @@ const lcxContent = {
         // Create and append popup div
         const popup = wd.createElementNS('http://www.w3.org/1999/xhtml', 'div');
         popup.setAttribute('id', 'liuchan-window');
+
         wd.documentElement.appendChild(popup);
 
         // Maintain proper position when scaling:
-        popup.style.setProperty("transform-origin", "0 0", "");
+        popup.style.setProperty('transform-origin', '0 0', '');
+        popup.style.setProperty('display', 'none', 'important');
 
         this.setCustomStyling(popup);
         this.setZoomLevel();
@@ -179,7 +181,7 @@ const lcxContent = {
         if (elem) {
             popup.style.setProperty('top', '-1000px', '');
             popup.style.setProperty('left', '0px', '');
-            popup.style.setProperty('display', 'hidden', '');
+            popup.style.setProperty('display', 'none', '');
             //popup.style.display = '';
 
             let pW = popup.offsetWidth;
