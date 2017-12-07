@@ -61,6 +61,7 @@ class LiuChan {
         //this.timeout = 0;
 
         this.omnibox = this.omnibox.bind(this);
+        this._omnibox = this._omnibox.bind(this);
         this.initConfig();
     }
 
@@ -281,10 +282,11 @@ class LiuChan {
     omnibox(text, suggest) {
         // Timeout to prevent the CPU heavy fuzzysort from occuring too often while user hasn't finished typing yet
 	    clearTimeout(this.timeout);
-        this.timeout = setTimeout(this._omnibox(), 400, text, suggest);
+        this.timeout = setTimeout(this._omnibox, 400, text, suggest);
     }
 
 	_omnibox(text, suggest) {
+        if (text == undefined) return;
 		if (this.dict === undefined) {
 		    try {
 		        this.toggleExtension(null);

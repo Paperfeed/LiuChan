@@ -265,6 +265,8 @@ const lcxContent = {
         popup.style.setProperty('left', x + 'px', 'important');
         popup.style.setProperty('top', y + 'px', 'important');
         popup.style.display = '';
+
+        this.isVisible = true;
     },
 
     hidePopup: function () {
@@ -275,7 +277,7 @@ const lcxContent = {
             popup.style.setProperty('display', 'none', 'important');
             popup.innerHTML = '';
         }
-        this.title = null;
+        //this.title = null;
     },
 
     clearHighlight: function () {
@@ -441,7 +443,7 @@ const lcxContent = {
     tryUpdatePopup: function (ev) {
         // Don't show or update if modifier keys are not pressed (if configured by user)
         if (this.config.showOnKey) {
-            if (this.keysDown[0] !== this.config.showOnKey) return;
+            if (this.keysDown[0] !== this.config.showOnKey && (!this.isVisible)) return;
         }
 
         let fake;
