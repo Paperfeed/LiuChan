@@ -63,6 +63,11 @@ class LiuChan {
         this.omnibox = this.omnibox.bind(this);
         this._omnibox = this._omnibox.bind(this);
         this.initConfig();
+
+        // Set extension icon
+        chrome.browserAction.setIcon({
+            "path":"../images/toolbar-disabled.png"
+        });
     }
 
 	initConfig() {
@@ -202,6 +207,9 @@ class LiuChan {
                 }
             }
 
+            // Tell all tabs to enable themselves
+            //this.sendAllTabs({"type":"enable"});
+
             // Enable Omnibox Wordsearch
             chrome.omnibox.onInputChanged.addListener(this.omnibox);
             //chrome.omnibox.onInputEntered.addListener(text => { //Do sth on enter });
@@ -209,22 +217,25 @@ class LiuChan {
             await this.dict.loadDictionary();
             this.enabled = true;
 
+            // Set extension icon
             chrome.browserAction.setIcon({
                 "path":"../images/toolbar-enabled.png"
             });
         }
     }
 
+    onWindowChangeFocus(windowId) {
+        if (windowId !== -1) {
+            chrome.tabs.query({active:true, currentWindow:true}, (tab) => {
+                this.onTabSelect(tab[0]);
+            })
+        }
+    }
 	// The callback for chrome.tabs.onActivated
 	// Sends a message to the tab to enable itself if it hasn't
 	onTabSelect(tab) {
-		// tab contains tabId windowId
-		if (undefined === tab.tabId) {
-			tab.tabId = tab.id;
-		}
-
 		if (this.enabled) {
-            chrome.tabs.sendMessage(tab.tabId, {
+            chrome.tabs.sendMessage(tab.tabId ? tab.tabId : tab.id, {
 				"type":"enable",
 				"config":this.config.content
 			});
@@ -232,10 +243,13 @@ class LiuChan {
 	}
 
 	async sendAllTabs(message) {
-        const tabs = await chromep.tabs.query({});
+        // Retrieve all windows and loop through tabs per window to pass message
+        const windows = await chromep.windows.getAll({populate:true});
 
-        for (let i = 0, len = tabs.length; i < len; ++i) {
-            chrome.tabs.sendMessage(tabs[i].id, message);
+        for (let a = 0, lenA = windows.length; a < lenA; a++) {
+            for (let b = 0, lenB = windows[a].tabs.length; b < lenB; b++) {
+                chrome.tabs.sendMessage(windows[a].tabs[b].id, message);
+            }
         }
 	}
 

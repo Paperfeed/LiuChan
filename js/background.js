@@ -6,13 +6,13 @@ const liuChan = new LiuChan();
 // This gets fired when the extension's button is clicked
 chrome.browserAction.onClicked.addListener(liuChan.toggleExtension.bind(liuChan));
 chrome.tabs.onActivated.addListener(liuChan.onTabSelect.bind(liuChan));
+chrome.windows.onFocusChanged.addListener(liuChan.onWindowChangeFocus.bind(liuChan));
 
 // Fired when a message is sent from extension or content script
 // basically this allows the extension's background to communicate with the
 // content script that gets loaded on matching urls (as per the manifest)
 chrome.runtime.onMessage.addListener(
 	function(request, sender, response) {
-		//console.log(request);
 		switch(request.type) {
 			case 'enable?':
                 //chrome.tabs.sendMessage(sender.tab.id, {"type":"config", "config": liuChan.config.content});
