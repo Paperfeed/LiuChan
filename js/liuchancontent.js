@@ -49,19 +49,15 @@ const lcxContent = {
         }
 
         // Create and append stylesheet
-        const wd = window.document;
-        const css = wd.createElementNS('http://www.w3.org/1999/xhtml', 'link');
-        css.setAttribute('rel', 'stylesheet');
-        css.setAttribute('type', 'text/css');
-        css.setAttribute('href', chrome.extension.getURL('css/popup-' + this.config.popupTheme + '.css'));
-        css.setAttribute('id', 'liuchan-css');
-        wd.getElementsByTagName('head')[0].appendChild(css);
+        this.loadStyleSheet();
 
         // Create and append popup div
-        const popup = wd.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+        //const popup = wd.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+        const popup = document.createElement('div');
         popup.setAttribute('id', 'liuchan-window');
 
-        wd.documentElement.appendChild(popup);
+        //wd.documentElement.appendChild(popup);
+        document.body.appendChild(popup);
 
         // Maintain proper position when scaling:
         popup.style.setProperty('transform-origin', '0 0', '');
@@ -71,6 +67,21 @@ const lcxContent = {
         this.setZoomLevel();
 
         this.enabled = true;
+    },
+
+    loadStyleSheet: function() {
+        // Check if stylesheet isn't loaded already
+        const check = window.document.getElementById("liuchan-css");
+        if (check) { return; }
+
+        // Create and append stylesheet
+        const wd = window.document;
+        const css = wd.createElementNS('http://www.w3.org/1999/xhtml', 'link');
+        css.setAttribute('rel', 'stylesheet');
+        css.setAttribute('type', 'text/css');
+        css.setAttribute('href', chrome.extension.getURL('css/popup-' + this.config.popupTheme + '.css'));
+        css.setAttribute('id', 'liuchan-css');
+        wd.getElementsByTagName('head')[0].appendChild(css);
     },
 
     disableTab: function () {
@@ -939,8 +950,16 @@ chrome.runtime.onMessage.addListener(request => {
         case 'showPopup':
             lcxContent.showPopup(request.text);
             break;
+        case 'notepad':
+            if(lcxContent.notepad) {
+                lcxContent.notepad.toggleOverlay();
+            } else {
+                lcxContent.config.popupTheme = request.theme;
+                lcxContent.notepad = new Notepad();
+            }
+            break;
         default:
-            console.log(request);
+            console.log('Content received unknown message: ', request);
     }
     return Promise.resolve();
 });

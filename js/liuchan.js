@@ -64,6 +64,17 @@ class LiuChan {
         this._omnibox = this._omnibox.bind(this);
         this.initConfig();
 
+        // Add contextMenu
+        chrome.contextMenus.create({
+            title: 'Notepad',
+            contexts: ['browser_action'],
+            onclick: () => {
+                chrome.tabs.query({active:true, currentWindow:true}, (tab) => {
+                    chrome.tabs.sendMessage(tab[0].id, {"type":"notepad", "theme":this.config.content.popupTheme});
+                });
+            }
+        });
+
         // Set extension icon
         chrome.browserAction.setIcon({
             "path":"../images/toolbar-disabled.png"
@@ -86,6 +97,13 @@ class LiuChan {
                 customColors: ['#FFFFE0', '#D7D3AF', 'rgba(66,8,8,0.10)'],
                 borderThickness: 2,
                 borderRadius: 8
+            },
+            notepad: {
+                text: 'This notepad will automatically save its contents and sync with your Chrome account ' +
+                '(if you use sync!).\n\n' +
+                'You can drag the notepad around and resize the text area.',
+                pos: [0,0],
+                size: [0,0]
             },
             hanziType: 'boths',
             pinyinType: 'tonemarks',

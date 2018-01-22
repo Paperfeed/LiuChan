@@ -47,8 +47,16 @@ chrome.runtime.onMessage.addListener(
 			case 'customstyling':
                 response(liuChan.config.styling);
                 break;
+			case 'notepad':
+				if (request.query === 'load') {
+                    response(liuChan.config.notepad);
+                } else {
+                    chrome.storage.sync.set(request.query);
+                    liuChan.config.notepad = request.query;
+				}
+				break;
 			default:
-				console.log(request);
+				console.log('Background received unknown message: ', request);
 		}
 });
 
