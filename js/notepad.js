@@ -10,58 +10,98 @@ class Notepad {
         const textarea = document.createElement('textarea');
 
         overlay.setAttribute('id', 'liuchan-notepad-overlay');
-        header.textContent = 'Liuchan Notepad';
-        pin.textContent = '\t\u2AEF'; // ⫯ Tacked: ⟟ \u27DF
-        close.textContent = '\t\u2716'; // ✖
-        textarea.textContent = 'testtesttest';
-
+        overlay.setAttribute('display', 'none');
         textarea.setAttribute('id', 'liuchan-notepad-input');
+        header.textContent = 'Liuchan Notepad';
+        pin.textContent = '\u2AEF';
+        close.textContent = '\u2715';
 
-        overlay.appendChild(close);
-        overlay.appendChild(pin);
         overlay.appendChild(header);
+        overlay.appendChild(pin);
+        overlay.appendChild(close);
         overlay.appendChild(textarea);
         document.body.appendChild(overlay);
 
-        textarea.focus();
         this.elements = [overlay, header, pin, close, textarea];
         this.isPinned = false;
-        this.isVisible = true;
+        this.isVisible = false;
 
         this.pinOverlay = this.pinOverlay.bind(this);
         this.lostFocus = this.lostFocus.bind(this);
         this.closeOverlay = this.closeOverlay.bind(this);
         this.startDrag = this.startDrag.bind(this);
+        this.saveAfterInput = this.saveAfterInput.bind(this);
         this.dragOverlay = this.dragOverlay.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
 
         header.addEventListener('mousedown', this.startDrag);
-        textarea.addEventListener('focusout', this.lostFocus);
+        textarea.addEventListener('input', this.saveAfterInput);
         pin.addEventListener('click', this.pinOverlay);
         close.addEventListener('click', this.closeOverlay);
         document.addEventListener('click', this.lostFocus);
 
         this.pos = [0,0,0,0];
         this.loadFromStorage();
+        this.showOverlay();
     }
 
     loadFromStorage() {
         // This asks for and receives the stored notepad config from the background script
         chrome.runtime.sendMessage({'type': 'notepad', 'query': 'load'}, r => {
-            this.elements[4].textContent = r.text;
-            this.elements[0].setAttribute('style', 'top: ' + r.pos[0] + 'px; left: ' + r.pos[1] + 'px;');
+            const overlay = this.elements[0];
+            const textarea = this.elements[4];
+            const d = document.documentElement;
+            if (typeof r.pos == "undefined") {
+                overlay.style.left = (d.clientWidth / 2) - (overlay.offsetWidth / 2) + 'px';
+                overlay.style.top = (d.clientHeight / 2) - (overlay.offsetHeight / 2) + 'px';
+            } else {
+                overlay.style.left = r.pos[0] + 'px';
+                overlay.style.top = r.pos[1] + 'px';
+                textarea.style.width = r.size[0] + 'px';
+                textarea.style.height = r.size[1] + 'px';
+            }
+            textarea.textContent = r.text;
         });
     }
 
+    saveAfterInput() {
+        // Prevent save and sync for every single keystroke
+        clearTimeout(this.inputTimer);
+        this.inputTimer = setTimeout(this.saveToStorage.bind(this), 300);
+    }
+
     saveToStorage() {
-        const el = this.elements[0].getBoundingClientRect();
-        const notepad = { text: this.elements[4].textContent, pos: [el.x, el.y], size: [el.width, el.height]};
+        const el = this.elements[0].getBoundingClientRect(); // Overlay
+        const ol = this.elements[4]; // Textarea
+        const notepad = { text: this.elements[4].value, pos: [el.x, el.y], size: [ol.offsetWidth, ol.offsetHeight]};
         chrome.runtime.sendMessage({'type': 'notepad', 'query': notepad});
+    }
+
+    checkPageBoundary() {
+        const overlay = this.elements[0];
+        const textarea = this.elements[4];
+        const d = document.documentElement;
+        const el = overlay.getBoundingClientRect();
+
+        const offsetX = (overlay.offsetWidth - textarea.offsetWidth) * 2;
+        const offsetY = (overlay.offsetHeight - textarea.offsetHeight);
+
+        // Set width of textarea to size of viewport minus offset to fit the borders/buttons
+        // This is because the textarea is resizable instead of the parent div
+        if (overlay.offsetWidth > d.clientWidth) textarea.style.width = (d.clientWidth - offsetX) + 'px';
+        if (overlay.offsetHeight > d.clientHeight) textarea.style.height = (d.clientHeight - offsetY) + 'px';
+
+        const maxLeft = Math.max(0, d.clientWidth - overlay.offsetWidth);
+        const maxTop = Math.max(0, d.clientHeight - overlay.offsetHeight);
+
+        if (el.x > maxLeft) overlay.style.left = maxLeft + 'px';
+        if (el.y > maxTop) overlay.style.top = maxTop + 'px';
+        if (el.x < 0) overlay.style.left = '0px';
+        if (el.y < 0) overlay.style.top = '0px';
     }
 
     startDrag(e) {
         e = e || window.event;
-        // get the mouse cursor position at startup:
         this.pos[2] = e.clientX;
         this.pos[3] = e.clientY;
 
@@ -71,13 +111,15 @@ class Notepad {
 
     dragOverlay(e) {
         e = e || window.event;
-        // calculate the new cursor position:
+        const el = this.elements[0];
+
+        // Calculate the new cursor position:
         this.pos[0] = this.pos[2] - e.clientX;
         this.pos[1] = this.pos[3] - e.clientY;
         this.pos[2] = e.clientX;
         this.pos[3] = e.clientY;
-        const el = this.elements[0];
-        // set the element's new position:
+
+        // Set new position
         el.style.top = (el.offsetTop - this.pos[1]) + "px";
         el.style.left = (el.offsetLeft - this.pos[0]) + "px";
     }
@@ -89,12 +131,13 @@ class Notepad {
 
     pinOverlay() {
         this.isPinned = !this.isPinned;
+        const el = this.elements[2];
         if (this.isPinned) {
-            this.elements[2].style.color = '#f00';
-            this.elements[2].textContent = '\u27DF';
+            el.classList.add('liuchan-overlay-pinned');
+            el.textContent = '\u27DF';
         } else {
-            this.elements[2].style.color = '';
-            this.elements[2].textContent = '\t\u2AEF';
+            el.classList.remove('liuchan-overlay-pinned');
+            el.textContent = '\t\u2AEF';
         }
     }
 
@@ -105,12 +148,12 @@ class Notepad {
     showOverlay() {
         document.addEventListener('click', this.lostFocus);
         this.elements[0].style.display = '';
-        this.elements[4].focus();
         this.isVisible = true;
+        this.checkPageBoundary();
     }
 
     lostFocus(e) {
-        if (e.srcElement.offsetParent != this.elements[0] && e.srcElement != this.elements[0] && !this.isPinned) {
+        if (e.srcElement.offsetParent !== this.elements[0] && e.srcElement !== this.elements[0] && !this.isPinned) {
             this.closeOverlay();
         }
     }

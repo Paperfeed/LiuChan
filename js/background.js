@@ -7,12 +7,13 @@ const liuChan = new LiuChan();
 chrome.browserAction.onClicked.addListener(liuChan.toggleExtension.bind(liuChan));
 chrome.tabs.onActivated.addListener(liuChan.onTabSelect.bind(liuChan));
 chrome.windows.onFocusChanged.addListener(liuChan.onWindowChangeFocus.bind(liuChan));
+//chrome.storage.onChanged.addListener(liuChan.onConfigChange.bind(liuChan));
 
 // Fired when a message is sent from extension or content script
 // basically this allows the extension's background to communicate with the
 // content script that gets loaded on matching urls (as per the manifest)
 chrome.runtime.onMessage.addListener(
-	function(request, sender, response) {
+	(request, sender, response) => {
 		switch(request.type) {
 			case 'enable?':
                 //chrome.tabs.sendMessage(sender.tab.id, {"type":"config", "config": liuChan.config.content});
@@ -31,7 +32,7 @@ chrome.runtime.onMessage.addListener(
 				break;
 			case 'config':
 				// Immediately update settings upon change occuring
-                liuChan.config = request.config;
+                liuChan.config = Object.assign(liuChan.config, request.config);
 				break;
 			case 'toggleDefinition':
                 liuChan.dict.noDefinition = !liuChan.dict.noDefinition;
@@ -51,12 +52,12 @@ chrome.runtime.onMessage.addListener(
 				if (request.query === 'load') {
                     response(liuChan.config.notepad);
                 } else {
-                    chrome.storage.sync.set(request.query);
+                    chrome.storage.sync.set({ notepad : request.query});
                     liuChan.config.notepad = request.query;
 				}
 				break;
 			default:
-				console.log('Background received unknown message: ', request);
+				console.log('Background received unknown request: ', request);
 		}
 });
 

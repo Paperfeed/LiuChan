@@ -101,9 +101,7 @@ class LiuChan {
             notepad: {
                 text: 'This notepad will automatically save its contents and sync with your Chrome account ' +
                 '(if you use sync!).\n\n' +
-                'You can drag the notepad around and resize the text area.',
-                pos: [0,0],
-                size: [0,0]
+                'You can drag the notepad around and resize the text area.'
             },
             hanziType: 'boths',
             pinyinType: 'tonemarks',

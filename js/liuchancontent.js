@@ -959,7 +959,7 @@ chrome.runtime.onMessage.addListener(request => {
             }
             break;
         default:
-            console.log('Content received unknown message: ', request);
+            console.log('Content received unknown request: ', request);
     }
     return Promise.resolve();
 });

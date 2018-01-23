@@ -25,7 +25,7 @@ Charcoal Theme
 }
 
 /* Main Popup Styling*/
-#liuchan-window {
+#liuchan-window, #liuchan-notepad-overlay, #liuchan-notepad-input {
 	position: absolute;
 	min-width: 150px;
 	padding: 6px 8px;
@@ -111,4 +111,97 @@ Charcoal Theme
 #liuchan-window table tr td:nth-child(odd){
 	padding: 4px 5px 4px 5px;
 	font-weight: bold;
+}
+
+/* Notepad Styling */
+#liuchan-notepad-overlay {
+	display: grid;
+	grid-template-columns: auto 22px 22px;
+	grid-template-rows: auto;
+	grid-template-areas:
+			"header button button"
+			" textarea textarea textarea";
+	grid-gap: 3px;
+	position: fixed;
+	z-index: 99999999998;
+	text-align: center;
+	width: fit-content;
+	height: auto;
+	border-bottom-right-radius: 0;
+}
+
+#liuchan-notepad-overlay p {
+	color: #F2777A;
+	font-size: 16px;
+	font-family: Roboto, sans-serif;
+	padding: 0 3px;
+	margin: 0 0 2px 0;
+	cursor: move;
+	text-align: left;
+	user-select: none;
+}
+
+#liuchan-notepad-overlay button {
+	grid-area: span 1 / button;
+	grid-column: auto;
+	background: none;
+	width: 22px;
+	height: 22px;
+	min-height: 0;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 2px solid #fff;
+	border-radius: 100%;
+	box-shadow: none;
+	color: #fff;
+	font-weight: bold;
+	font-size: 14px;
+	line-height: 0;
+	text-align: center;
+}
+
+#liuchan-notepad-overlay button:active {
+	color: #e9e9e9;
+	border: 2px solid #e9e9e9;
+}
+
+#liuchan-notepad-overlay button:focus {
+	outline: 0;
+}
+
+.liuchan-overlay-pinned {
+	color: #f23834 !important;
+	border: 2px solid #f23834 !important;
+}
+
+#liuchan-notepad-input {
+	grid-area: textarea;
+	position: relative;
+	font-size: 16px;
+	font-weight: bold;
+	min-width: 180px;
+	min-height: 60px;
+	font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
+	background: #fff;
+	border-radius: 0;
+	box-shadow: none;
+	resize: both;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar {
+	width: 15px;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar-track {
+	background-color: #d7d7d7;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar-thumb {
+	background-color: #767676;
+}
+
+#liuchan-notepad-input:focus {
+	border: 2px solid #d7cfd1;
+	outline: 0;
 }
