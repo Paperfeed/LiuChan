@@ -203,7 +203,8 @@ entry span = #e3e3e3
 }
 
 .liuchan-overlay-pinned {
-    color: #e30000 !important;
+    color: #ff4c5a !important;
+    border: 2px solid #ff4c5a !important;
 }
 
 #liuchan-notepad-input {

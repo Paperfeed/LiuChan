@@ -170,6 +170,7 @@ Paper Theme
 
 .liuchan-overlay-pinned {
 	color: #F2777A !important;
+	border: 2px solid #F2777A !important;
 }
 
 #liuchan-notepad-input {
