@@ -69,6 +69,7 @@ class Notepad {
 
         this.isPinned = !data.pinned;
         this.pinOverlay();
+        this.checkPageBoundary();
     }
 
     saveAfterInput() {
