@@ -191,7 +191,6 @@ function restoreOptions() {
 
 
             // Get radio buttons and check the matching one
-            // TODO Should replace this with a RadioNodeList
             let radio = document.getElementsByName('showOnKey');
             for (let i = 0; i < radio.length; i++) {
                 if (parseInt(radio[i].value) === items.content.showOnKey) {

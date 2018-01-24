@@ -48,20 +48,27 @@ class Notepad {
     loadFromStorage() {
         // This asks for and receives the stored notepad config from the background script
         chrome.runtime.sendMessage({'type': 'notepad', 'query': 'load'}, r => {
-            const overlay = this.elements[0];
-            const textarea = this.elements[4];
-            const d = document.documentElement;
-            if (typeof r.pos == "undefined") {
-                overlay.style.left = (d.clientWidth / 2) - (overlay.offsetWidth / 2) + 'px';
-                overlay.style.top = (d.clientHeight / 2) - (overlay.offsetHeight / 2) + 'px';
-            } else {
-                overlay.style.left = r.pos[0] + 'px';
-                overlay.style.top = r.pos[1] + 'px';
-                textarea.style.width = r.size[0] + 'px';
-                textarea.style.height = r.size[1] + 'px';
-            }
-            textarea.textContent = r.text;
+            this.updateState(r);
         });
+    }
+
+    updateState(data) {
+        const overlay = this.elements[0];
+        const textarea = this.elements[4];
+        const d = document.documentElement;
+        if (typeof data.pos == "undefined") {
+            overlay.style.left = (d.clientWidth / 2) - (overlay.offsetWidth / 2) + 'px';
+            overlay.style.top = (d.clientHeight / 2) - (overlay.offsetHeight / 2) + 'px';
+        } else {
+            overlay.style.left = data.pos[0] + 'px';
+            overlay.style.top = data.pos[1] + 'px';
+            textarea.style.width = data.size[0] + 'px';
+            textarea.style.height = data.size[1] + 'px';
+        }
+        textarea.value = data.text;
+
+        this.isPinned = !data.pinned;
+        this.pinOverlay();
     }
 
     saveAfterInput() {
@@ -73,7 +80,12 @@ class Notepad {
     saveToStorage() {
         const el = this.elements[0].getBoundingClientRect(); // Overlay
         const ol = this.elements[4]; // Textarea
-        const notepad = { text: this.elements[4].value, pos: [el.x, el.y], size: [ol.offsetWidth, ol.offsetHeight]};
+        const notepad = {
+            text: this.elements[4].value,
+            pos: [el.x, el.y],
+            size: [ol.offsetWidth, ol.offsetHeight],
+            pinned: this.isPinned
+        };
         chrome.runtime.sendMessage({'type': 'notepad', 'query': notepad});
     }
 
@@ -127,6 +139,7 @@ class Notepad {
     stopDrag() {
         document.removeEventListener('mouseup', this.stopDrag);
         document.removeEventListener('mousemove', this.dragOverlay);
+        this.saveToStorage();
     }
 
     pinOverlay() {
@@ -139,6 +152,7 @@ class Notepad {
             el.classList.remove('liuchan-overlay-pinned');
             el.textContent = '\t\u2AEF';
         }
+        this.saveToStorage();
     }
 
     toggleOverlay() {

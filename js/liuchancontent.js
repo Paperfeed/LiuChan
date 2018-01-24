@@ -351,6 +351,7 @@ const lcxContent = {
                     this.show(ev.currentTarget.liuchan);
                     break;
                 case "c":
+                    // TODO save to wordlist
                     chrome.runtime.sendMessage({
                         "type": "copyToClip",
                         "entry": this.lastFound
@@ -421,7 +422,6 @@ const lcxContent = {
     },
 
     onMouseDown: function (ev) {
-        // TODO ev.button
         if (ev.button !== 0) { return; }
         if (this.isVisible) { this.clearHighlight(); }
         this.mDown = true;
@@ -956,6 +956,11 @@ chrome.runtime.onMessage.addListener(request => {
             } else {
                 lcxContent.config.popupTheme = request.theme;
                 lcxContent.notepad = new Notepad();
+            }
+            break;
+        case 'update':
+            if(lcxContent.notepad) {
+                lcxContent.notepad.updateState(request.notepad);
             }
             break;
         default:

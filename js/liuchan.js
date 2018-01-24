@@ -101,7 +101,8 @@ class LiuChan {
             notepad: {
                 text: 'This notepad will automatically save its contents and sync with your Chrome account ' +
                 '(if you use sync!).\n\n' +
-                'You can drag the notepad around and resize the text area.'
+                'You can drag the notepad around and resize the text area.',
+                pinned: false
             },
             hanziType: 'boths',
             pinyinType: 'tonemarks',
@@ -256,6 +257,10 @@ class LiuChan {
 				"config":this.config.content
 			});
 		}
+        chrome.tabs.sendMessage(tab.tabId ? tab.tabId : tab.id, {
+            "type":"update",
+            "notepad":this.config.notepad
+        });
 	}
 
 	async sendAllTabs(message) {

@@ -52,7 +52,7 @@ chrome.runtime.onMessage.addListener(
 				if (request.query === 'load') {
                     response(liuChan.config.notepad);
                 } else {
-                    chrome.storage.sync.set({ notepad : request.query});
+                    this.chrome.storage.sync.set({notepad : request.query});
                     liuChan.config.notepad = request.query;
 				}
 				break;
