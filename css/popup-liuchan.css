@@ -34,7 +34,8 @@ LiuChan Theme
     border: 2px solid #d7d3af;
     border-radius: 8px;
     box-shadow: 4px 4px 0 0 rgba(66,8,8,0.10);
-    z-index: 99999999999;
+    z-index: 2147483647;
+
 }
 
 #liuchan-window .liuchan-container {
@@ -141,7 +142,7 @@ LiuChan Theme
             " textarea textarea textarea";
     grid-gap: 3px;
     position: fixed;
-    z-index: 99999999998;
+    z-index: 2147483646;
     text-align: center;
     width: fit-content;
     height: auto;

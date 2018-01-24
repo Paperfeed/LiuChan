@@ -33,7 +33,7 @@ Charcoal Theme
 	border-radius: 8px 8px 8px 8px;
   	background: url("../css/hash.png") repeat scroll 0 0 #2D2D2D;
 	box-shadow: 0 0 15px #878787;
-    z-index: 99999999999;
+    z-index: 2147483647;
 }
 
 #liuchan-window .liuchan-container {
@@ -123,7 +123,7 @@ Charcoal Theme
 			" textarea textarea textarea";
 	grid-gap: 3px;
 	position: fixed;
-	z-index: 99999999998;
+	z-index: 2147483646;
 	text-align: center;
 	width: fit-content;
 	height: auto;

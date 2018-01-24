@@ -33,7 +33,7 @@ Sepia Theme
     border: 1px solid #7E5832 !important;
     border-radius: 8px 8px 8px 8px;
     box-shadow: 0 0 15px #BCBCBC;
-    z-index: 99999999999;
+    z-index: 2147483647;
 }
 
 #liuchan-window .liuchan-container {
@@ -120,7 +120,7 @@ Sepia Theme
 			" textarea textarea textarea";
 	grid-gap: 3px;
 	position: fixed;
-	z-index: 99999999998;
+	z-index: 2147483646;
 	text-align: center;
 	width: fit-content;
 	height: auto;

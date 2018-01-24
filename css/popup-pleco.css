@@ -43,7 +43,7 @@ entry span = #e3e3e3
     background: #fff;
     border: 2px solid #0078c3;
     box-shadow: 4px 4px 0 0 rgba(66,8,8,0.25);
-    z-index: 99999999999;
+    z-index: 2147483647;
 }
 
 /*#liuchan-window:before {
@@ -157,7 +157,7 @@ entry span = #e3e3e3
             " textarea textarea textarea";
     grid-gap: 3px;
     position: fixed;
-    z-index: 99999999998;
+    z-index: 2147483646;
     text-align: center;
     width: fit-content;
     height: auto;
