@@ -215,6 +215,18 @@ class LiuChan {
                 "text": ""
             });
         } else {
+            // Check if the content script is actually running and let the user know the tab needs to be reloaded if not.
+            const tab = await chromep.tabs.query({ active:true, windowType: 'normal', currentWindow: true });
+            try {
+                const response = await chromep.tabs.sendMessage(tab[0].id, {type:'heartbeat'});
+            } catch(e) {
+                chrome.notifications.create({
+                    type:'basic', iconUrl:'images/icon128.png',
+                    title:'Liuchan - Please reload this tab',
+                    message:'Oops! You will need to reload this tab before Liuchan can work its ' +
+                    'magic! \n\nThis is only necessary on tabs that were open before Liuchan was installed :)'});
+            }
+
         	// Enable extension
             if (!this.dict) {
                 try {
@@ -321,6 +333,7 @@ class LiuChan {
     }
 
 	_omnibox(text, suggest) {
+        // TODO redo fuzzysort implementation - it's a unoptimized mess
         if (text == undefined) return;
 		if (this.dict === undefined) {
 		    try {
@@ -336,58 +349,73 @@ class LiuChan {
         //fuzzysort.threshold = null;
         //fuzzysort.limit = null;
 
+        const dict = this.dict.hanzi;
+        let results = [];
+
         // Check if user input is hanzi or plain english
         let useSimplified;
-		const reg = /[\u4e00-\u9fa5].*!/u;
-		const isHanzi = reg.test(text);
+		const isHanzi = text.match(/[\u3400-\u9FBF]/);
 		if (isHanzi) {
+		    // If the text that has been typed is hanzi, get all entries that
+            // start with the first character of the string and score them
 			useSimplified = /simp|boths/.test(this.config.hanziType);
-		}
 
-        let results = [], tradScore, simpScore, pinyinScore, defScore, str = '';
-        const dict = this.dict.hanzi;
-        const dictLength = this.dict.hanzi.length;
-
-        for(let i = 0; i < dictLength; i++) {
-        	if (isHanzi) {
-        	    if (useSimplified) {
-                    simpScore = fuzzysort.single(text, dict[i].simp);
+            const index = dict.get(text.charAt(0));
+            let score, item;
+            for (let i = 0, len = index.length; i < len; i++) {
+                if (useSimplified) {
+                    item = index[i].simp;
                 } else {
-                    tradScore = fuzzysort.single(text, dict[i].trad);
+                    item = index[i].trad;
                 }
-            } else {
-                pinyinScore = fuzzysort.single(text, dict[i].pinyin.tonemarks); // TODO make this based on user pref
+                let hanzi = fuzzysort.single(text, item);
+                score = hanzi ? hanzi.score : 1000;
+                if(score >= 1000) continue;
 
-                if (dict[i].def.length > 1 && (this.config.definitionSeparator === "num")) {
-                    for (let a = 0; a < dict[i].def.length; a++) {
-                        str += (a+1) + ' ' + dict[i].def[a] + '  ';
-                    }
-                    str.trim();
-                } else {
-                    str = dict[i].def.join(this.config.definitionSeparator);
-                }
-                defScore = fuzzysort.single(text, str);
-                str = '';
+                results.push({
+                    item: index[i],
+                    score: hanzi.score,
+                    hanzi: hanzi ? hanzi.highlighted : item,
+                    pinyinHighlighted: index[i].pinyin.tonemarks,
+                    definitionHighlighted: index[i].def
+                })
             }
+		} else {
+		    // If it's roman characters we have to check for pinyin and go through every key in the dictionary map,
+            // then score the pinyin and definition separately
+		    for (let key of dict.keys()) {
+		        let value = dict.get(key);
+                for (let i = 0, len = value.length; i < len; i++) {
+                    let string = '', definition = value[i].def;
 
-            // Create a custom combined score to sort by. +100 to the score makes it a worse match
-            let score = Math.min(tradScore?tradScore.score:1000,
-				simpScore?simpScore.score:1000,
-				pinyinScore?pinyinScore.score:1000,
-				defScore?defScore.score:1000);
-            if(score >= 1000) continue;
+                    if (definition.length > 1 && (this.config.definitionSeparator === "num")) {
+                        for (let a = 0; a < definition.length; a++) {
+                            string += (a + 1) + ' ' + definition[a] + '  ';
+                        }
+                        string.trim();
+                    } else {
+                        string = value[i].def.join(this.config.definitionSeparator);
+                    }
 
-            results.push({
-                item: dict[i],
-                score: score,
-                tradHighlighted: tradScore ? tradScore.highlighted : dict[i].trad,
-                simpHighlighted: simpScore ? simpScore.highlighted : dict[i].simp,
-                pinyinHighlighted: pinyinScore ? pinyinScore.highlighted : dict[i].pinyin.tonemarks,
-                defHighlighted: defScore ? defScore.highlighted : dict[i].def
-            })
+                    let definitionScore = fuzzysort.single(text, string);
+                    let pinyinScore = fuzzysort.single(text, this.convertPinyin(value[i].pinyin.tonemarks));
+
+                    let score = Math.min(
+                        pinyinScore?pinyinScore.score:1000,
+                        definitionScore?definitionScore.score:1000);
+                    if(score >= 1000) continue;
+
+                    results.push({
+                        item: value[i],
+                        score: score,
+                        pinyinHighlighted: pinyinScore ? pinyinScore.highlighted : value[i].pinyin.tonemarks,
+                        definitionHighlighted: definitionScore ? definitionScore.highlighted : value[i].def
+                    })
+                }
+            }
         }
 
-        results.sort(function (a, b) { return a.score - b.score });
+        results.sort((a, b) => { return a.score - b.score });
         if (undefined === results) return;
 
         let array = [];
@@ -399,16 +427,21 @@ class LiuChan {
             if (results[i].item.trad === results[i].item.simp) {
                 entry += results[i].item.trad + " ";
             } else {
-                // Fallthrough on purpose:
-                switch (this.config.hanziType) {
-                    case "botht": entry += results[i].tradHighlighted + " ";
-                    case "simp": entry += results[i].simpHighlighted;
-                        break;
-                    case "boths": entry += results[i].simpHighlighted + " ";
-                    case "trad": entry += results[i].tradHighlighted;
-                        break;
+                if (isHanzi) {
+                    entry += results[i].hanzi;
+                } else {
+                    // Fallthrough on purpose:
+                    switch (this.config.hanziType) {
+                        case "botht": entry += results[i].item.trad + " ";
+                        case "simp": entry += results[i].item.simp;
+                            break;
+                        case "boths": entry += results[i].item.simp + " ";
+                        case "trad": entry += results[i].item.trad;
+                            break;
+                    }
                 }
             }
+
 
 			entry += "</url><dim>";
 
@@ -423,7 +456,7 @@ class LiuChan {
 			// Definition
             let content;
 
-			entry += '</dim> ' + results[i].defHighlighted;
+			entry += '</dim> ' + results[i].definitionHighlighted;
 			if (useSimplified) {
 			    content = results[i].item.simp;
 			} else {
@@ -432,7 +465,7 @@ class LiuChan {
         	array.push({content: content, description: entry});
 
 			// Limit to 10 results
-			if (i === 9) { break; }
+			//if (i === 9) { break; }
 		}
 
 
@@ -446,4 +479,52 @@ class LiuChan {
         	});*/
 		suggest(array);
 	}
+
+    convertPinyin(pinyin) {
+        let str = '';
+        for (let i = 0, len = pinyin.length-1; i < len; i++) {
+            let char = pinyin.charAt(i);
+            switch(char) {
+                case 'ā':
+                case 'á':
+                case 'ǎ':
+                case 'à':
+                    str += 'a';
+                    break;
+                case 'ē':
+                case 'é':
+                case 'ě':
+                case 'è':
+                    str += 'e';
+                    break;
+                case 'ō':
+                case 'ó':
+                case 'ǒ':
+                case 'ò':
+                    str += 'o';
+                    break;
+                case 'ī':
+                case 'í':
+                case 'ǐ':
+                case 'ì':
+                    str += 'i';
+                    break;
+                case 'ū':
+                case 'ú':
+                case 'ǔ':
+                case 'ù':
+                    str += 'u';
+                    break;
+                case 'ǖ':
+                case 'ǘ':
+                case 'ǚ':
+                case 'ǜ':
+                    str += 'v';
+                    break;
+                default:
+                    str += pinyin.charAt(i);
+            }
+        }
+        return str;
+    }
 }

@@ -629,7 +629,7 @@ const lcxContent = {
 
         //selection end data
         let selEndList = [],
-            text = this.getTextFromRange(rp, ro, selEndList, 13 /*maxlength*/);
+            text = this.getTextFromRange(rp, ro, selEndList, 20 /*maxlength*/);
 
         this.lastSelEnd = selEndList;
         this.lastRo = ro;
@@ -933,7 +933,8 @@ const lcxContent = {
 };
 
 //Event Listeners
-chrome.runtime.onMessage.addListener(request => {
+chrome.runtime.onMessage.addListener(
+    (request, sender, response) => {
     switch (request.type) {
         case 'enable':
             if (request.config) lcxContent.config = request.config;
@@ -962,6 +963,9 @@ chrome.runtime.onMessage.addListener(request => {
             if(lcxContent.notepad) {
                 lcxContent.notepad.updateState(request.notepad);
             }
+            break;
+        case 'heartbeat':
+            response({'alive':true});
             break;
         default:
             console.log('Content received unknown request: ', request);
