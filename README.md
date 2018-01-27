@@ -9,6 +9,7 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 * Instantaneous translation of Chinese characters and words on mouse over
 * Synchronized settings across all your devices
 * Text input support
+* A handy little notepad that you can open on any page :)
 * Theme support
 * Fuzzy search! Use chrome's omnibox to search the dictionary using hanzi, pinyin or just plain english
 
@@ -21,9 +22,9 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 ### To Do
 
 - [ ] Add word lists/Anki support
-- [ ] Improve performance
 - [ ] Move fuzzy search to its own input box as opposed to omnibox so that it can be expanded upon (eg. use rich formatting, etc)
-- [ ] Improve fuzzy search to match regular vowels with tonemarked pinyin
+- [x] Improve performance
+- [x] Improve fuzzy search to match regular vowels with tonemarked pinyin
 - [x] Update CEDICT
 
 ### Why is it called LiuChan?
