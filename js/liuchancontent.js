@@ -48,6 +48,11 @@ const lcxContent = {
             window.onresize = this.setZoomLevel;
         }
 
+        this.createPopup();
+        this.enabled = true;
+    },
+
+    createPopup: function() {
         // Create and append stylesheet
         this.loadStyleSheet();
 
@@ -64,9 +69,9 @@ const lcxContent = {
         popup.style.setProperty('display', 'none', 'important');
 
         this.setCustomStyling(popup);
-        this.setZoomLevel();
+        this.setZoomLevel(popup);
 
-        this.enabled = true;
+        return popup;
     },
 
     loadStyleSheet: function() {
@@ -143,8 +148,8 @@ const lcxContent = {
         });
     },
 
-    setZoomLevel: function () {
-        const popup = window.document.getElementById("liuchan-window");
+    setZoomLevel: function (popup) {
+        //const popup = window.document.getElementById("liuchan-window");
         const zoomLevel = window.devicePixelRatio * 100;
 
         // This functions scales the popup as the user zooms in order to make it seem as if it's not scaling. Yep.
@@ -169,7 +174,11 @@ const lcxContent = {
 
     showPopup: function (text, elem, x, y) {
         const wd = window.document;
-        const popup = wd.getElementById('liuchan-window');
+        let popup = wd.getElementById('liuchan-window');
+        if (popup === null) {
+            // Sometimes pages do some funky dynamic loading and we lose the popup, so we recreate it.
+            popup = this.createPopup();
+        }
 
         if (isNaN(x) || isNaN(y)) {
             x = 0;

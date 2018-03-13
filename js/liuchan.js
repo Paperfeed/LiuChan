@@ -89,12 +89,12 @@ class LiuChan {
                 highlightText: true,
                 highlightInput: false,
                 scaleOnZoom: true,
-                showOnKey: "0",
+                showOnKey: 0,
                 disableKeys: false
             },
             styling: {
                 useCustomization: false,
-                customColors: ['#FFFFE0', '#D7D3AF', 'rgba(66,8,8,0.10)'],
+                customColors: ["#ffffe0", "#d7d3af", "RGBA(0,8,8,0.1)"],
                 borderThickness: 2,
                 borderRadius: 8
             },
@@ -112,11 +112,11 @@ class LiuChan {
             displayHelp: true,
             lineEnding: 'n',
             copySeparator: 'tab',
-            maxClipCopyEntries: 7,
+            maxClipCopyEntries: "7",
             ttsDialect: "zh-CN",
             ttsSpeed: 0.9,
             useCustomTones: false,
-            customTones: ['#F2777A', '#99CC99', '#6699CC', '#CC99CC', '#CCCCCC', '#66CCCC'],
+            customTones: ["#f2777a", "#99cc99", "#6699cc", "#cc99cc", "#cccccc", "#66cccc"],
             version: CURRENT_VERSION
         };
 
