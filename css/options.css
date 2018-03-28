@@ -3,9 +3,22 @@ body, .tab, .tab table, button {
   font-size: 1em;
   font-weight: 300; }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0; }
+
 #container {
   width: fit-content;
-  min-width: 500px; }
+  height: 100%;
+  min-height: 500px;
+  overflow-y: scroll;
+  margin-left: auto;
+  margin-right: auto; }
+
+#options {
+  width: max-content;
+  padding: 10px; }
 
 #status {
   position: fixed;
