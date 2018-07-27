@@ -87,23 +87,23 @@ html, body {
   position: absolute;
   bottom: 0; }
 
-[tooltip] {
-  font-size: 0.9em; }
-  [tooltip]:before {
-    z-index: 999;
-    display: none;
-    position: absolute;
-    background: lightyellow;
-    font-size: 1em;
-    font-weight: 300;
-    margin-left: 22px;
-    padding: 5px 10px;
-    width: 250px;
-    border-radius: 5px;
-    box-shadow: 3px 3px 0 0 rgba(66, 8, 8, 0.1);
-    content: attr(tooltip); }
-  [tooltip]:hover::before {
-    display: inherit; }
+/* [tooltip] { */
+/*   font-size: 0.9em; } */
+/*   [tooltip]:before { */
+/*     z-index: 999; */
+/*     display: none; */
+/*     position: absolute; */
+/*     background: lightyellow; */
+/*     font-size: 1em; */
+/*     font-weight: 300; */
+/*     margin-left: 22px; */
+/*     padding: 5px 10px; */
+/*     width: 250px; */
+/*     border-radius: 5px; */
+/*     box-shadow: 3px 3px 0 0 rgba(66, 8, 8, 0.1); */
+/*     content: attr(tooltip); } */
+/*   [tooltip]:hover::before { */
+/*     display: inherit; } */
 
 /* Buttons */
 button {
