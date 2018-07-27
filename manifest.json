@@ -2,9 +2,9 @@
 
 {
    "manifest_version": 2,
-   "name": "LiuChan Chinese Popup Dictionary-CANTO DEVELOPMENT",
+   "name": "LiuChan Chinese Popup Dictionary",
    "short_name": "LiuChan",
-   "version": "1.1.5.1",
+   "version": "1.1.6",
    "options_page": "html/options.html",
    "options_ui": {
       "page": "html/options.html"
@@ -21,7 +21,7 @@
    },
    "browser_action": {
       "default_icon": "images/toolbar-disabled.png",
-      "default_title": "LiuChan Chinese Dictionary DEV"
+      "default_title": "LiuChan Chinese Dictionary"
    },
    "content_scripts": [ {
       "all_frames": true,
@@ -29,7 +29,7 @@
          "js/liuchancontent.js", "js/notepad.js" ],
       "matches": [ "\u003Call_urls>" ]
    } ],
-   "description": "A modern lightweight mouse-over popup dictionary for Chinese! CANTO DEVELOPMENT VERSION",
+   "description": "A modern lightweight mouse-over popup dictionary for Chinese!",
    "icons": {
       "128": "images/icon128.png",
       "16": "images/icon16.png",
