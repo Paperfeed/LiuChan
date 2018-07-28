@@ -200,9 +200,8 @@ const lcxContent = {
         if (elem) {
             popup.style.setProperty('top', '-1000px', '');
             popup.style.setProperty('left', '0px', '');
-	    // note that hiding the popup means pW and pH are not set correct
-            popup.style.setProperty('display', 'none', '');
-            //popup.style.display = '';
+	    popup.style.setProperty('visibility', 'hidden', '');
+            // popup.style.setProperty('display', 'none', '');
 
             let pW = popup.offsetWidth;
             let pH = popup.offsetHeight;
@@ -271,7 +270,8 @@ const lcxContent = {
 
                 // Go up if necessary
                 if ((y + v + pH) > window.innerHeight) {
-		    y = window.innerHeight - v - pH
+		    let old_y = y;
+		    y = old_y - v - pH
 		    if (y < 0) y = 0;
                 } else {		    
 		    y += v;
@@ -287,6 +287,7 @@ const lcxContent = {
 
         popup.style.setProperty('left', x + 'px', 'important');
         popup.style.setProperty('top', y + 'px', 'important');
+	popup.style.setProperty('visibility', 'visible', '');
         // popup.style.display = '';
 
         this.isVisible = true;
