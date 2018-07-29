@@ -350,6 +350,12 @@ const lcxContent = {
 
         this.modifierCheck(ev);
 
+	// Disable hotkeys when a key that is a possible modifier key is pressed, but user
+	// has not opted to use it as a modifier key. For example, if user has no modifier
+	// keys selected ("None" setting), and if user pressed Ctrl+C, then LiuChan should
+	// not interpret that as the C hotkey being pressed.
+	if (this.keysDown[0] !== this.config.showOnKey) return;
+
         // This only runs if popup hotkeys are enabled and popup is visible
         if (!this.config.disableKeys && this.isVisible) {
             switch (ev.key) {
