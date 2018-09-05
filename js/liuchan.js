@@ -40,6 +40,8 @@
 	when modifying any of the files. - Jon
 
 */
+
+
 const CURRENT_VERSION = "1.1.0";
 
 class LiuChan {
@@ -218,7 +220,7 @@ class LiuChan {
             // Check if the content script is actually running and let the user know the tab needs to be reloaded if not.
             const tab = await chromep.tabs.query({ active:true, windowType: 'normal', currentWindow: true });
             try {
-                const response = await chromep.tabs.sendMessage(tab[0].id, {type:'heartbeat'});
+                await chromep.tabs.sendMessage(tab[0].id, {type:'heartbeat'});
             } catch(e) {
                 chrome.notifications.create({
                     type:'basic', iconUrl:'images/icon128.png',
@@ -480,7 +482,7 @@ class LiuChan {
 		suggest(array);
 	}
 
-    convertPinyin(pinyin) {
+    static convertPinyin(pinyin) {
         let str = '';
         for (let i = 0, len = pinyin.length-1; i < len; i++) {
             let char = pinyin.charAt(i);
@@ -528,3 +530,6 @@ class LiuChan {
         return str;
     }
 }
+
+//module.exports.LiuChan = LiuChan;
+export default LiuChan;

@@ -1,0 +1,400 @@
+$option-main: #47637b;
+$option-light: #deedfb;
+$hotkey-main: lightyellow;
+$hotkey-dark: #92805f;
+
+
+body, .tab, .tab table, button {
+	font-family: Roboto, sans-serif;
+	font-size: 1em;
+	font-weight: 300;
+}
+
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0; }
+
+#container {
+	width: fit-content;
+	height: 100%;
+	min-height: 500px;
+	overflow-y: scroll;
+	margin-left: auto;
+	margin-right: auto; }
+
+#options {
+	width: max-content;
+	padding: 10px; }
+
+#status {
+	position: fixed;
+	top: 15px;
+	right: 10px;
+	padding: 0 10px;
+	color: white;
+	background: aliceblue;
+	font-weight: normal;
+	opacity: 0;
+	border-radius: 5px;
+	transition: all .3s ease-in;
+	z-index: 9999;
+
+	&.statusOn {
+		color: $option-main;
+		opacity: 1;
+	}
+}
+
+.tab {
+	padding: 10px;
+	margin-bottom: 10px;
+	background-color: aliceblue;
+	border-radius: 5px;
+	h3 {
+		font-size: 1.17em;
+		font-weight: normal;
+		color: $option-main;
+		margin: 0 0 3px;
+	}
+
+	h3:after {
+		content: "";
+		display: block;
+		background: $option-light;
+		margin-top: 2px;
+		height: 2px;
+		width: 100%;
+	}
+
+	h4 {
+		margin: 0;
+		color: $option-main;
+		font-weight: 400;
+	}
+
+	p {
+		margin: 5px 0;
+	}
+}
+
+.flex {
+	display: flex;
+	justify-content: space-between;
+}
+
+.hotkeys {
+	background-color: $hotkey-main;
+	border-radius: 5px;
+	width: fit-content;
+	padding: 5px 5px 10px;
+
+	p {
+		color: $hotkey-dark;
+		font-weight: normal;
+		margin: 5px;
+	}
+
+	table {
+		font-size: 0.9em;
+	}
+
+	table tr td:nth-child(odd){
+		font-weight: normal;
+	}
+}
+
+.leftbox {
+	position: relative;
+	flex-grow: 1;
+	padding-right: 10px;
+}
+
+.bottom {
+	position:absolute;
+	bottom: 0;
+}
+
+[tooltip] {
+	font-size: 0.9em;
+
+	&:before {
+		z-index: 999;
+		display: none;
+		position: absolute;
+		background: lightyellow;
+		font-size: 1em;
+		font-weight: 300;
+		margin-left: 22px;
+		padding: 5px 10px;
+		width: 250px;
+		border-radius: 5px;
+		box-shadow: 3px 3px 0 0 rgba(66,8,8,0.10);
+		content: attr(tooltip);
+	}
+	&:hover::before {
+		display: inherit;
+	}
+}
+
+/* Buttons */
+button {
+	-webkit-appearance: none;
+	margin: 5px;
+	border: 2px solid $option-light;
+	border-radius: 5px;
+	background: white;
+	color: $option-main;
+	font-size: 13px;
+	font-weight: 600;
+	&:focus {
+		outline: none;
+
+	}
+	&:active {
+		background: $option-light;
+		border: 2px solid #93bee3;
+	}
+}
+
+/* Number Inputs */
+input[type=number], select {
+	width: 130px;
+	height: 30px;
+	margin: 0 5px 0 2px;
+	font-family: Roboto, sans-serif;
+	font-size: 1em;
+	font-weight: 300;
+	border-radius: 2px;
+	border-style: hidden;
+}
+
+input[type=number] {
+	padding-left: 5px;
+}
+
+/* Slider */
+input[type=range] {
+	&, &::-webkit-slider-thumb {
+		-webkit-appearance: none;
+	}
+
+	&:focus {
+		outline: none;
+		&::-webkit-slider-thumb {
+			border: 1px solid $option-main;
+		}
+	}
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		border: 1px solid #ccc;
+		height: 10px;
+		width: 16px;
+		border-radius: 3px;
+		background: #ffffff;
+		cursor: pointer;
+		margin-top: -1px;
+	}
+
+	&::-webkit-slider-runnable-track {
+		width: 130px;
+		height: 8px;
+		cursor: pointer;
+		background: $option-light;
+		border-radius: 1.3px;
+	}
+}
+
+/* Checkboxes and Radio buttons */
+input[type=radio],
+input[type=checkbox] {
+	-webkit-appearance: none;
+	display: inline-block;
+	position: relative;
+	top: 1px;
+	height: 14px;
+	width: 14px;
+	margin: 0 5px 0 0;
+	background: #fff;
+	overflow: hidden;
+	border: 1px solid $option-light;
+	border-radius: 2px;
+	&:focus {
+		outline: none;
+		border: 1px solid -webkit-focus-ring-color;
+	}
+	&:checked:after {
+		content: "";
+		display: block;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		margin: -4px 0 0 -4px;
+		background: #93bee3;
+		width: 8px;
+		height: 8px;
+		border-radius: 1px;
+	}
+}
+
+input[type=radio] {
+	border-radius: 15px;
+	&:checked:after {
+		border-radius: 15px;
+	}
+}
+
+/* Custom Theme */
+.colorpicker {
+	height: 50px;
+	width: 50px;
+	border: 2px solid $option-light;
+	border-radius: 50px;
+	cursor: pointer;
+	text-indent: 200%;
+	white-space: nowrap;
+	overflow: hidden;
+	&:focus {
+		outline: none;
+		border: 2px solid -webkit-focus-ring-color;
+	}
+}
+
+.suboption {
+	display: inline-block;
+	width: 13px;
+	height: 15px;
+	font-size: 14px;
+	overflow: hidden;
+	line-height: 10px;
+	color: $option-main;
+	padding-left: 5px;
+}
+
+/* Color Picker */
+.color-picker,
+.color-picker:before,
+.color-picker:after,
+.color-picker *,
+.color-picker *:before,
+.color-picker *:after {
+	box-sizing: border-box;
+}
+
+.color-picker {
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding: 5px;
+	border-radius: 5px;
+	background-color: #fff;
+	border: 1px solid $option-light;
+	z-index: 999999;
+
+	i {
+		font: inherit
+	}
+}
+.color-picker-control *,
+.color-picker-control *:before,
+.color-picker-control *:after {
+	border-color: inherit
+}
+
+.color-picker-control:after {
+	content: " ";
+	display: table;
+	clear: both;
+}
+
+.color-picker-h {
+	position: relative;
+	width: 20px;
+	height: 150px;
+	float: right;
+	margin-left: 5px;
+	cursor: default;
+	border: 1px solid $option-light;
+	background-image: -webkit-linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+	background-image: -moz-linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+	background-image: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+	overflow: hidden;
+
+	i {
+		position: absolute;
+		top: -3px;
+		right: 0;
+		left: 0;
+		z-index: 3;
+		display: block;
+		height: 6px;
+
+		&:before {
+			content: "";
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			display: block;
+			border: 3px solid transparent;
+			border-right-color: inherit;
+			border-left-color: inherit;
+		}
+	}
+}
+
+.color-picker-sv {
+	position: relative;
+	width: 150px;
+	height: 150px;
+	float: left;
+	border: 1px solid $option-light;
+	background-image: -webkit-linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+	background-image: -moz-linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+	background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+	cursor: crosshair;
+
+	i {
+		position: absolute;
+		top: -4px;
+		right: -4px;
+		z-index: 3;
+		display: block;
+		width: 8px;
+		height: 8px;
+
+		&:before, &:after {
+			content:"";
+			position:absolute;
+			top:0;
+			right:0;
+			bottom:0;
+			left:0;
+			display: block;
+			border: 1px solid;
+			border-color: inherit;
+			border-radius:100%;
+		}
+
+		&:before {
+			top: -1px;
+			right: -1px;
+			bottom: -1px;
+			left: -1px;
+			border-color: #fff;
+		}
+	}
+}
+
+.color-picker-h,
+.color-picker-sv {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-webkit-tap-highlight-color: transparent;
+}

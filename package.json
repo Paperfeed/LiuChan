@@ -1,0 +1,38 @@
+{
+  "name": "liuchan",
+  "version": "1.1.6",
+  "description": "Chinese Popup Dictionary",
+  "main": "js/background.js",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "del": "^3.0.0",
+    "gulp": "^4.0.0",
+    "gulp-clean-dest": "^0.2.0",
+    "gulp-minify": "^3.1.0",
+    "gulp-zip": "^4.2.0",
+    "jest": "^23.5.0",
+    "merge-stream": "latest"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paperfeed/LiuChan.git"
+  },
+  "keywords": [
+    "liuchan",
+    "chinese",
+    "dictionary",
+    "mouse-over",
+    "popup"
+  ],
+  "author": "Aldert Vaandering",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Paperfeed/LiuChan/issues"
+  },
+  "homepage": "https://paperfeed.github.io/LiuChan/"
+}
