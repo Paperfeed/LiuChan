@@ -15,7 +15,6 @@ const lcxContent = {
         y: null
     },
 
-
     // Add the listeners and create and insert popup element and stylesheet
     enableTab: function () {
         if (window.liuchan === undefined || window.liuchan === null) {
@@ -201,8 +200,8 @@ const lcxContent = {
         if (elem) {
             popup.style.setProperty('top', '-1000px', '');
             popup.style.setProperty('left', '0px', '');
-            popup.style.setProperty('display', 'none', '');
-            //popup.style.display = '';
+	    popup.style.setProperty('visibility', 'hidden', '');
+            // popup.style.setProperty('display', 'none', '');
 
             let pW = popup.offsetWidth;
             let pH = popup.offsetHeight;
@@ -242,15 +241,20 @@ const lcxContent = {
                 }
                 if (elem.offsetTop > elem.parentNode.clientHeight) y -= elem.offsetTop;
 
-                if ((x + popup.offsetWidth) > window.innerWidth) {
+                if ((x + pW) > window.innerWidth) {
                     // too much to the right, go left
-                    x -= popup.offsetWidth + 5;
+                    x -= pW + 5;
                     if (x < 0) x = 0;
                 } else {
                     // use SELECT's width
                     x += elem.parentNode.offsetWidth + 5;
                 }
+		
             } else {
+		// update
+		popup.style.display = '';
+		pW = popup.offsetWidth;
+		pH = popup.offsetHeight;
 
                 // Go left if necessary
                 if ((x + pW) > (window.innerWidth - 20)) {
@@ -258,23 +262,20 @@ const lcxContent = {
                     if (x < 0) x = 0;
                 }
 
-                // below the mouse
+                // offset from cursor: if near the bottom, this becomes distance above cursor
                 let v = 25;
-
+		
                 // under the popup title
                 if ((elem.title) && (elem.title !== '')) v += 20;
 
                 // Go up if necessary
                 if ((y + v + pH) > window.innerHeight) {
-                    let t = y - pH - 30;
-                    if (t >= 0) {
-                        y = t;
-                    } else {
-                        // If can't go up, still go down to prevent blocking cursor
-                        y += v;
-                    }
-                } else y += v;
-
+		    let old_y = y;
+		    y = old_y - v - pH
+		    if (y < 0) y = 0;
+                } else {		    
+		    y += v;
+		}
 
                 x += window.scrollX;
                 y += window.scrollY;
@@ -286,7 +287,8 @@ const lcxContent = {
 
         popup.style.setProperty('left', x + 'px', 'important');
         popup.style.setProperty('top', y + 'px', 'important');
-        popup.style.display = '';
+	popup.style.setProperty('visibility', 'visible', '');
+        // popup.style.display = '';
 
         this.isVisible = true;
     },
@@ -347,6 +349,12 @@ const lcxContent = {
         if (this.inputActive) return;
 
         this.modifierCheck(ev);
+
+	// Disable hotkeys when a key that is a possible modifier key is pressed, but user
+	// has not opted to use it as a modifier key. For example, if user has no modifier
+	// keys selected ("None" setting), and if user pressed Ctrl+C, then LiuChan should
+	// not interpret that as the C hotkey being pressed.
+	if (this.keysDown[0] !== this.config.showOnKey) return;
 
         // This only runs if popup hotkeys are enabled and popup is visible
         if (!this.config.disableKeys && this.isVisible) {
@@ -638,7 +646,7 @@ const lcxContent = {
 
         //selection end data
         let selEndList = [],
-            text = this.getTextFromRange(rp, ro, selEndList, 20 /*maxlength*/);
+            text = this.getTextFromRange(rp, ro, selEndList, 20 /*maxlength of cedict entry*/);
 
         this.lastSelEnd = selEndList;
         this.lastRo = ro;
@@ -800,7 +808,34 @@ const lcxContent = {
     },
 
     inLanguageRange: function (u) {
-        return (u >= 0x4E00) && (u <= 0x9FFF);
+        if (0x4E00 <= u && u <= 0x9FFF) { // CJK Unified Ideographs
+	    return true;
+	} else if (0x3400 <= u && u <= 0x4DBF) { // CJK Unified Ideographs Extension A
+	    return true;
+	} else if (0x20000 <= u && u <= 0x2A6DF) { // CJK Unified Ideographs Extension B
+	    return true;
+	} else if (0x2A700 <= u && u <= 0x2B73F) { // CJK Unified Ideographs Extension C
+	    return true;
+	} else if (0x2B740 <= u && u <= 0x2B81F) { // CJK Unified Ideographs Extension D
+	    return true;
+	} else if (0x2B820 <= u && u <= 0x2CEAF) { // CJK Unified Ideographs Extension E
+	    return true;
+	} else if (0xF900 <= u && u <= 0xFAFF) { // CJK Compatibility Ideographs
+	    return true;
+	} else if (0x2F800 <= u && u <= 0x2FA1F) { // CJK Compatibility Ideographs Supplement
+	    return true;
+	    // There ought to be some way to access the options, and in such a case we would be able to control if we can search entries with leading ASCII characters
+	// } else if (search) {
+	//     if (0x41 <= u && u <= 0x5A) { // only ASCII uppercase chars lead in dict now
+	// 	return true;
+	//     // } else if (0x61 <= u && u <= 0x7A) { // ASCII lowercase disabled for now
+	//     // 	return true;
+	//     } else if (0x30 <= u && u <= 0x39) { // ASCII numbers do lead in some entries
+	// 	return true;
+	//     }
+	} else {
+	    return false;
+	}
     },
 
     processEntry: function (e) {

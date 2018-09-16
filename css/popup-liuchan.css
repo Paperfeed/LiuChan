@@ -65,13 +65,23 @@ LiuChan Theme
 /* Entry Styling */
 #liuchan-window .hanzi{
     float: left;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: bold;
     font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
     margin-right: 10px;
 }
 
 #liuchan-window .brace { color: #c9c2b1; }
+
+#liuchan-window .lang {
+    float: left;
+    height: fit-content;
+    line-height: 26px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #c9c2b1;
+    margin-right: 3px;
+}
 
 #liuchan-window .pinyin {
     float: left;
@@ -80,6 +90,16 @@ LiuChan Theme
     font-size: 16px;
     font-weight: bold;
     color: #66CCCC;
+    margin-right: 10px;
+}
+
+#liuchan-window .pingjam {
+    float: left;
+    height: fit-content;
+    line-height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #A70F4B;
 }
 
 #liuchan-window .def {
@@ -103,6 +123,13 @@ LiuChan Theme
 #liuchan-window .tone3 { color: #6699CC; }
 #liuchan-window .tone4 { color: #CC99CC; }
 #liuchan-window .tone5 { color: #CCCCCC; }
+
+#liuchan-window .jtone1 { color: #00BCD4; }
+#liuchan-window .jtone2 { color: #7BB342; }
+#liuchan-window .jtone3 { color: #4E6BEF; }
+#liuchan-window .jtone4 { color: #A5A5A5; }
+#liuchan-window .jtone5 { color: #046F00; }
+#liuchan-window .jtone6 { color: #512DA8; }
 
 /* used for word definitions */
 #liuchan-window .liutitle {
