@@ -1,4 +1,4 @@
-// chrome.storage.sync.clear() to clear all saved settings
+// chrome.storage.local.clear() to clear all saved settings
 
 // https://developer.chrome.com/extensions/options
 // Saves options to chrome.storage
@@ -152,7 +152,7 @@ function saveOptions() {
     };
 
     try {
-        chrome.storage.sync.set(newConfig, function () {
+        chrome.storage.local.set(newConfig, function () {
             chrome.runtime.sendMessage({"type": "config", "config": newConfig});
             // Update status to let user know options were saved.
             let status = document.getElementById('status');
@@ -191,7 +191,7 @@ function restoreOptions() {
 
     // Content Script settings are 'separate' in order to minimize overhead
     try {
-        chrome.storage.sync.get(null, items => {
+        chrome.storage.local.get(null, items => {
             e.selectPopupTheme.value = items.content.popupTheme;
             e.inputPopupDelay.value = items.content.popupDelay;
             e.checkboxHighlightText.checked = items.content.highlightText;

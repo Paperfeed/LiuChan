@@ -126,13 +126,13 @@ class LiuChan {
             version: CURRENT_VERSION
         };
 
-        chromep.storage.sync.get(defaultConfig).then(items => {
+        chromep.storage.local.get(defaultConfig).then(items => {
             // Ensure users don't lose their customized settings after updated where stuff has been changed around.
             if (items.version !== CURRENT_VERSION) {
                 console.log("Liuchan has been updated; Attempting to convert old settings");
                 // Get ALL items from storage and compare them to the default config, reassigning old values to
                 // new keys where appropriate.
-                chrome.storage.sync.get(null, oldItems => {
+                chrome.storage.local.get(null, oldItems => {
                     items = defaultConfig;
                     for (let key in oldItems) {
                         // if (!items.hasOwnProperty(key)) {console.log(key);} // for DEBUG purposes
@@ -179,8 +179,8 @@ class LiuChan {
                         this.config = items;
                     }
                     // Empty storage to get rid of deprecated keys and save the new updated list
-                    chrome.storage.sync.clear(() => {
-                        chrome.storage.sync.set(items, () => {
+                    chrome.storage.local.clear(() => {
+                        chrome.storage.local.set(items, () => {
                             console.log("Succesfully converted and saved settings!")
                         });
                     });
@@ -189,7 +189,7 @@ class LiuChan {
                 // Init any keys that don't exist yet with default values, then assign to LiuChan.config
                 const config = Object.assign(defaultConfig, items);
                 this.config = config;
-                chrome.storage.sync.set(config);
+                chrome.storage.local.set(config);
             }
         });
     }

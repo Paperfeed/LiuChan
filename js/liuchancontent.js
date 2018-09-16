@@ -477,12 +477,20 @@ const lcxContent = {
         }
 
         let fake;
-        const tdata = window.liuchan,
+        const tdata = window.liuchan;
+        let range, rp, ro;
+        if (document.caretRangeFromPoint) {
             range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
+            if (range == null) return
+            rp = range.startContainer
+            ro = range.startOffset
+        } else {
+            range = document.caretPositionFromPoint(ev.clientX, ev.clientY);
+            if (range == null) return
+            rp = range.offsetNode
+            ro = range.offset
+        }
 
-        if (range == null) return;
-        let rp = range.startContainer,
-            ro = range.startOffset;
         // Put this in a try catch so that an exception here doesn't prevent editing due to div
         try {
             if (ev.target.nodeName === 'TEXTAREA' || ev.target.nodeName === 'INPUT') {
@@ -542,8 +550,14 @@ const lcxContent = {
             if (fake) {
                 rp = ev.target;
                 rp.data = rp.value;
-                const newRange = document.caretRangeFromPoint(ev.clientX, ev.clientY);
-                ro = newRange.startOffset;
+                let newRange;
+                if (document.caretRangeFromPoint) {
+                    newRange = document.caretRangeFromPoint(ev.clientX, ev.clientY);
+                    ro = newRange.startOffset
+                } else {
+                    newRange = document.caretPositionFromPoint(ev.clientX, ev.clientY);
+                    ro = newRange.offset
+                }
             }
 
             if (ev.target === tdata.prevTarget && this.isVisible) {
