@@ -1,6 +1,11 @@
 {
    "manifest_version": 2,
    "name": "LiuChan Chinese Popup Dictionary",
+   "applications": {
+     "gecko": {
+       "id": "liuchan@liuchan.com"
+     }
+   },
    "short_name": "LiuChan",
    "version": "1.1.6",
    "options_ui": {

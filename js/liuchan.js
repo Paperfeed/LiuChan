@@ -65,20 +65,25 @@ class LiuChan {
         this.initConfig();
 
         // Add contextMenu
-        chrome.contextMenus.create({
-            title: 'Notepad',
-            contexts: ['browser_action'],
-            onclick: () => {
-                chrome.tabs.query({active:true, currentWindow:true}, (tab) => {
-                    chrome.tabs.sendMessage(tab[0].id, {"type":"notepad", "theme":this.config.content.popupTheme});
-                });
-            }
-        });
+        if (chrome.contextMenus) {
+            chrome.contextMenus.create({
+                title: 'Notepad',
+                contexts: ['browser_action'],
+                onclick: () => {
+                    chrome.tabs.query({active:true, currentWindow:true}, (tab) => {
+                        chrome.tabs.sendMessage(tab[0].id, {"type":"notepad", "theme":this.config.content.popupTheme});
+                    });
+                }
+            });            
+        }
+
 
         // Set extension icon
-        chrome.browserAction.setIcon({
-            "path":"../images/toolbar-disabled.png"
-        });
+        if (chrome.browserAction && chrome.browserAction.setIcon) {
+            chrome.browserAction.setIcon({
+                "path":"../images/toolbar-disabled.png"
+            });
+        }
     }
 
     initConfig() {
