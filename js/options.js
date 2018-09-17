@@ -1,9 +1,10 @@
-// chrome.storage.sync.clear() to clear all saved settings
+// chrome.storage.local.clear() to clear all saved settings
 
 // https://developer.chrome.com/extensions/options
 // Saves options to chrome.storage
 
-let tones = [],
+let tones = [],			// pinyin tones
+    jtones = [],		// pingjam tones
     colors = [];
 
 let e;
@@ -23,9 +24,11 @@ window.onload = function () {
     e.buttonResetCustomization.addEventListener('click', resetCustomization);
     e.selectPopupTheme.addEventListener('change', changeTheme);
     e.selectPinyinType.addEventListener('change', rebuildDictionary);
-    e.checkboxUseHanziToneColors.addEventListener('change', updateTones);
+    e.selectPingjamType.addEventListener('change', rebuildDictionary);
+    e.selectUseHanziToneColors.addEventListener('change', updateTones);
     e.checkboxUseCustomTones.addEventListener('change', updateTones);
     e.checkboxUsePinyinToneColors.addEventListener('change', updateTones);
+    e.checkboxUsePingjamToneColors.addEventListener('change', updateTones);
     e.checkboxUseCustomization.addEventListener('change', restorePreview);
 
     for (let i = 0, len = target.length; i < len; ++i) {
@@ -52,6 +55,8 @@ function init() {
         buttonResetCustomization: d.getElementById('resetCustomization'),
         selectPopupTheme: d.getElementById('popupTheme'),
         selectPinyinType: d.getElementById('pinyinType'),
+	selectPingjamType: d.getElementById('pingjamType'),
+	selectLangType: d.getElementById('langType'),
         checkboxUseCustomization: d.getElementById('useCustomization'),
         inputPopupDelay: d.getElementById('popupDelay'),
         checkboxHighlightText: d.getElementById('checkboxHighlightText'),
@@ -59,15 +64,18 @@ function init() {
         checkboxDisableKeys: d.getElementById('disableKeys'),
         selectHanziType: d.getElementById('hanziType'),
         selectDefinitionSeparator: d.getElementById('definitionSeparator'),
-        checkboxUseHanziToneColors: d.getElementById('useHanziToneColors'),
+        selectUseHanziToneColors: d.getElementById('useHanziToneColors'),
         checkboxUseCustomTones: d.getElementById('useCustomTones'),
         checkboxUsePinyinToneColors: d.getElementById('usePinyinToneColors'),
+	checkboxUsePingjamToneColors: d.getElementById('usePingjamToneColors'),
         checkboxDisplayHelp: d.getElementById('displayHelp'),
         checkboxScaleOnZoom: d.getElementById('scaleOnZoom'),
         selectLineEnding: d.getElementById('lineEnding'),
         selectCopySeparator: d.getElementById('copySeparator'),
         inputMaxCopyEntries: d.getElementById('maxClipCopyEntries'),
-        selectTtsDialect: d.getElementById('ttsDialect')
+        selectTtsDialect: d.getElementById('ttsDialect'),
+	selectMaxEntries: d.getElementById('maxEntries')
+	// checkboxSearchLeadingAscii: d.getElementById('searchLeadingAscii')
     };
 
     restoreOptions();
@@ -83,14 +91,23 @@ function saveOptions() {
     // popupDelay
 
     // Theme Customization
-    let customTones = [
-            tones[0].value,
-            tones[1].value,
-            tones[2].value,
-            tones[3].value,
-            tones[4].value,
-            tones[5].value
-        ],
+    let customTones = [		// custom pinyin tone colors
+        tones[0].value,
+        tones[1].value,
+        tones[2].value,
+        tones[3].value,
+        tones[4].value,
+        tones[5].value
+    ],
+	jcustomTones = [	// custom pingjam tone colors
+	    jtones[0].value,
+	    jtones[1].value,
+	    jtones[2].value,
+	    jtones[3].value,
+	    jtones[4].value,
+	    jtones[5].value,
+	    jtones[6].value,
+	],
         customColors = [
             colors[0].value, // Background
             colors[1].value, // Border
@@ -113,11 +130,14 @@ function saveOptions() {
             borderThickness: parseFloat(e.sliderBorderThickness.value),
             borderRadius: parseFloat(e.sliderBorderRadius.value)
         },
+	langType: e.selectLangType.value,
         hanziType: e.selectHanziType.value,
         pinyinType: e.selectPinyinType.value,
+	pingjamType: e.selectPingjamType.value,
         definitionSeparator: e.selectDefinitionSeparator.value,
-        useHanziToneColors: e.checkboxUseHanziToneColors.checked,
+        useHanziToneColors: e.selectUseHanziToneColors.value,
         usePinyinToneColors: e.checkboxUsePinyinToneColors.checked,
+	usePingjamToneColors: e.checkboxUsePingjamToneColors.checked,
         displayHelp: e.checkboxDisplayHelp.checked,
         lineEnding: e.selectLineEnding.value,
         copySeparator: e.selectCopySeparator.value,
@@ -125,11 +145,14 @@ function saveOptions() {
         ttsDialect: e.selectTtsDialect.value,
         ttsSpeed: parseFloat(e.sliderTtsSpeed.value),
         useCustomTones: e.checkboxUseCustomTones.checked,
-        customTones: customTones
+        customTones: customTones,
+	jcustomTones: jcustomTones,
+	maxEntries: e.selectMaxEntries.value
+	// searchLeadingAscii: e.checkboxSearchLeadingAscii.checked
     };
 
     try {
-        chrome.storage.sync.set(newConfig, function () {
+        chrome.storage.local.set(newConfig, function () {
             chrome.runtime.sendMessage({"type": "config", "config": newConfig});
             // Update status to let user know options were saved.
             let status = document.getElementById('status');
@@ -147,20 +170,28 @@ function saveOptions() {
 // Only gets called once
 function restoreOptions() {
     tones = [document.getElementById('tone1'),
-        document.getElementById('tone2'),
-        document.getElementById('tone3'),
-        document.getElementById('tone4'),
-        document.getElementById('tone5'),
-        document.getElementById('tone6')];
+             document.getElementById('tone2'),
+             document.getElementById('tone3'),
+             document.getElementById('tone4'),
+             document.getElementById('tone5'),
+             document.getElementById('tone6')];
+    
+    jtones = [document.getElementById('jtone1'),
+              document.getElementById('jtone2'),
+              document.getElementById('jtone3'),
+              document.getElementById('jtone4'),
+              document.getElementById('jtone5'),
+	      document.getElementById('jtone6'),
+              document.getElementById('jtone7')];
 
     colors = [document.getElementById('backgroundColor'),
-        document.getElementById('borderColor'),
-        document.getElementById('dropShadowColor')
-    ];
+              document.getElementById('borderColor'),
+              document.getElementById('dropShadowColor')
+	     ];
 
     // Content Script settings are 'separate' in order to minimize overhead
     try {
-        chrome.storage.sync.get(null, items => {
+        chrome.storage.local.get(null, items => {
             e.selectPopupTheme.value = items.content.popupTheme;
             e.inputPopupDelay.value = items.content.popupDelay;
             e.checkboxHighlightText.checked = items.content.highlightText;
@@ -175,10 +206,12 @@ function restoreOptions() {
             // Drop Shadow Opacity is updated in convertRGBA function
 
             e.selectHanziType.value = items.hanziType;
+            e.selectLangType.value = items.langType;
             e.selectPinyinType.value = items.pinyinType;
             e.selectDefinitionSeparator.value = items.definitionSeparator;
-            e.checkboxUseHanziToneColors.checked = items.useHanziToneColors;
+            e.selectUseHanziToneColors.value = items.useHanziToneColors;
             e.checkboxUsePinyinToneColors.checked = items.usePinyinToneColors;
+	    e.checkboxUsePingjamToneColors.checked = items.usePingjamToneColors;
             e.checkboxDisplayHelp.checked = items.displayHelp;
             e.selectLineEnding.value = items.lineEnding;
             e.selectCopySeparator.value = items.copySeparator;
@@ -187,8 +220,8 @@ function restoreOptions() {
             e.sliderTtsSpeed.value = items.ttsSpeed;
             e.sliderTtsSpeed.innerHTML = items.ttsSpeed;
             e.checkboxUseCustomTones.checked = items.useCustomTones;
-
-
+	    e.selectMaxEntries.value = items.maxEntries;
+	    // e.checkboxSearchLeadingAscii.checked = items.searchLeadingAscii;
 
             // Get radio buttons and check the matching one
             let radio = document.getElementsByName('showOnKey');
@@ -200,12 +233,13 @@ function restoreOptions() {
 
             // Init user's custom tones into the inputs
             // (won't be able to change through .value after initializing the color pickers)
-            tones[0].value = items.customTones[0];
-            tones[1].value = items.customTones[1];
-            tones[2].value = items.customTones[2];
-            tones[3].value = items.customTones[3];
-            tones[4].value = items.customTones[4];
-            tones[5].value = items.customTones[5];
+	    for (let i = 0; i < 6; i++) {
+		tones[i].value = items.customTones[i];
+	    }
+
+	    for (let i = 0; i < 7; i++) {
+		jtones[i].value = items.jcustomTones[i];
+	    }
 
             colors[0].value = items.styling.customColors[0];
             colors[1].value = items.styling.customColors[1];
@@ -248,30 +282,55 @@ function updateSliderValue() {
 
 function updateTones() {
     // This function updates the theme preview with customized colors and settings
-    let target, toneColors = {},
-        useHanziTones = e.checkboxUseHanziToneColors.checked,
+    // toneColors holds the colors for pinyin, jtoneColors holds colors for pingjam
+    let target, toneColors = {}, jtoneColors = {},
+        useHanziTones = e.selectUseHanziToneColors.value,
         usePinyinTones = e.checkboxUsePinyinToneColors.checked,
+	usePingjamTones = e.checkboxUsePingjamToneColors.checked,
         useCustomTones = e.checkboxUseCustomTones.checked;
 
+    // set up pinyin tone colors
     for (let i = 0; i < 5; i++) {
-        // Hanzi Tone Colors
         if (useCustomTones) {
-            toneColors['tone' + (i + 1)] = tones[i].value;
+	    toneColors['tone' + (i + 1)] = tones[i].value;
         } else {
-            toneColors['tone' + (i + 1)] = getStyle(".tone" + (i + 1)).style.color;
+	    toneColors['tone' + (i + 1)] = getStyle(".tone" + (i + 1)).style.color;
+        }
+    }
+    
+    // set up pingjam tone colors
+    for (let i = 0; i < 6; i++) {
+        if (useCustomTones) {
+	    jtoneColors['jtone' + (i + 1)] = jtones[i].value;
+        } else {
+	    jtoneColors['jtone' + (i + 1)] = getStyle(".jtone" + (i + 1)).style.color;
         }
     }
 
     if (useCustomTones) {
-        toneColors['pinyin'] = tones[5].value
+        toneColors['pinyin'] = tones[5].value;
+	jtoneColors['pingjam'] = jtones[6].value;
     } else {
         toneColors['pinyin'] = getStyle(".pinyin").style.color;
+	jtoneColors['pingjam'] = getStyle(".pingjam").style.color;
     }
 
-    let query = ['.hanzi', '.pinyin'];
+    let query = ['.hanzi', '.pinyin', '.pingjam'];
 
-    for (let a = 0; a < 2; a++) {
-        // Get all .hanzi or .pinyin divs
+    // make sure correct divs are displayed in the sample liuchan-window
+    let c = document.getElementById("canto-tones");
+    let m = document.getElementById("mando-tones");
+
+    if (useHanziTones === "canto") {
+    	c.style.display = "inline";
+    	m.style.display = "none";
+    } else {
+    	c.style.display = "none";
+    	m.style.display = "inline";
+    }
+
+    for (let a = 0; a < query.length; a++) {
+        // Get all .hanzi, .pinyin and .pingjam divs
         target = document.querySelectorAll(query[a]);
 
         // Loop through each .hanzi or .pinyin div and set each element to its color
@@ -280,12 +339,28 @@ function updateTones() {
             for (let j = 0; j < child.length; j++) {
                 if (child[j].className === "brace") {continue}
 
-                if (!usePinyinTones && a === 1) {
-                    child[j].style.color = toneColors['pinyin'];
-                } else if (!useHanziTones && a === 0) {
-                    child[j].style.color = toneColors['tone1'];
-                } else {
-                    child[j].style.color = toneColors[child[j].className];
+		if (a === 2) {
+		    if (!usePingjamTones) {
+			child[j].style.color = jtoneColors['pingjam'];
+		    } else {
+			child[j].style.color = jtoneColors[child[j].className];
+		    }		    
+		} else if (a === 1) {
+		    if (!usePinyinTones) {			
+			child[j].style.color = toneColors['pinyin'];
+		    } else {
+			child[j].style.color = toneColors[child[j].className];
+		    }		    
+                } else if (a === 0) {
+		    if (useHanziTones === "none") {
+			child[j].style.color = toneColors['tone1'];
+		    } else if (useHanziTones === "mando") {
+			child[j].style.color = toneColors[child[j].className];
+		    } else if (useHanziTones === "canto") {
+			// hacky way since the customisation example is static
+			// in other words the pinyin colors wrong in general here
+			child[j].style.color = jtoneColors[child[j].className];
+		    }
                 }
             }
         }
@@ -319,7 +394,7 @@ function restorePreview() {
 
 function resetTones() {
     let target;
-
+    // reset pinyin tones
     for (let i = 0, len = tones.length; i < len; i++) {
         if (i < 5) {
             target = getStyle(".tone" + (i + 1));
@@ -329,6 +404,18 @@ function resetTones() {
 
         CP.__instance__[tones[i].id].trigger('change', [convertRGBA(target.style.color).substr(1)]);
         CP.__instance__[tones[i].id].set(convertRGBA(target.style.color).substr(1));
+    }
+
+    // reset pingjam tones
+    for (let i = 0, len = jtones.length; i < len; i++) {
+        if (i < 6) {
+            target = getStyle(".jtone" + (i + 1));
+        } else {
+            target = getStyle('.pingjam');
+        }
+
+        CP.__instance__[jtones[i].id].trigger('change', [convertRGBA(target.style.color).substr(1)]);
+        CP.__instance__[jtones[i].id].set(convertRGBA(target.style.color).substr(1));
     }
 
     saveOptions();
@@ -420,6 +507,3 @@ function getStyle(className) {
         }
     }
 }
-
-
-

@@ -1,9 +1,13 @@
 {
    "manifest_version": 2,
    "name": "LiuChan Chinese Popup Dictionary",
+   "applications": {
+     "gecko": {
+       "id": "liuchan@liuchan.com"
+     }
+   },
    "short_name": "LiuChan",
-   "version": "1.1.5",
-   "options_page": "html/options.html",
+   "version": "1.1.6",
    "options_ui": {
       "page": "html/options.html"
    },
@@ -14,8 +18,7 @@
          "/js/data.js",
          "/js/fuzzysort.js",
          "/js/background.js"
-      ],
-      "persistent": true
+      ]
    },
    "browser_action": {
       "default_icon": "images/toolbar-disabled.png",
@@ -25,7 +28,7 @@
       "all_frames": true,
       "js": [
          "js/liuchancontent.js", "js/notepad.js" ],
-      "matches": [ "\u003Call_urls>" ]
+      "matches": [ "<all_urls>" ]
    } ],
    "description": "A modern lightweight mouse-over popup dictionary for Chinese!",
    "icons": {
@@ -34,6 +37,6 @@
       "48": "images/icon48.png"
    },
    "omnibox": {"keyword" : "lc"},
-   "permissions": [ "tabs", "storage", "tts", "contextMenus", "notifications", "http://*/*" ],
+   "permissions": [ "tabs", "storage", "contextMenus", "notifications", "http://*/*" ],
    "web_accessible_resources": [ "css/*", "js/liuchancontent.js", "images/*" ]
 }

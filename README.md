@@ -12,6 +12,7 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 * A handy little notepad that you can open on any page :)
 * Theme support
 * Fuzzy search! Use chrome's omnibox to search the dictionary using hanzi, pinyin or just plain english
+* Cantonese support (v1.1.6)
 
 ### Usage
 
@@ -26,10 +27,15 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 - [x] Improve performance
 - [x] Improve fuzzy search to match regular vowels with tonemarked pinyin
 - [x] Update CEDICT
+- [ ] Add missing Cantonese pronunciations (this may be automated, but can lead to inaccurate entries).
+- [ ] Consolidate definitions (some entries have overlapping definitions; in many cases these can be combined).
+- [ ] Support for Yale Cantonese romanisation.
+- [ ] Rewrite non-default themes to adapt to Cantonese support.
+- [ ] Decrease memory use by means of a proper, accurate implementation of traditional -> simplified conversion method.
 
 ### Why is it called LiuChan?
 
-流畅 (*liú chàng*) stands for fluency in a language. I kept -Chan as an homage to it's origin.
+流畅 (*liú chàng*) stands for fluency in a language. I kept -Chan as an homage to its origin.
 
 ### Troubleshooting
 
@@ -39,4 +45,5 @@ In case a problem persists please open an issue on github and try to describe as
 
 #### Known issues:
 
-Currently fuzzy search isn't 'fuzzy' enough to match regular vowels with tonemarked ones.
+- Currently fuzzy search isn't 'fuzzy' enough to match regular vowels with tonemarked ones.
+- Some Cantonese pronunciations missing.
