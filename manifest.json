@@ -1,8 +1,10 @@
+// Clean up before merging back!
+
 {
    "manifest_version": 2,
    "name": "LiuChan Chinese Popup Dictionary",
    "short_name": "LiuChan",
-   "version": "1.1.5",
+   "version": "1.1.6",
    "options_page": "html/options.html",
    "options_ui": {
       "page": "html/options.html"
