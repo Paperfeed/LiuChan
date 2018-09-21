@@ -5,7 +5,7 @@ $card-dark: #92805f;
 
 #flashcards-container {
   display: grid;
-  background-color: $page-light;
+  //background-color: $page-light;
   grid-template-areas:
           "list card"
           "list button";

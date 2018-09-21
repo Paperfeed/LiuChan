@@ -2,21 +2,41 @@
   "name": "liuchan",
   "version": "1.1.6",
   "description": "Chinese Popup Dictionary",
-  "main": "js/background.js",
+  "author": "Aldert Vaandering",
+  "license": "GPL-3.0",
+  "homepage": "https://paperfeed.github.io/LiuChan/",
+  "bugs": {
+    "url": "https://github.com/Paperfeed/LiuChan/issues"
+  },
+  "private": true,
+  "dependencies": {
+    "chrome-extension-async": "^3.3.0"
+  },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
+    "@types/jest": "^23.3.1",
+    "clean-webpack-plugin": "^0.1.19",
+    "copy-webpack-plugin": "^4.5.2",
+    "cross-env": "^5.2.0",
     "del": "^3.0.0",
     "gulp": "^4.0.0",
     "gulp-clean-dest": "^0.2.0",
     "gulp-minify": "^3.1.0",
     "gulp-zip": "^4.2.0",
     "jest": "^23.5.0",
-    "merge-stream": "latest"
+    "merge-stream": "latest",
+    "ts-jest": "^23.1.4",
+    "ts-loader": "^5.0.0",
+    "typescript": "^3.0.3",
+    "webpack": "^4.17.2",
+    "webpack-chrome-extension-reloader": "^0.8.3",
+    "webpack-cli": "^3.1.0",
+    "zip-webpack-plugin": "^3.0.0"
   },
   "scripts": {
     "test": "jest",
-    "build": "gulp"
+    "gulp": "gulp",
+    "build": "webpack",
+    "watch": "cross-env NODE_ENV=development webpack --watch"
   },
   "repository": {
     "type": "git",
@@ -29,10 +49,18 @@
     "mouse-over",
     "popup"
   ],
-  "author": "Aldert Vaandering",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/Paperfeed/LiuChan/issues"
-  },
-  "homepage": "https://paperfeed.github.io/LiuChan/"
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
 }
