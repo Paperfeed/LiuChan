@@ -2,7 +2,6 @@
 import { Dictionary } from './Dictionary';
 import { Omnibox } from './Omnibox';
 import { ContentOptions } from '../content/LiuChanContent';
-import { NotepadOptions } from '../content/Notepad';
 
 
 // Type reference
@@ -15,16 +14,13 @@ const CURRENT_VERSION = "1.1.0";
 
 
 
-interface LiuChanOptions {
+export interface LiuChanOptions {
     content: ContentOptions;
-    notepad: NotepadOptions;
     hanziType: string;
     pinyinType: string;
-    showDefinition?: boolean;
     definitionSeparator: string;
     useHanziToneColors: boolean;
     usePinyinToneColors: boolean;
-    displayHelp: boolean;
     lineEnding: string;
     copySeparator: string;
     maxClipCopyEntries: number;
@@ -32,39 +28,26 @@ interface LiuChanOptions {
     ttsSpeed: number;
     useCustomTones: boolean;
     customTones: string[];
-    version: string;
+    version?: string;
 }
 
 
 
 export class LiuChan {
-    private readonly displayHelp: string;
-    private altView: number;
-    private enabled: boolean;
-    private config: LiuChanOptions;
-    private dict: Dictionary;
+    protected isEnabled: boolean;
+    public config: LiuChanOptions;
+    public dict: Dictionary;
     private omnibox: Omnibox;
     
     
     constructor() {
-        this.altView = 0;
-        this.enabled = false;
-        //this.config  = {};
-        this.displayHelp = '<div class="liutitle">LiuChan enabled!</div>' +
-            '<table cellspacing=5>' +
-            '<tr><td>A</td><td>Alternate popup location</td></tr>' +
-            '<tr><td>Y</td><td>Move popup down</td></tr>' +
-            '<tr><td>C</td><td>Copy to clipboard</td></tr>' +
-            '<tr><td>D</td><td>Hide/show definitions</td></tr>' +
-            '<tr><td>B</td><td>Previous character</td></tr>' +
-            '<tr><td>M</td><td>Next character</td></tr>' +
-            '<tr><td>N</td><td>Next word</td></tr>' +
-            '<tr><td>T</td><td>&#x1F508;Text-To-Speech</td></tr>' +
-            '</table>';
-        //this.timeout = 0;
+        this.isEnabled = false;
         
         this.messageHandler = this.messageHandler.bind(this);
-        this.fuzzysearch = this.fuzzysearch.bind(this);
+        this.onConfigChange = this.onConfigChange.bind(this);
+        this.toggleExtension = this.toggleExtension.bind(this);
+        this.onWindowChangeFocus = this.onWindowChangeFocus.bind(this);
+        this.onTabSelect = this.onTabSelect.bind(this);
         
         this.initConfig();
         
@@ -79,13 +62,7 @@ export class LiuChan {
         chrome.browserAction.setIcon({
             "path": "../images/toolbar-disabled.png"
         });
-    }
-    
-    
-    async openNotepad() {
-        const currentTab = await CommunicationLayer.getCurrentTab();
-        CommunicationLayer.sendMessage(currentTab.id,
-            { "type": "notepad", "theme": this.config.content.popup.popupTheme });
+        
     }
     
     
@@ -96,8 +73,10 @@ export class LiuChan {
                 highlightInput: false,
                 showOnKey: 0,
                 disableKeys: false,
+                displayHelp: true,
                 popup: {
                     popupTheme: 'liuchan',
+                    popupDelay: 0,
                     scaleOnZoom: true,
                     useCustomization: false,
                     customStyling: {
@@ -105,20 +84,19 @@ export class LiuChan {
                         borderThickness: 2,
                         borderRadius: 8
                     }
+                },
+                notepad: {
+                    text: 'This notepad will automatically save its contents and sync with your Chrome account ' +
+                        '(if you use sync!).\n\n' +
+                        'You can drag the notepad around and resize the text area.',
+                    pinned: false
                 }
-            },
-            notepad: {
-                text: 'This notepad will automatically save its contents and sync with your Chrome account ' +
-                    '(if you use sync!).\n\n' +
-                    'You can drag the notepad around and resize the text area.',
-                pinned: false
             },
             hanziType: 'boths',
             pinyinType: 'tonemarks',
             definitionSeparator: 'num',
             useHanziToneColors: true,
             usePinyinToneColors: false,
-            displayHelp: true,
             lineEnding: 'n',
             copySeparator: 'tab',
             maxClipCopyEntries: 7,
@@ -197,51 +175,56 @@ export class LiuChan {
     }
     
     
-    async fuzzysearch(text, suggest) {
-        if (!this.enabled) {
-            try {
-                this.dict = new Dictionary("data/cedict_ts.u8", this.config);
-                await this.dict.loadDictionary();
-                const { pinyinType, definitionSeparator, hanziType } = this.config;
-                const config = { pinyinType, definitionSeparator, hanziType };
-                this.omnibox = new Omnibox(this.dict, config);
-            } catch (e) {
-            
-            }
-        }
-        this.omnibox.onInput(text, suggest);
-    }
-    
-    
-    async toggleExtension() {
+    async toggleExtension(): Promise<void> {
         // Entry point for when extension's button is clicked
         // Toggle addon on or off
-        if (this.enabled) {
-            // Disable extension
-            
+        if (this.isEnabled) /* then disable */ {
             // Tell all tabs to disable themselves
             CommunicationLayer.sendMessageToAllTabs({ "type": "disable" });
+            CommunicationLayer.removeListener('omnibox', 'onInputChanged', this.omnibox.fuzzysearch);
             
-            // Disable Omnibox wordsearch
-            CommunicationLayer.removeListener('omnibox', 'onInputChanged', this.fuzzysearch);
             
             // Clean up memory
-            this.enabled = false;
-            delete this.dict;
+            this.isEnabled = false;
+            this.dict.unloadDictionary();
             
-            // Set extension icon
-            CommunicationLayer.setIcon({
-                "path": "../images/toolbar-disabled.png"
-            });
-            CommunicationLayer.setBadgeBackgroundColor({
-                "color": [0, 0, 0, 0]
-            });
-            CommunicationLayer.setBadgeText({
-                "text": ""
-            });
-        } else {
+            
+            CommunicationLayer.setIcon({ "path": "../images/toolbar-disabled.png" });
+            CommunicationLayer.setBadgeBackgroundColor({ "color": [0, 0, 0, 0] });
+            CommunicationLayer.setBadgeText({ "text": "" });
+            
+            
+        } else /* if disabled, then enable */ {
+            
             // Check if the content script is actually running and let the user know the tab needs to be reloaded if not.
             const currentTab = await CommunicationLayer.getCurrentTab();
+            
+            
+            // Enable extension
+            if (!this.dict) {
+                try {
+                    this.dict = new Dictionary("data/cedict_ts.u8", this.config);
+                } catch (e) {
+                    alert('Error loading dictionary: ' + e);
+                }
+            }
+            
+            
+            // TODO Fix fuzzysearch
+            this.omnibox = new Omnibox(this);
+            CommunicationLayer.addListener('omnibox', 'onInputChanged', this.omnibox.fuzzysearch);
+            //chrome.omnibox.onInputEntered.addListener(text => { //Do sth on enter });
+            
+            
+            await this.dict.loadDictionary();
+            this.isEnabled = true;
+            
+            
+            // Set extension icon
+            chrome.browserAction.setIcon({ "path": "../images/toolbar-enabled.png" });
+            
+            
+            // Try to enable current tab - Show message if it needs to be reloaded
             try {
                 await CommunicationLayer.sendMessage(currentTab.id, { type: 'heartbeat' });
             } catch (e) {
@@ -252,47 +235,18 @@ export class LiuChan {
                         'magic! \n\nThis is only necessary on tabs that were open before Liuchan was installed :)'
                 });
             }
-            
-            // Enable extension
-            if (!this.dict) {
-                try {
-                    this.dict = new Dictionary("data/cedict_ts.u8", this.config);
-                    await this.dict.loadDictionary();
-                    // TODO IMPLEMENT ONLOADED
-                    // Old onDictionaryLoaded code:
-                    if (this.config.displayHelp === true && !this.config.content.disableKeys) {
-                        CommunicationLayer.sendMessage(currentTab.id, {
-                            "type": "enable",
-                            "config": this.config.content,
-                            "displayHelp": this.displayHelp
-                        });
-                    } else {
-                        CommunicationLayer.sendMessage(currentTab.id, {
-                            "type": "enable",
-                            "config": this.config.content
-                        });
-                    }
-                    //
-                } catch (ex) {
-                    alert('Error loading dictionary: ' + ex);
-                }
-            }
-            
-            // Tell all tabs to enable themselves
-            //this.sendAllTabs({"type":"enable"});
-            
-            // Enable Omnibox Wordsearch
-            CommunicationLayer.addListener('omnibox', 'onInputChanged', this.fuzzysearch);
-            //chrome.omnibox.onInputEntered.addListener(text => { //Do sth on enter });
-            
-            await this.dict.loadDictionary();
-            this.enabled = true;
-            
-            // Set extension icon
-            chrome.browserAction.setIcon({
-                "path": "../images/toolbar-enabled.png"
-            });
         }
+    }
+    
+    
+    onConfigChange(changes: object, areaName: string) {
+        console.log('config change', changes, areaName);
+        console.log('config');
+        CommunicationLayer.sendMessageToAllTabs({
+            'type': 'initialize',
+            'enabled': this.isEnabled,
+            'config': this.config.content
+        });
     }
     
     
@@ -311,17 +265,25 @@ export class LiuChan {
         const id = (<Tab>tab).id || (<TabActiveInfo>tab).tabId;
         
         // TODO optimise messaging
-        if (this.enabled) {
+        /*
+        if (this.isEnabled) {
             CommunicationLayer.sendMessage(id, {
                 "type": "enable",
                 "config": this.config.content
             });
-        }
+        }*/
         
         CommunicationLayer.sendMessage(id, {
             "type": "update",
-            "notepad": this.config.notepad
+            "notepad": this.config.content.notepad
         });
+    }
+    
+    
+    async openNotepad() {
+        const currentTab = await CommunicationLayer.getCurrentTab();
+        CommunicationLayer.sendMessage(currentTab.id,
+            { "type": "notepad" });
     }
     
     
@@ -367,9 +329,10 @@ export class LiuChan {
         };
         
         document.execCommand("Copy");
+        
         // @ts-ignore
         document.oncopy = undefined;
-        chrome.tabs.sendMessage(tab.id, {
+        CommunicationLayer.sendMessage(tab.id, {
             "type": "showPopup",
             "text": '<div class="def">Copied to clipboard.</div>'
         });
@@ -377,14 +340,18 @@ export class LiuChan {
     
     
     messageHandler(message, sender, response) {
+        console.log('[BACKGROUND]Received message', message, sender);
+        
         switch (message.type) {
-            case 'enable?':
-                //chrome.tabs.sendMessage(sender.tab.id, {"type":"config", "config": liuChan.config.content});
-                if (message.enabled === false && this.enabled) this.onTabSelect({ id: sender.tab.tabId } as Tab);
+            case 'initialize':
+                response({
+                    'type': 'initialize',
+                    'enabled': this.isEnabled,
+                    'config': this.config.content
+                });
                 break;
             case 'xsearch':
-                let e = this.dict.search(message.text);
-                response(e);
+                response(this.dict.search(message.text));
                 break;
             case 'makehtml':
                 let html = this.dict.makeHtml(message.entry);
@@ -393,12 +360,12 @@ export class LiuChan {
             case 'copyToClip':
                 this.copyToClip(sender.tab, message.entry);
                 break;
-            case 'config':
+            /*case 'config':
                 // Immediately update settings upon change occuring
                 this.config = Object.assign(this.config, message.config);
-                break;
+                break;*/
             case 'toggleDefinition':
-                this.dict.config.showDefinition = !this.dict.config.showDefinition;
+                this.dict.toggleDefinition();
                 break;
             case 'tts':
                 // mandarin: zh-CN, zh-TW cantonese: zh-HK
@@ -415,11 +382,13 @@ export class LiuChan {
                 break;
             case 'notepad':
                 if (message.load) {
-                    response(this.config.notepad);
+                    response(this.config.content.notepad);
                 } else {
                     chrome.storage.sync.set({ notepad: message.query });
-                    this.config.notepad = message.query;
+                    this.config.content.notepad = message.query;
                 }
+                break;
+            case 'SIGN_CONNECT':
                 break;
             default:
                 console.log('Background received unknown request: ', message);

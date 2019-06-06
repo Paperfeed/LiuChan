@@ -37,15 +37,17 @@ export class CommunicationLayer {
     }
     
     
-    static async sendMessage(tabId: number, message: Object): Promise<void> {
+    static async sendMessage(tabId: number, message: Object, callback?: Function): Promise<void> {
         // TODO REMOVE DEBUG
-        if (tabId === undefined) console.error('received undefined tabid', CommunicationLayer.sendMessage.caller);
-        await chrome.tabs.sendMessage(tabId, message);
+        console.log('Sending Message', message, tabId);
+        // @ts-ignore Chrome.tabs typescript declaration is wrong
+        await chrome.tabs.sendMessage(tabId, message, callback);
     }
     
     
-    static async runtimeSendMessage(message: Object): Promise<void> {
-        await chrome.runtime.sendMessage(message);
+    static async runtimeSendMessage(message: Object, callback?: Function): Promise<void> {
+        console.log('[CONTENT]Sending RuntimeMessage', message, callback);
+        await chrome.runtime.sendMessage(message, response => callback(response));
     }
     
     

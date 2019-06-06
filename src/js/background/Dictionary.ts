@@ -15,6 +15,8 @@ interface DictionaryOptions {
 
 
 interface DictionaryEntry {
+    def: string;
+    pinyin: any;
     simp: string;
     trad: string;
     length: number;
@@ -22,22 +24,44 @@ interface DictionaryEntry {
 
 
 
+interface PinyinResult {
+    tones: number[];
+    zhuyin?: string;
+    tonenums?: string;
+    tonemarks?: string;
+}
+
+
+
+interface SearchResult {
+    definitions: DictionaryEntry[];
+    matchLength?: number;
+}
+
+
+
 export class Dictionary {
     private readonly dictFile: string;
-    public data: Map<string, DictionaryEntry>;
-    public config: DictionaryOptions;
+    protected data: Map<string, DictionaryEntry>;
+    protected config: DictionaryOptions;
     
     
     constructor(dictFile: string = "data/cedict_ts.u8",
                 options: DictionaryOptions) {
         this.dictFile = dictFile;
         this.config = options;
+        this.config.showDefinition = true;
     }
     
     
     async loadDictionary() {
         const data = await this.readFile(this.dictFile);
         this.parseDictionary(data);
+    }
+    
+    
+    unloadDictionary() {
+        this.data = undefined;
     }
     
     
@@ -92,6 +116,7 @@ export class Dictionary {
         // I noticed that chrome keeps the last regex match in memory
         // which in this case is the entire dictionary file, so this is to lower the memory footprint
         /./g.exec('c');
+        console.log('Dictionary Loaded', this.data);
     }
     
     
@@ -143,46 +168,39 @@ export class Dictionary {
     
     
     search(word: string) {
+        
         // Convert to simplified so we only have to index search for one type of character
         // making it easier to get through the data quickly.
         word = this.convertToSimplified(word);
         
-        const index: Word = this.data.get(word.charAt(0));
+        const index = this.data.get(word.charAt(0));
+        console.log('INDEX', index);
         if (!index) return; // If first character doesn't match with anything, stop looking
         
-        interface SearchResult {
-            data: any;
-            matchLen?: number;
-        }
+        let results: SearchResult = { definitions: [] };
         
-        
-        
-        interface Word {
-            length: number;
-            
-        }
-        
-        
-        
-        let results: SearchResult = { data: [] };
-        
-        // Loop through all matched text and delete one character each loop, returning all matches
-        for (let a = word.length; a > 0; a--) {
+        // Loop through all matched text and delete one character off the end each loop, returning all matches
+        for (let length = word.length; length > 0; length--) {
             for (let i = 0, len = index.length; i < len; i++) {
                 if (index[i].simp === word) {
-                    if (!results.matchLen) results.matchLen = word.length;
-                    results.data.push(index[i]);
+                    // Save the length of the longest result (for selection purposes)
+                    if (!results.matchLength) results.matchLength = word.length;
+                    results.definitions.push(index[i]);
                 }
             }
             
-            word = word.substr(0, a - 1);
+            word = word.substr(0, length - 1);
         }
         
-        return results;
+        console.log('RESULTS', results);
+        if (!results) return;
+        return this.makeHtml(results);
     }
     
     
-    makeHtml(entry) {
+    makeHtml(entry: SearchResult) {
+        
+        console.log('ENTYR', entry);
         if (entry == null) return '';
         
         let trad, simp, pinyin, def;
@@ -190,17 +208,18 @@ export class Dictionary {
         
         b.push('<div class="liuchan-container">');
         
-        for (let a = 0, len = entry.data.length; a < len; a++) {
+        for (let a = 0, len = entry.definitions.length; a < len; a++) {
             // Parsing the pinyin removes numbers, adds tone marks, etc
-            trad = entry.data[a].trad;
-            simp = entry.data[a].simp;
+            trad = entry.definitions[a].trad;
+            simp = entry.definitions[a].simp;
             def = '';
-            pinyin = entry.data[a].pinyin;
-            def = this.parseDefinitions(entry.data[a].def);
+            pinyin = entry.definitions[a].pinyin;
+            def = this.parseDefinitions(entry.definitions[a].def);
             
             // Select whether to show traditional or simple first/only
-            // Note: Fallthrough is on purpose!
             let first, second, addSecond = false;
+            // Note: Fallthrough is on purpose!
+            // noinspection FallThroughInSwitchStatementJS
             switch (this.config.hanziType) {
                 case "boths":
                     addSecond = true;
@@ -350,7 +369,7 @@ export class Dictionary {
             b.push(html);
             
             //DEFINITION
-            if (!this.config.showDefinition) {
+            if (this.config.showDefinition) {
                 b.push('</div><div class="def">' + def + '</div></div>');
             } else {
                 b.push('</div></div>');
@@ -361,23 +380,25 @@ export class Dictionary {
     }
     
     
-    isVowel(letter) {
+    toggleDefinition() {
+        this.config.showDefinition = !this.config.showDefinition;
+    }
+    
+    
+    getCharacterIndex(character): DictionaryEntry {
+        // Returns array with all words corresponding to the provided character
+        return this.data.get(character);
+    }
+    
+    
+    isVowel(letter): Boolean {
         return letter === "a" || letter === "e" || letter === "i" || letter === "o" || letter === "u";
     }
     
     
-    parsePinyin(pinyin) {
-        interface PinyinResult {
-            tones: number[];
-            zhuyin?: string;
-            tonenums?: string;
-            tonemarks?: string;
-        }
-        
-        
-        
+    parsePinyin(pinyin): PinyinResult {
         const pinyinref = ['a', 'ai', 'an', 'ang', 'ao', 'ba', 'bai', 'ban', 'bang', 'bao', 'bei', 'ben', 'beng', 'bi', 'bian', 'biao', 'bie', 'bin', 'bing', 'bo', 'bu', 'ca', 'cai', 'can', 'cang', 'cao', 'ce', 'cen', 'ceng', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng', 'chi', 'chong', 'chou', 'chu', 'chua', 'chuai', 'chuan', 'chuang', 'chui', 'chun', 'chuo', 'ci', 'cong', 'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo', 'da', 'dai', 'dan', 'dang', 'dao', 'de', 'deng', 'di', 'dian', 'diang', 'diao', 'die', 'ding', 'diu', 'dong', 'dou', 'du', 'duan', 'dui', 'dun', 'duo', 'e', 'ei', 'en', 'er', 'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu', 'ga', 'gai', 'gan', 'gang', 'gao', 'ge', 'gei', 'gen', 'geng', 'gong', 'gou', 'gu', 'gua', 'guai', 'guan', 'guang', 'gui', 'gun', 'guo', 'ha', 'hai', 'han', 'hang', 'hao', 'he', 'hei', 'hen', 'heng', 'hong', 'hou', 'hu', 'hua', 'huai', 'huan', 'huang', 'hui', 'hun', 'huo', 'ji', 'jia', 'jian', 'jiang', 'jiao', 'jie', 'jin', 'jing', 'jiong', 'jiu', 'ju', 'juan', 'jue', 'jun', 'ka', 'kai', 'kan', 'kang', 'kao', 'ke', 'ken', 'keng', 'kong', 'kou', 'ku', 'kua', 'kuai', 'kuan', 'kuang', 'kui', 'kun', 'kuo', 'la', 'lai', 'lan', 'lang', 'lao', 'le', 'lei', 'leng', 'li', 'lian', 'liang', 'liao', 'lie', 'lin', 'ling', 'liu', 'long', 'lou', 'lu', 'l\u00FC', 'luan', 'l\u00FCe', 'lun', 'luo', 'ma', 'mai', 'man', 'mang', 'mao', 'me', 'mei', 'men', 'meng', 'mi', 'mian', 'miao', 'mie', 'min', 'ming', 'miu', 'mo', 'mou', 'mu', 'na', 'nai', 'nan', 'nang', 'nao', 'ne', 'nei', 'nen', 'neng', 'ni', 'nia', 'nian', 'niang', 'niao', 'nie', 'nin', 'ning', 'niu', 'nong', 'nou', 'nu', 'n\u00FC', 'nuan', 'n\u00FCe', 'nuo', 'nun', 'ou', 'pa', 'pai', 'pan', 'pang', 'pao', 'pei', 'pen', 'peng', 'pi', 'pian', 'piao', 'pie', 'pin', 'ping', 'po', 'pou', 'pu', 'qi', 'qia', 'qian', 'qiang', 'qiao', 'qie', 'qin', 'qing', 'qiong', 'qiu', 'qu', 'quan', 'que', 'qun', 'ran', 'rang', 'rao', 're', 'ren', 'reng', 'ri', 'rong', 'rou', 'ru', 'ruan', 'rui', 'run', 'ruo', 'sa', 'sai', 'san', 'sang', 'sao', 'se', 'sei', 'sen', 'seng', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen', 'sheng', 'shi', 'shong', 'shou', 'shu', 'shua', 'shuai', 'shuan', 'shuang', 'shui', 'shun', 'shuo', 'si', 'song', 'sou', 'su', 'suan', 'sui', 'sun', 'suo', 'ta', 'tai', 'tan', 'tang', 'tao', 'te', 'teng', 'ti', 'tian', 'tiao', 'tie', 'ting', 'tong', 'tou', 'tu', 'tuan', 'tui', 'tun', 'tuo', 'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu', 'xi', 'xia', 'xian', 'xiang', 'xiao', 'xie', 'xin', 'xing', 'xiong', 'xiu', 'xu', 'xuan', 'xue', 'xun', 'ya', 'yai', 'yan', 'yang', 'yao', 'ye', 'yi', 'yin', 'ying', 'yo', 'yong', 'you', 'yu', 'yuan', 'yue', 'yun', 'za', 'zai', 'zan', 'zang', 'zao', 'ze', 'zei', 'zen', 'zeng', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen', 'zheng', 'zhi', 'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun', 'zhuo', 'zi', 'zong', 'zou', 'zu', 'zuan', 'zui', 'zun', 'zuo'],
-            zhuyinref = ['\u311A', '\u311E', '\u3122', '\u3124', '\u3120', '\u3105\u311A', '\u3105\u311E', '\u3105\u3122', '\u3105\u3124', '\u3105\u3120', '\u3105\u311F', '\u3105\u3123', '\u3105\u3125', '\u3105\u30FC', '\u3105\u30FC\u3122', '\u3105\u30FC\u3120', '\u3105\u30FC\u311D', '\u3105\u30FC\u3123', '\u3105\u30FC\u3125', '\u3105\u311B', '\u3105\u3128', '\u3118\u311A', '\u3118\u311E', '\u3118\u3122', '\u3118\u3124', '\u3118\u3120', '\u3118\u311C', '\u3118\u3123', '\u3118\u3125', '\u3114\u311A', '\u3114\u311E', '\u3114\u3122', '\u3114\u3124', '\u3114\u3120', '\u3114\u311C', '\u3114\u3123', '\u3114\u3125', '\u3114', '\u3114\u3128\u3125', '\u3114\u3121', '\u3114\u3128', '\u3114\u3128\u311A', '\u3114\u3128\u311E', '\u3114\u3128\u3122', '\u3114\u3128\u3124', '\u3114\u3128\u311F', '\u3114\u3128\u3123', '\u3114\u3128\u311B', '\u3118', '\u3118\u3128\u3125', '\u3118\u3121', '\u3118\u3128', '\u3118\u3128\u3122', '\u3118\u3128\u311F', '\u3118\u3128\u3123', '\u3118\u3128\u311B', '\u3109\u311A', '\u3109\u311E', '\u3109\u3122', '\u3109\u3124', '\u3109\u3120', '\u3109\u311C', '\u3109\u3125', '\u3109\u30FC', '\u3109\u30FC\u3122', '\u3109\u30FC\u3124', '\u3109\u30FC\u3120', '\u3109\u30FC\u311D', '\u3109\u30FC\u3125', '\u3109\u30FC\u3121', '\u3109\u3128\u3125', '\u3109\u3121', '\u3109\u3128', '\u3109\u3128\u3122', '\u3109\u3128\u311F', '\u3109\u3128\u3123', '\u3109\u3128\u311B', '\u311C', '\u311F', '\u3123', '\u3126', '\u3108\u311A', '\u3108\u3122', '\u3108\u3124', '\u3108\u311F', '\u3108\u3123', '\u3108\u3125', '\u3108\u311B', '\u3108\u3121', '\u3108\u3128', '\u310D\u311A', '\u310D\u311E', '\u310D\u3122', '\u310D\u3124', '\u310D\u3120', '\u310D\u311C', '\u310D\u311F', '\u310D\u3123', '\u310D\u3125', '\u310D\u3128\u3125', '\u310D\u3121', '\u310D\u3128', '\u310D\u3128\u311A', '\u310D\u3128\u311E', '\u310D\u3128\u3122', '\u310D\u3128\u3124', '\u310D\u3128\u311F', '\u310D\u3128\u3123', '\u310D\u3128\u311B', '\u310F\u311A', '\u310F\u311E', '\u310F\u3122', '\u310F\u3124', '\u310F\u3120', '\u310F\u311C', '\u310F\u311F', '\u310F\u3123', '\u310F\u3125', '\u310F\u3128\u3125', '\u310F\u3121', '\u310F\u3128', '\u310F\u3128\u311A', '\u310F\u3128\u311E', '\u310F\u3128\u3122', '\u310F\u3128\u3124', '\u310F\u3128\u311F', '\u310F\u3128\u3123', '\u310F\u3128\u311B', '\u3110\u30FC', '\u3110\u30FC\u311A', '\u3110\u30FC\u3122', '\u3110\u30FC\u3124', '\u3110\u30FC\u3120', '\u3110\u30FC\u311D', '\u3110\u30FC\u3123', '\u3110\u30FC\u3125', '\u3110\u3129\u3125', '\u3110\u30FC\u3121', '\u3110\u3129', '\u3110\u3129\u3122', '\u3110\u3129\u311D', '\u3110\u3129\u3123', '\u310E\u311A', '\u310E\u311E', '\u310E\u3122', '\u310E\u3124', '\u310E\u3120', '\u310E\u311C', '\u310E\u3123', '\u310E\u3125', '\u310E\u3128\u3125', '\u310E\u3121', '\u310E\u3128', '\u310E\u3128\u311A', '\u310E\u3128\u311E', '\u310E\u3128\u3122', '\u310E\u3128\u3124', '\u310E\u3128\u311F', '\u310E\u3128\u3123', '\u310E\u3128\u311B', '\u310C\u311A', '\u310C\u311E', '\u310C\u3122', '\u310C\u3124', '\u310C\u3120', '\u310C\u311C', '\u310C\u311F', '\u310C\u3125', '\u310C\u30FC', '\u310C\u30FC\u3122', '\u310C\u30FC\u3124', '\u310C\u30FC\u3120', '\u310C\u30FC\u311D', '\u310C\u30FC\u3123', '\u310C\u30FC\u3125', '\u310C\u30FC\u3121', '\u310C\u3128\u3125', '\u310C\u3121', '\u310C\u3128', '\u310C\u3129', '\u310C\u3128\u3122', '\u310C\u3129\u311D', '\u310C\u3128\u3123', '\u310C\u3128\u311B', '\u3107\u311A', '\u3107\u311E', '\u3107\u3122', '\u3107\u3124', '\u3107\u3120', '\u3107\u311C', '\u3107\u311F', '\u3107\u3123', '\u3107\u3125', '\u3107\u30FC', '\u3107\u30FC\u3122', '\u3107\u30FC\u3120', '\u3107\u30FC\u311D', '\u3107\u30FC\u3123', '\u3107\u30FC\u3125', '\u3107\u30FC\u3121', '\u3107\u3128\u311B', '\u3107\u3121', '\u3107\u3128', '\u310B\u311A', '\u310B\u311E', '\u310B\u3122', '\u310B\u3124', '\u310B\u3120', '\u310B\u311B', '\u310B\u311F', '\u310B\u3123', '\u310B\u3125', '\u310B\u30FC', '\u310B\u30FC\u311A', '\u310B\u30FC\u3122', '\u310B\u30FC\u3124', '\u310B\u30FC\u3120', '\u310B\u30FC\u311D', '\u310B\u30FC\u3123', '\u310B\u30FC\u3125', '\u310B\u30FC\u3121', '\u310B\u3128\u3125', '\u310B\u3121', '\u310B\u3128', '\u310B\u3129', '\u310B\u3128\u3122', '\u310B\u3129\u311D', '\u310B\u3128\u311B', '\u310B\u3128\u3123', '\u3121', '\u3106\u311A', '\u3106\u311E', '\u3106\u3122', '\u3106\u3124', '\u3106\u3120', '\u3106\u311F', '\u3106\u3123', '\u3106\u3125', '\u3106\u30FC', '\u3106\u30FC\u3122', '\u3106\u30FC\u3120', '\u3106\u30FC\u311D', '\u3106\u30FC\u3123', '\u3106\u30FC\u3125', '\u3106\u3128\u311B', '\u3106\u3121', '\u3106\u3128', '\u3111\u30FC', '\u3111\u30FC\u311A', '\u3111\u30FC\u3122', '\u3111\u30FC\u3124', '\u3111\u30FC\u3120', '\u3111\u30FC\u311D', '\u3111\u30FC\u3123', '\u3111\u30FC\u3125', '\u3111\u3129\u3125', '\u3111\u30FC\u3121', '\u3111\u3129', '\u3111\u3129\u3122', '\u3111\u3129\u311D', '\u3111\u3129\u3123', '\u3116\u3122', '\u3116\u3124', '\u3116\u3120', '\u3116\u311C', '\u3116\u3123', '\u3116\u3125', '\u3116', '\u3116\u3128\u3125', '\u3116\u3121', '\u3116\u3128', '\u3116\u3128\u3122', '\u3116\u3128\u311F', '\u3116\u3128\u3123', '\u3116\u3128\u311B', '\u3119\u311A', '\u3119\u311E', '\u3119\u3122', '\u3119\u3124', '\u3119\u3120', '\u3119\u311C', '\u3119\u311F', '\u3119\u3123', '\u3119\u3125', '\u3115\u311A', '\u3115\u311E', '\u3115\u3122', '\u3115\u3124', '\u3115\u3120', '\u3115\u311C', '\u3115\u311F', '\u3115\u3123', '\u3115\u3125', '\u3115', '\u3115\u3121\u3125', '\u3115\u3121', '\u3115\u3128', '\u3115\u3128\u311A', '\u3115\u3128\u311E', '\u3115\u3128\u3122', '\u3115\u3128\u3124', '\u3115\u3128\u311F', '\u3115\u3128\u3123', '\u3115\u3128\u311B', '\u3119', '\u3119\u3128\u3125', '\u3119\u3121', '\u3119\u3128', '\u3119\u3128\u3122', '\u3119\u3128\u311F', '\u3119\u3128\u3123', '\u3119\u3128\u311B', '\u310A\u311A', '\u310A\u311E', '\u310A\u3122', '\u310A\u3124', '\u310A\u3120', '\u310A\u311C', '\u310A\u3125', '\u310A\u30FC', '\u310A\u30FC\u3122', '\u310A\u30FC\u3120', '\u310A\u30FC\u311D', '\u310A\u30FC\u3125', '\u310A\u3128\u3125', '\u310A\u3121', '\u310A\u3128', '\u310A\u3128\u3122', '\u310A\u3128\u311F', '\u310A\u3128\u3123', '\u310A\u3128\u311B', '\u3128\u311A', '\u3128\u311E', '\u3128\u3122', '\u3128\u3124', '\u3128\u311F', '\u3128\u3123', '\u3128\u3125', '\u3128\u311B', '\u3128', '\u3112\u30FC', '\u3112\u30FC\u311A', '\u3112\u30FC\u3122', '\u3112\u30FC\u3124', '\u3112\u30FC\u3120', '\u3112\u30FC\u311D', '\u3112\u30FC\u3123', '\u3112\u30FC\u3125', '\u3112\u3129\u3125', '\u3112\u30FC\u3121', '\u3112\u3129', '\u3112\u3129\u3122', '\u3112\u3129\u311D', '\u3112\u3129\u3123', '\u30FC\u311A', '\u30FC\u311E', '\u30FC\u3122', '\u30FC\u3124', '\u30FC\u3120', '\u30FC\u311D', '\u30FC', '\u30FC\u3123', '\u30FC\u3125', '\u30FC\u311B', '\u3129\u3125', '\u30FC\u3121', '\u3129', '\u3129\u3122', '\u3129\u311D', '\u3129\u3123', '\u3117\u311A', '\u3117\u311E', '\u3117\u3122', '\u3117\u3124', '\u3117\u3120', '\u3117\u311C', '\u3117\u311F', '\u3117\u3123', '\u3117\u3125', '\u3113\u311A', '\u3113\u311E', '\u3113\u3122', '\u3113\u3124', '\u3113\u3120', '\u3113\u311C', '\u3113\u311F', '\u3113\u3123', '\u3113\u3125', '\u3113', '\u3113\u3128\u3125', '\u3113\u3121', '\u3113\u3128', '\u3113\u3128\u311A', '\u3113\u3128\u311E', '\u3113\u3128\u3122', '\u3113\u3128\u3124', '\u3113\u3128\u311F', '\u3113\u3128\u3123', '\u3113\u3128\u311B', '\u3117', '\u3117\u3128\u3125', '\u3117\u3121', '\u3117\u3128', '\u3117\u3128\u3122', '\u3117\u3128\u311F', '\u3117\u3128\u3123', '\u3117\u3128\u311B'];
+            zhuyinref = ['\u311A', '\u311E', '\u3122', '\u3124', '\u3120', '\u3105\u311A', '\u3105\u311E', '\u3105\u3122', '\u3105\u3124', '\u3105\u3120', '\u3105\u311F', '\u3105\u3123', '\u3105\u3125', '\u3105\u30FC', '\u3105\u30FC\u3122', '\u3105\u30FC\u3120', '\u3105\u30FC\u311D', '\u3105\u30FC\u3123', '\u3105\u30FC\u3125', '\u3105\u311B', '\u3105\u3128', '\u3118\u311A', '\u3118\u311E', '\u3118\u3122', '\u3118\u3124', '\u3118\u3120', '\u3118\u311C', '\u3118\u3123', '\u3118\u3125', '\u3114\u311A', '\u3114\u311E', '\u3114\u3122', '\u3114\u3124', '\u3114\u3120', '\u3114\u311C', '\u3114\u3123', '\u3114\u3125', '\u3114', '\u3114\u3128\u3125', '\u3114\u3121', '\u3114\u3128', '\u3114\u3128\u311A', '\u3114\u3128\u311E', '\u3114\u3128\u3122', '\u3114\u3128\u3124', '\u3114\u3128\u311F', '\u3114\u3128\u3123', '\u3114\u3128\u311B', '\u3118', '\u3118\u3128\u3125', '\u3118\u3121', '\u3118\u3128', '\u3118\u3128\u3122', '\u3118\u3128\u311F', '\u3118\u3128\u3123', '\u3118\u3128\u311B', '\u3109\u311A', '\u3109\u311E', '\u3109\u3122', '\u3109\u3124', '\u3109\u3120', '\u3109\u311C', '\u3109\u3125', '\u3109\u30FC', '\u3109\u30FC\u3122', '\u3109\u30FC\u3124', '\u3109\u30FC\u3120', '\u3109\u30FC\u311D', '\u3109\u30FC\u3125', '\u3109\u30FC\u3121', '\u3109\u3128\u3125', '\u3109\u3121', '\u3109\u3128', '\u3109\u3128\u3122', '\u3109\u3128\u311F', '\u3109\u3128\u3123', '\u3109\u3128\u311B', '\u311C', '\u311F', '\u3123', '\u3126', '\u3108\u311A', '\u3108\u3122', '\u3108\u3124', '\u3108\u311F', '\u3108\u3123', '\u3108\u3125', '\u3108\u311B', '\u3108\u3121', '\u3108\u3128', '\u310D\u311A', '\u310D\u311E', '\u310D\u3122', '\u310D\u3124', '\u310D\u3120', '\u310D\u311C', '\u310D\u311F', '\u310D\u3123', '\u310D\u3125', '\u310D\u3128\u3125', '\u310D\u3121', '\u310D\u3128', '\u310D\u3128\u311A', '\u310D\u3128\u311E', '\u310D\u3128\u3122', '\u310D\u3128\u3124', '\u310D\u3128\u311F', '\u310D\u3128\u3123', '\u310D\u3128\u311B', '\u310F\u311A', '\u310F\u311E', '\u310F\u3122', '\u310F\u3124', '\u310F\u3120', '\u310F\u311C', '\u310F\u311F', '\u310F\u3123', '\u310F\u3125', '\u310F\u3128\u3125', '\u310F\u3121', '\u310F\u3128', '\u310F\u3128\u311A', '\u310F\u3128\u311E', '\u310F\u3128\u3122', '\u310F\u3128\u3124', '\u310F\u3128\u311F', '\u310F\u3128\u3123', '\u310F\u3128\u311B', '\u3110\u30FC', '\u3110\u30FC\u311A', '\u3110\u30FC\u3122', '\u3110\u30FC\u3124', '\u3110\u30FC\u3120', '\u3110\u30FC\u311D', '\u3110\u30FC\u3123', '\u3110\u30FC\u3125', '\u3110\u3129\u3125', '\u3110\u30FC\u3121', '\u3110\u3129', '\u3110\u3129\u3122', '\u3110\u3129\u311D', '\u3110\u3129\u3123', '\u310E\u311A', '\u310E\u311E', '\u310E\u3122', '\u310E\u3124', '\u310E\u3120', '\u310E\u311C', '\u310E\u3123', '\u310E\u3125', '\u310E\u3128\u3125', '\u310E\u3121', '\u310E\u3128', '\u310E\u3128\u311A', '\u310E\u3128\u311E', '\u310E\u3128\u3122', '\u310E\u3128\u3124', '\u310E\u3128\u311F', '\u310E\u3128\u3123', '\u310E\u3128\u311B', '\u310C\u311A', '\u310C\u311E', '\u310C\u3122', '\u310C\u3124', '\u310C\u3120', '\u310C\u311C', '\u310C\u311F', '\u310C\u3125', '\u310C\u30FC', '\u310C\u30FC\u3122', '\u310C\u30FC\u3124', '\u310C\u30FC\u3120', '\u310C\u30FC\u311D', '\u310C\u30FC\u3123', '\u310C\u30FC\u3125', '\u310C\u30FC\u3121', '\u310C\u3128\u3125', '\u310C\u3121', '\u310C\u3128', '\u310C\u3129', '\u310C\u3128\u3122', '\u310C\u3129\u311D', '\u310C\u3128\u3123', '\u310C\u3128\u311B', '\u3107\u311A', '\u3107\u311E', '\u3107\u3122', '\u3107\u3124', '\u3107\u3120', '\u3107\u311C', '\u3107\u311F', '\u3107\u3123', '\u3107\u3125', '\u3107\u30FC', '\u3107\u30FC\u3122', '\u3107\u30FC\u3120', '\u3107\u30FC\u311D', '\u3107\u30FC\u3123', '\u3107\u30FC\u3125', '\u3107\u30FC\u3121', '\u3107\u311B', '\u3107\u3121', '\u3107\u3128', '\u310B\u311A', '\u310B\u311E', '\u310B\u3122', '\u310B\u3124', '\u310B\u3120', '\u310B\u311B', '\u310B\u311F', '\u310B\u3123', '\u310B\u3125', '\u310B\u30FC', '\u310B\u30FC\u311A', '\u310B\u30FC\u3122', '\u310B\u30FC\u3124', '\u310B\u30FC\u3120', '\u310B\u30FC\u311D', '\u310B\u30FC\u3123', '\u310B\u30FC\u3125', '\u310B\u30FC\u3121', '\u310B\u3128\u3125', '\u310B\u3121', '\u310B\u3128', '\u310B\u3129', '\u310B\u3128\u3122', '\u310B\u3129\u311D', '\u310B\u3128\u311B', '\u310B\u3128\u3123', '\u3121', '\u3106\u311A', '\u3106\u311E', '\u3106\u3122', '\u3106\u3124', '\u3106\u3120', '\u3106\u311F', '\u3106\u3123', '\u3106\u3125', '\u3106\u30FC', '\u3106\u30FC\u3122', '\u3106\u30FC\u3120', '\u3106\u30FC\u311D', '\u3106\u30FC\u3123', '\u3106\u30FC\u3125', '\u3106\u311B', '\u3106\u3121', '\u3106\u3128', '\u3111\u30FC', '\u3111\u30FC\u311A', '\u3111\u30FC\u3122', '\u3111\u30FC\u3124', '\u3111\u30FC\u3120', '\u3111\u30FC\u311D', '\u3111\u30FC\u3123', '\u3111\u30FC\u3125', '\u3111\u3129\u3125', '\u3111\u30FC\u3121', '\u3111\u3129', '\u3111\u3129\u3122', '\u3111\u3129\u311D', '\u3111\u3129\u3123', '\u3116\u3122', '\u3116\u3124', '\u3116\u3120', '\u3116\u311C', '\u3116\u3123', '\u3116\u3125', '\u3116', '\u3116\u3128\u3125', '\u3116\u3121', '\u3116\u3128', '\u3116\u3128\u3122', '\u3116\u3128\u311F', '\u3116\u3128\u3123', '\u3116\u3128\u311B', '\u3119\u311A', '\u3119\u311E', '\u3119\u3122', '\u3119\u3124', '\u3119\u3120', '\u3119\u311C', '\u3119\u311F', '\u3119\u3123', '\u3119\u3125', '\u3115\u311A', '\u3115\u311E', '\u3115\u3122', '\u3115\u3124', '\u3115\u3120', '\u3115\u311C', '\u3115\u311F', '\u3115\u3123', '\u3115\u3125', '\u3115', '\u3115\u3121\u3125', '\u3115\u3121', '\u3115\u3128', '\u3115\u3128\u311A', '\u3115\u3128\u311E', '\u3115\u3128\u3122', '\u3115\u3128\u3124', '\u3115\u3128\u311F', '\u3115\u3128\u3123', '\u3115\u3128\u311B', '\u3119', '\u3119\u3128\u3125', '\u3119\u3121', '\u3119\u3128', '\u3119\u3128\u3122', '\u3119\u3128\u311F', '\u3119\u3128\u3123', '\u3119\u3128\u311B', '\u310A\u311A', '\u310A\u311E', '\u310A\u3122', '\u310A\u3124', '\u310A\u3120', '\u310A\u311C', '\u310A\u3125', '\u310A\u30FC', '\u310A\u30FC\u3122', '\u310A\u30FC\u3120', '\u310A\u30FC\u311D', '\u310A\u30FC\u3125', '\u310A\u3128\u3125', '\u310A\u3121', '\u310A\u3128', '\u310A\u3128\u3122', '\u310A\u3128\u311F', '\u310A\u3128\u3123', '\u310A\u3128\u311B', '\u3128\u311A', '\u3128\u311E', '\u3128\u3122', '\u3128\u3124', '\u3128\u311F', '\u3128\u3123', '\u3128\u3125', '\u3128\u311B', '\u3128', '\u3112\u30FC', '\u3112\u30FC\u311A', '\u3112\u30FC\u3122', '\u3112\u30FC\u3124', '\u3112\u30FC\u3120', '\u3112\u30FC\u311D', '\u3112\u30FC\u3123', '\u3112\u30FC\u3125', '\u3112\u3129\u3125', '\u3112\u30FC\u3121', '\u3112\u3129', '\u3112\u3129\u3122', '\u3112\u3129\u311D', '\u3112\u3129\u3123', '\u30FC\u311A', '\u30FC\u311E', '\u30FC\u3122', '\u30FC\u3124', '\u30FC\u3120', '\u30FC\u311D', '\u30FC', '\u30FC\u3123', '\u30FC\u3125', '\u30FC\u311B', '\u3129\u3125', '\u30FC\u3121', '\u3129', '\u3129\u3122', '\u3129\u311D', '\u3129\u3123', '\u3117\u311A', '\u3117\u311E', '\u3117\u3122', '\u3117\u3124', '\u3117\u3120', '\u3117\u311C', '\u3117\u311F', '\u3117\u3123', '\u3117\u3125', '\u3113\u311A', '\u3113\u311E', '\u3113\u3122', '\u3113\u3124', '\u3113\u3120', '\u3113\u311C', '\u3113\u311F', '\u3113\u3123', '\u3113\u3125', '\u3113', '\u3113\u3128\u3125', '\u3113\u3121', '\u3113\u3128', '\u3113\u3128\u311A', '\u3113\u3128\u311E', '\u3113\u3128\u3122', '\u3113\u3128\u3124', '\u3113\u3128\u311F', '\u3113\u3128\u3123', '\u3113\u3128\u311B', '\u3117', '\u3117\u3128\u3125', '\u3117\u3121', '\u3117\u3128', '\u3117\u3128\u3122', '\u3117\u3128\u311F', '\u3117\u3128\u3123', '\u3117\u3128\u311B'];
         
         // Pinyin info
         const _a = ["\u0101", "\u00E1", "\u01CE", "\u00E0", "a"],

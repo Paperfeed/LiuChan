@@ -1,4 +1,5 @@
 const webpack = require("webpack");
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ChromeExtensionReloader = require('webpack-chrome-extension-reloader');
@@ -11,7 +12,7 @@ const VERSION = packageJSON.version;
 
 const options = {
     entry: {
-        options: './src/js/Options.ts',
+        options: ['./src/js/Options.ts', './src/js/lib/color-picker.min.js'],
         background: './src/js/background/Background.ts',
         content: './src/js/content/LiuChanContent.ts'
     },
@@ -24,8 +25,10 @@ const options = {
         rules: [
             {
                 test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/
+                loader: 'ts-loader',
+                options: {
+                    transpileOnly: true // IMPORTANT! use transpileOnly mode to speed-up compilation
+                }
             }
         ]
     },
@@ -42,6 +45,7 @@ const options = {
 
 
 // Plugin operations (with variables to make dev/prod easier to separate
+const TypeScriptChecker = new ForkTsCheckerWebpackPlugin();
 const cleanOperation = new CleanWebpackPlugin(["release/dist/" + VERSION]);
 const copyOperation = new CopyWebpackPlugin([
     { from: 'css/*', ignore: ['*.scss'] },
@@ -52,7 +56,7 @@ const copyOperation = new CopyWebpackPlugin([
 ], { context: 'src/' });
 const zipOperation = new ZipPlugin({ filename: 'v' + VERSION + '.zip' });
 const chromeExtensionReloadWatch = new ChromeExtensionReloader({
-    port: 9090,
+    port: 9099,
     reloadPage: true,
     entries: {
         contentScript: 'content',
@@ -72,12 +76,14 @@ if (process.env.NODE_ENV === "development") {
     cleanOperation.paths = ["release/dist/dev"];
     options.plugins = [
         //cleanOperation,
+        TypeScriptChecker,
         copyOperation,
         chromeExtensionReloadWatch
     ];
 } else {
     options.mode = "production";
     options.plugins = [
+        TypeScriptChecker,
         cleanOperation,
         copyOperation,
         zipOperation

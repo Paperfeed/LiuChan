@@ -2,7 +2,13 @@
 
 // https://developer.chrome.com/extensions/options
 // Saves options to chrome.storage
-import CP from './lib/color-picker.min.js';
+//import './lib/color-picker.min.js';
+
+import { LiuChanOptions } from './background/LiuChan';
+
+
+
+declare const CP;
 
 
 
@@ -100,28 +106,30 @@ function saveOptions() {
             convertRGBA(colors[2].value)  // Drop Shadow
         ];
     
-    let newConfig = {
+    let newConfig : LiuChanOptions = {
         content: {
-            popupTheme: e.selectPopupTheme.value,
-            popupDelay: e.inputPopupDelay.value,
             highlightText: e.checkboxHighlightText.checked,
             highlightInput: e.checkboxHighlightInput.checked,
-            scaleOnZoom: e.checkboxScaleOnZoom.checked,
             showOnKey: parseInt((<HTMLInputElement>document.querySelector('input[name="showOnKey"]:checked')).value),
-            disableKeys: e.checkboxDisableKeys.checked
-        },
-        styling: {
-            useCustomization: e.checkboxUseCustomization.checked,
-            customColors: customColors,
-            borderThickness: parseFloat(e.sliderBorderThickness.value),
-            borderRadius: parseFloat(e.sliderBorderRadius.value)
+            disableKeys: e.checkboxDisableKeys.checked,
+            displayHelp: e.checkboxDisplayHelp.checked,
+            popup: {
+                popupTheme: e.selectPopupTheme.value,
+                popupDelay: e.inputPopupDelay.value,
+                scaleOnZoom: e.checkboxScaleOnZoom.checked,
+                useCustomization: e.checkboxUseCustomization.checked,
+                customStyling: {
+                    customColors: customColors,
+                    borderThickness: parseFloat(e.sliderBorderThickness.value),
+                    borderRadius: parseFloat(e.sliderBorderRadius.value)
+                }
+            }
         },
         hanziType: e.selectHanziType.value,
         pinyinType: e.selectPinyinType.value,
         definitionSeparator: e.selectDefinitionSeparator.value,
         useHanziToneColors: e.checkboxUseHanziToneColors.checked,
         usePinyinToneColors: e.checkboxUsePinyinToneColors.checked,
-        displayHelp: e.checkboxDisplayHelp.checked,
         lineEnding: e.selectLineEnding.value,
         copySeparator: e.selectCopySeparator.value,
         maxClipCopyEntries: e.inputMaxCopyEntries.value,

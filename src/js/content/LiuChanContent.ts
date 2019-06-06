@@ -1,5 +1,7 @@
-﻿import { Notepad } from './Notepad';
-import { Popup, PopupConfig } from './Popup';
+﻿import { Notepad, NotepadOptions } from './Notepad';
+import { Popup, PopupOptions } from './Popup';
+import { CommunicationLayer } from '../background/CommunicationLayer';
+import { Selection, SelectionFromElement, SelectionFromRange } from '../background/Selection';
 
 
 
@@ -8,73 +10,73 @@ export interface ContentOptions {
     highlightText: boolean;
     showOnKey: number;
     disableKeys: boolean;
-    popup: PopupConfig;
+    popup: PopupOptions;
+    notepad?: NotepadOptions;
+    displayHelp: boolean;
+}
+
+
+
+declare global {
+    interface Node {
+        data: any;
+        value: any;
+        length: number;
+    }
 }
 
 
 
 class LiuChanContent {
+    private readonly helpToolTip: string;
+    private mouseDown: boolean;
     private altView: number;
+    private keysDown: any[];
+    private isEnabled: boolean;
+    private timer: number;
     private config: ContentOptions;
-    private enabled: boolean;
-    private lastTarget: number;
-    private inputActive: boolean;
-    private lastFound: any;
-    private keysDown: any;
-    private mDown: any;
-    private isVisible: any;
-    private lastPos: any;
-    private prevTime: number;
-    private lastSelEnd: any[];
-    private lastRo: number;
-    private notepad: Notepad;
-    private oldTA: any;
-    private prevSelView: any;
-    private selText: string;
-    private oldCaret: number;
-    private kanjiChar: null;
-    private prevTarget: any;
     private popup: Popup;
-    private uofsNext: number;
-    private uofs: number;
-    private prevRangeOfs: number;
-    private prevRangeNode: any;
+    private notepad: Notepad;
+    private inputActive: boolean;
+    private selection: SelectionFromElement | SelectionFromRange;
     
     
     constructor() {
         this.altView = 0;
-        this.enabled = false;
-        this.lastTarget = null;
-        this.inputActive = false;
-        this.lastFound = null;
+        this.isEnabled = false;
         this.keysDown = [];
-        this.mDown = false;
-        this.isVisible = false;
-        this.lastPos = {
-            x: null,
-            y: null
-        };
-        this.lastSelEnd = []; // Hack because SelEnd can't be sent in messages
-        this.lastRo = 0; // Hack because ro was coming out always 0 for some reason.
+        this.mouseDown = false;
+        
+        this.helpToolTip = '<div class="liutitle">LiuChan enabled!</div>' +
+            '<table cellspacing=5>' +
+            '<tr><td>A</td><td>Alternate popup location</td></tr>' +
+            '<tr><td>Y</td><td>Move popup down</td></tr>' +
+            '<tr><td>C</td><td>Copy to clipboard</td></tr>' +
+            '<tr><td>D</td><td>Hide/show definitions</td></tr>' +
+            '<tr><td>B</td><td>Previous character</td></tr>' +
+            '<tr><td>M</td><td>Next character</td></tr>' +
+            '<tr><td>N</td><td>Next word</td></tr>' +
+            '<tr><td>T</td><td>&#x1F508;Text-To-Speech</td></tr>' +
+            '</table>';
         
         this.messageHandler = this.messageHandler.bind(this);
         
         chrome.runtime.onMessage.addListener(this.messageHandler);
-        // When a page first loads, check to see if it should enable the content script
-        chrome.runtime.sendMessage({ "type": "enable?", "enabled": this.enabled });
+        CommunicationLayer.runtimeSendMessage({
+            'type': 'initialize'
+        }, this.messageHandler)
     }
     
     
     messageHandler(message, sender, response) {
+        console.log('[CONTENT]Received message', message);
+        
         switch (message.type) {
+            case 'initialize':
+                this.config = message.config;
+                break;
             case 'enable':
-                if (message.config) this.config = message.config;
-                if (!this.enabled) {
-                    this.enableTab();
-                } else {
-                    this.updateTheme();
-                }
-                if (message.displayHelp) this.popup.showPopup(message.displayHelp);
+                this.enableTab();
                 break;
             case 'disable':
                 this.disableTab();
@@ -86,8 +88,7 @@ class LiuChanContent {
                 if (this.notepad) {
                     this.notepad.toggleOverlay();
                 } else {
-                    this.config.popup.popupTheme = message.theme;
-                    this.notepad = new Notepad();
+                    this.notepad = new Notepad(this.config.notepad);
                 }
                 break;
             case 'update':
@@ -97,9 +98,13 @@ class LiuChanContent {
                 break;
             case 'heartbeat':
                 response({ 'alive': true });
+                this.enableTab();
+                if (this.config.displayHelp) {
+                    this.popup.showPopup(this.helpToolTip);
+                }
                 break;
             default:
-                console.log('Contentscript received unknown request: ', message);
+                console.log('Content script received unknown request: ', message);
         }
         
         return Promise.resolve();
@@ -108,16 +113,9 @@ class LiuChanContent {
     
     
     enableTab() {
-        // Add the listeners and create and insert popup element and stylesheet
-        
-        // Store current active input - this is for not messing with user's highlighted text
-        if (document.activeElement.nodeName === 'TEXTAREA' || document.activeElement.nodeName === 'INPUT') {
-            this.oldTA = document.activeElement;
-        }
-        
         // This timer acts as a 20ms delay between mousemove and update of popup to prevent excessive CPU strain
         // Set initial value to 999 so that it actually trips and updates
-        this.prevTime = 999;
+        this.timer = 999;
         this.keysDown[0] = 0;
         this.popup = new Popup(this.config.popup);
         
@@ -136,7 +134,7 @@ class LiuChanContent {
         window.addEventListener('mouseup', this.onMouseUp, false);
         window.onresize = this.popup.setZoomLevel;
         
-        this.enabled = true;
+        this.isEnabled = true;
     }
     
     
@@ -157,9 +155,9 @@ class LiuChanContent {
         if (popup) popup.parentNode.removeChild(popup);
         
         // Clear any highlighted text left by Liuchan
-        this.clearHighlight();
+        this.selection.clear();
         
-        this.enabled = false;
+        this.isEnabled = false;
     }
     
     
@@ -176,9 +174,185 @@ class LiuChanContent {
         if (popup) {
             this.popup.setCustomStyling();
         }
+        
     }
     
     
+    activeElementIsInput() {
+        // radio|checkbox|undefined|file|range|week|month|submit|reset|number|date
+        // Actual useful elements: text|email|password|search|tel|url|number
+        
+        const test = element =>
+            element === 'text' ||
+            element === 'email' ||
+            element === 'password' ||
+            element === 'search' ||
+            element === 'tel' ||
+            element === 'url' ||
+            element === 'number';
+        
+        return test((<HTMLInputElement>document.activeElement).type);
+    }
+    
+    
+    onKeyDown(ev) {
+        // If key is being held already, return
+        if (this.keysDown[ev.keyCode]) return;
+        
+        // If user has selected an input, disable hotkeys
+        if (this.inputActive) return;
+        
+        this.modifierCheck(ev);
+        
+        // This only runs if popup hotkeys are enabled and popup is visible
+        if (!this.config.disableKeys && this.popup.isVisible) {
+            switch (ev.key) {
+                case "Escape":
+                    this.popup.hidePopup();
+                    this.selection.clear();
+                    break;
+                case "a":
+                    this.popup.location = (this.popup.location + 1) % 3;
+                    this.popup.showPopup(ev.currentTarget.liuchan);
+                    break;
+                case "c":
+                    // TODO fix copy
+                    /*chrome.runtime.sendMessage({
+                        "type": "copyToClip",
+                        "entry": this.lastFound
+                    });*/
+                    break;
+                case "b":
+                    // TODO Implement Seeking
+                    /*let ofs = ev.currentTarget.liuchan.uofs;
+                    for (let i = 50; i > 0; --i) {
+                        ev.currentTarget.liuchan.uofs = --ofs;
+                        if (this.show(ev.currentTarget.liuchan) >= 0) {
+                            if (ofs >= ev.currentTarget.liuchan.uofs) break;
+                        }
+                    }*/
+                    break;
+                case "d":
+                    chrome.runtime.sendMessage({
+                        "type": "toggleDefinition"
+                    });
+                    this.popup.showPopup(ev.currentTarget.liuchan);
+                    break;
+                case "m":
+                // TODO Implement Seeking
+                //ev.currentTarget.liuchan.uofsNext = 1;
+                // Fallthrough on purpose
+                case "n":
+                    // TODO Implement Seeking
+                    /*for (let i = 50; i > 0; --i) {
+                        ev.currentTarget.liuchan.uofs += ev.currentTarget.liuchan.uofsNext;
+                        if (this.show(ev.currentTarget.liuchan) >= 0) break;
+                    }*/
+                    break;
+                case "y":
+                    this.altView = 0;
+                    ev.currentTarget.liuchan.popY += 20;
+                    this.popup.showPopup(ev.currentTarget.liuchan);
+                    break;
+                case "t":
+                    // todo fix tts
+                    /*chrome.runtime.sendMessage({
+                        "type": "tts",
+                        "text": this.lastFound[0].data[0].trad
+                    });*/
+                    break;
+                default:
+                    return;
+            }
+            this.keysDown[ev.keyCode] = 1;
+        }
+    }
+    
+    
+    onKeyUp(ev) {
+        if (this.keysDown[ev.keyCode]) this.keysDown[ev.keyCode] = 0;
+        
+        this.modifierCheck(ev);
+        
+        if (this.keysDown[0] !== this.config.showOnKey) {
+            this.selection.clear();
+            this.popup.hidePopup();
+        }
+        
+        this.inputActive = this.activeElementIsInput();
+    }
+    
+    
+    modifierCheck(ev) {
+        // Set modifier keys as 'flag' in keysDown[0].
+        // Popup will show based on stored combination (0 = none, 1 = ctrl, 2 = alt, 3 = ctrl+alt and so on)
+        this.keysDown[0] = 0;
+        if (ev.ctrlKey) this.keysDown[0] += 1;
+        if (ev.altKey) this.keysDown[0] += 2;
+        if (ev.shiftKey) this.keysDown[0] += 4;
+    }
+    
+    
+    onMouseDown(ev) {
+        if (ev.button !== 0) return;
+        
+        if (this.popup.isVisible) {
+            this.selection.clear();
+        }
+        
+        this.mouseDown = true;
+    }
+    
+    
+    onMouseUp(ev) {
+        if (ev.button !== 0) return;
+        
+        this.mouseDown = false;
+    }
+    
+    
+    onMouseMove(ev) {
+        // Delay to reduce CPU strain
+        if ((new Date().getTime() - this.timer) > 20) {
+            this.timer = new Date().getTime();
+            this.createSelection(ev);
+        }
+    }
+    
+    
+    
+    createSelection(ev) {
+        const MAX_SELECTION_LENGTH = 14;
+        const selection = Selection({ x: ev.clientX, y: ev.clientY });
+        
+        // Don't waste CPU cycles looking for words longer than the longest word in the dictionary (currently hardcoded)
+        selection.setEndOffset(MAX_SELECTION_LENGTH);
+        this.selection = selection;
+        
+        CommunicationLayer.runtimeSendMessage({
+            type: 'xsearch',
+            text: selection.text()
+        }, results => this.processResults(results));
+    }
+    
+    processResults(results) {
+        this.popup.showPopup(results, this.selection.getRect());
+    }
+    
+    
+    
+    
+    
+    /////
+    /////
+    /////
+    /////
+    ///// Graveyard
+    /////
+    /////
+    
+    
+    /*
     clearHighlight() {
         if (!this.prevSelView) return;
         if (this.prevSelView.closed) {
@@ -208,167 +382,18 @@ class LiuChanContent {
         this.kanjiChar = null;
         this.selText = null;
     }
+    */
     
-    
-    activeElementIsInput() {
-        //var expr = /radio|checkbox|undefined|file|range|week|month|submit|reset|number|date/;
-        const expr = /text|email|password|search|tel|url|number/;
-        return expr.test((<HTMLInputElement>document.activeElement).type);
-    }
-    
-    
-    onKeyDown(ev) {
-        // If key is being held already, return
-        if (this.keysDown[ev.keyCode]) return;
-        
-        // If user has selected an input, disable hotkeys
-        if (this.inputActive) return;
-        
-        this.modifierCheck(ev);
-        
-        // This only runs if popup hotkeys are enabled and popup is visible
-        if (!this.config.disableKeys && this.popup.isVisible) {
-            switch (ev.key) {
-                case "Escape":
-                    this.popup.hidePopup();
-                    this.clearHighlight();
-                    break;
-                case "a":
-                    this.popup.location = (this.popup.location + 1) % 3;
-                    this.show(ev.currentTarget.liuchan);
-                    break;
-                case "c":
-                    // TODO save to wordlist
-                    chrome.runtime.sendMessage({
-                        "type": "copyToClip",
-                        "entry": this.lastFound
-                    });
-                    break;
-                case "b":
-                    let ofs = ev.currentTarget.liuchan.uofs;
-                    for (let i = 50; i > 0; --i) {
-                        ev.currentTarget.liuchan.uofs = --ofs;
-                        if (this.show(ev.currentTarget.liuchan) >= 0) {
-                            if (ofs >= ev.currentTarget.liuchan.uofs) break;
-                        }
-                    }
-                    break;
-                case "d":
-                    chrome.runtime.sendMessage({
-                        "type": "toggleDefinition"
-                    });
-                    this.show(ev.currentTarget.liuchan);
-                    break;
-                case "m":
-                    ev.currentTarget.liuchan.uofsNext = 1;
-                // Fallthrough on purpose
-                case "n":
-                    for (let i = 50; i > 0; --i) {
-                        ev.currentTarget.liuchan.uofs += ev.currentTarget.liuchan.uofsNext;
-                        if (this.show(ev.currentTarget.liuchan) >= 0) break;
-                    }
-                    break;
-                case "y":
-                    this.altView = 0;
-                    ev.currentTarget.liuchan.popY += 20;
-                    this.show(ev.currentTarget.liuchan);
-                    break;
-                case "t":
-                    chrome.runtime.sendMessage({
-                        "type": "tts",
-                        "text": this.lastFound[0].data[0].trad
-                    });
-                    break;
-                default:
-                    return;
-            }
-            this.keysDown[ev.keyCode] = 1;
-        }
-    }
-    
-    
-    onKeyUp(ev) {
-        if (this.keysDown[ev.keyCode]) this.keysDown[ev.keyCode] = 0;
-        
-        this.modifierCheck(ev);
-        
-        if (this.keysDown[0] !== this.config.showOnKey) {
-            this.clearHighlight();
-            this.popup.hidePopup();
-        }
-        
-        this.inputActive = this.activeElementIsInput();
-    }
-    
-    
-    modifierCheck(ev) {
-        // Set modifier keys as 'flag' in keysDown[0].
-        // Popup will show based on stored combination (0 = none, 1 = ctrl, 2 = alt, 3 = ctrl+alt and so on)
-        this.keysDown[0] = 0;
-        if (ev.ctrlKey) this.keysDown[0] += 1;
-        if (ev.altKey) this.keysDown[0] += 2;
-        if (ev.shiftKey) this.keysDown[0] += 4;
-    }
-    
-    
-    onMouseDown(ev) {
-        if (ev.button !== 0) {
-            return;
-        }
-        if (this.isVisible) {
-            this.clearHighlight();
-        }
-        this.mDown = true;
-        
-        this.inputActive = this.activeElementIsInput();
-        
-        // If we click outside of a text box then we set oldCaret to -1 as an indicator not to restore position.
-        // Otherwise, we switch our saved textarea to where we just clicked
-        if (!('form' in ev.target))
-            this.oldCaret = -1;
-        else
-            this.oldTA = ev.target;
-    }
-    
-    
-    onMouseUp(ev) {
-        if (ev.button !== 0)
-            return;
-        this.mDown = false;
-    }
-    
-    
-    onMouseMove(ev) {
-        // Delay to reduce CPU strain
-        if ((new Date().getTime() - this.prevTime) > 20) {
-            this.prevTime = new Date().getTime();
-            this.lastPos.x = ev.clientX;
-            this.lastPos.y = ev.clientY;
-            this.lastTarget = ev.target;
-            this.tryUpdatePopup(ev);
-        }
-    }
-    
-    
-    tryUpdatePopup(ev) {
-        const range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
-        if (range === null) return;
-        
-        const { startContainer, startOffset } = range;
-        if ((<any>startContainer).data === undefined) return;
-        (<any>startContainer).data.substr(startOffset);
-    }
-    
-    
-    /*tryUpdatePopup(ev) {
+    /*
+    tryUpdatePopupOLD(ev) {
         // Don't show or update if modifier keys are not pressed (if configured by user)
         if (this.config.showOnKey) {
             if (this.keysDown[0] !== this.config.showOnKey && (!this.isVisible)) return;
         }
-
+        
         let fake;
         const range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
-
+        
         if (range == null) return;
         let rp = range.startContainer,
             ro = range.startOffset;
@@ -378,14 +403,14 @@ class LiuChanContent {
                 fake = this.makeFake(ev.target);
                 document.body.appendChild(fake);
             }
-
+            
             // This is to account for bugs in caretRangeFromPoint.
             // It includes the fact that it returns text nodes over non text nodes
             // and also the fact that it miss the first character of inline nodes
-
+            
             // If the range offset is equal to the node data length
             // then we have the second case and need to correct
-            if ((rp.data) && ro === rp.data.length) {
+            if ((<any>rp).data && ro === (<any>rp).data.length) {
                 // A special exception is the WBR tag which is inline but doesn't
                 // contain text.
                 if ((rp.nextSibling) && (rp.nextSibling.nodeName === 'WBR')) {
@@ -407,7 +432,7 @@ class LiuChanContent {
                     ro = 0;
                 }
             }
-
+            
             // The case where the before div is empty so the false spot is in the parent
             // but we should be able to take the target.
             // The 1 seems random but it actually represents the preceding empty tag
@@ -422,9 +447,9 @@ class LiuChanContent {
             else if (!fake && (!rp || rp.parentNode !== ev.target)) {
                 rp = null;
                 ro = -1;
-
+                
             }
-
+            
             // For text nodes do special stuff:
             // 1) we make rp the text area and keep the offset the same
             // 2) we give the text area data so it can act normal
@@ -434,7 +459,7 @@ class LiuChanContent {
                 const newRange = document.caretRangeFromPoint(ev.clientX, ev.clientY);
                 ro = newRange.startOffset;
             }
-
+            
             if (ev.target === this.prevTarget && this.isVisible) {
                 if (this.title) {
                     if (fake) document.body.removeChild(fake);
@@ -445,60 +470,62 @@ class LiuChanContent {
                     return;
                 }
             }
-
+            
             if (fake) document.body.removeChild(fake);
         } catch (err) {
             console.log(err.message);
             if (fake) document.body.removeChild(fake);
             return;
         }
-
-        tdata.prevTarget = ev.target;
-        tdata.prevRangeNode = rp;
-        tdata.prevRangeOfs = ro;
-        tdata.title = null;
-        tdata.uofs = 0;
+        
+        this.prevTarget = ev.target;
+        this.prevRangeNode = rp;
+        this.prevRangeOfs = ro;
+        this.title = null;
+        this.uofs = 0;
         this.uofsNext = 1;
-
+        
         if (rp && rp.data && ro < rp.data.length) {
-            tdata.popX = ev.clientX;
-            tdata.popY = ev.clientY;
-            if (this.config.popupDelay > 0) {
-                clearTimeout(tdata.timer);
-                tdata.timer = setTimeout(() => {
-                    this.show(tdata);
-                }, this.config.popupDelay);
+            this.popX = ev.clientX;
+            this.popY = ev.clientY;
+            if (this.config.popup.popupDelay > 0) {
+                clearTimeout(this.timer);
+                this.timer = setTimeout(() => {
+                    this.show(this);
+                }, this.config.popup.popupDelay);
             } else {
-                this.show(tdata);
+                this.show(this);
             }
             return;
         }
-
+        
         if ((typeof(ev.target.title) === 'string') && (ev.target.title.length)) {
-            tdata.title = ev.target.title;
+            this.title = ev.target.title;
         } else if ((typeof(ev.target.alt) === 'string') && (ev.target.alt.length)) {
-            tdata.title = ev.target.alt;
+            this.title = ev.target.alt;
         }
-
+        
         // FF3
         if (ev.target.nodeName === 'OPTION') {
-            tdata.title = ev.target.text;
+            this.title = ev.target.text;
         } else if (ev.target.nodeName === 'SELECT' && ev.target.options[ev.target.selectedIndex]) {
-            tdata.title = ev.target.options[ev.target.selectedIndex].text;
+            this.title = ev.target.options[ev.target.selectedIndex].text;
         }
-
+        
         // Don't close just because we moved from a valid popup slightly over to a place with nothing
-        const dx = tdata.popX - ev.clientX,
-            dy = tdata.popY - ev.clientY,
+        const dx = this.popX - ev.clientX,
+            dy = this.popY - ev.clientY,
             distance = Math.sqrt(dx * dx + dy * dy);
-
+        
         if (distance > 4) {
             this.clearHighlight();
-            this.hidePopup();
+            this.popup.hidePopup();
         }
-    }*/
+    }
+    */
     
     
+    /*
     show(tdata) {
         this.isVisible = true;
         
@@ -531,7 +558,7 @@ class LiuChanContent {
         
         //selection end data
         let selEndList = [],
-            text = this.getTextFromRange(rp, ro, selEndList, 20 /*maxlength*/);
+            text = this.getTextFromRange(rp, ro, selEndList, 20);
         
         this.lastSelEnd = selEndList;
         this.lastRo = ro;
@@ -543,8 +570,10 @@ class LiuChanContent {
         
         return 1;
     }
+    */
     
     
+    /*
     isInline(node) {
         const inlineNames = {
             // text node
@@ -731,6 +760,7 @@ class LiuChanContent {
             this.prevSelView = doc.defaultView;
         }
         
+        console.log(e);
         chrome.runtime.sendMessage({
             "type": "makehtml",
             "entry": e
@@ -839,7 +869,7 @@ class LiuChanContent {
         
         return fake;
     }
-    
+    */
 }
 
 

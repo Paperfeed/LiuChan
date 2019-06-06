@@ -2,381 +2,386 @@
 <html>
 
 <head>
-	<link rel="stylesheet" type="text/css" href="../css/options.css" />
-	<link rel="stylesheet" type="text/css" href="../css/popup-liuchan.css" />
-	<title>LiuChan settings</title>
-	<meta charset="utf-8">
-	<script src="../js/options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/options.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/popup-liuchan.css"/>
+    <title>LiuChan settings</title>
+    <meta charset="utf-8">
+    <script src="../js/options.js"></script>
+    <!--script src="../js/lib/color-picker.min.js"></script-->
 </head>
 
 <body>
 <div id="container">
-	<div id="options">
-		<div class="tab">
-			<div id="status">Options Saved!</div>
-			<h3>General</h3>
-			<table class="table" cellspacing=3>
-				<tr>
-					<td>Popup Theme:</td>
-					<td>
-						<select class="config" id="popupTheme" name="popupTheme">
-							<option value="liuchan">LiuChan</option>
-							<option value="pleco">Pleco</option>
-							<option value="charcoal">Charcoal</option>
-							<option value="paper">Paper</option>
-							<option value="sepia">Sepia</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Pronunciation:</td>
-					<td>
-						<select class="config" id="pinyinType" name="pinyinType">
-							<option value="tonemarks">Tone Marks</option>
-							<option value="tonenums">Tone Numbers</option>
-							<option value="zhuyin">Zhuyin</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Definition Separator:</td>
-					<td>
-						<select class="config" id="definitionSeparator" name="definitionSeparator">
-							<option value="num">Numbers</option>
-							<option value="; ">Semicolon</option>
-							<option value=" / ">Slash</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Hanzi Setting:</td>
-					<td>
-						<select class="config" id="hanziType" name="hanziType">
-							<option value="simp">Simplified</option>
-							<option value="trad">Traditional</option>
-							<option value="boths">Simp, Trad</option>
-							<option value="botht">Trad, Simp</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Popup delay:</td>
-					<td>
-						<input class="config" type="number" id="popupDelay" name="popupDelay" min="0" max="1000"
-							   value="0">ms
-					</td>
-				</tr>
-			</table>
-			<table class="table" cellspacing=5>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="checkboxHighlightText"
-							   name="checkboxHighlightText">Highlight
-						text</input>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="checkboxHighlightInput"
-							   name="checkboxHighlightInput">Highlight
-						text inside	of inputs</input>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="displayHelp" name="displayHelp">Show help on enable
-						</input><span
-							tooltip="Show a reminder of the hotkeys when you enable Liuchan. It will not show if
+    <div id="options">
+        <div class="tab">
+            <div id="status">Options Saved!</div>
+            <h3>General</h3>
+            <table class="table" cellspacing=3>
+                <tr>
+                    <td>Popup Theme:</td>
+                    <td>
+                        <select class="config" id="popupTheme" name="popupTheme">
+                            <option value="liuchan">LiuChan</option>
+                            <option value="pleco">Pleco</option>
+                            <option value="charcoal">Charcoal</option>
+                            <option value="paper">Paper</option>
+                            <option value="sepia">Sepia</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Pronunciation:</td>
+                    <td>
+                        <select class="config" id="pinyinType" name="pinyinType">
+                            <option value="tonemarks">Tone Marks</option>
+                            <option value="tonenums">Tone Numbers</option>
+                            <option value="zhuyin">Zhuyin</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Definition Separator:</td>
+                    <td>
+                        <select class="config" id="definitionSeparator" name="definitionSeparator">
+                            <option value="num">Numbers</option>
+                            <option value="; ">Semicolon</option>
+                            <option value=" / ">Slash</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Hanzi Setting:</td>
+                    <td>
+                        <select class="config" id="hanziType" name="hanziType">
+                            <option value="simp">Simplified</option>
+                            <option value="trad">Traditional</option>
+                            <option value="boths">Simp, Trad</option>
+                            <option value="botht">Trad, Simp</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Popup delay:</td>
+                    <td>
+                        <input class="config" type="number" id="popupDelay" name="popupDelay" min="0" max="1000"
+                               value="0">ms
+                    </td>
+                </tr>
+            </table>
+            <table class="table" cellspacing=5>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="checkboxHighlightText"
+                               name="checkboxHighlightText">Highlight
+                        text</input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="checkboxHighlightInput"
+                               name="checkboxHighlightInput">Highlight
+                        text inside of inputs</input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="displayHelp" name="displayHelp">Show help on enable
+                        </input><span
+                            tooltip="Show a reminder of the hotkeys when you enable Liuchan. It will not show if
 							hotkeys are disabled">[?]</span>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="scaleOnZoom" name="scaleOnZoom">Scale popup on zoom
-						</input><span tooltip="If disabled, the popup will no longer scale along with the content of
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="scaleOnZoom" name="scaleOnZoom">Scale popup on zoom
+                        </input><span tooltip="If disabled, the popup will no longer scale along with the content of
 						the page if you zoom in">[?]</span>
-					</td>
-				</tr>
-			</table>
-		</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-		<div class="tab">
-			<div class="flex">
-				<div class="leftbox">
-					<h3>Keyboard</h3>
-					<table class="table" cellspacing=5>
-						<tr>
-							<td>
-								Show popup only on key:
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input class="config" type="radio" name="showOnKey" value="0" checked>None</input>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input class="config" type="radio" name="showOnKey" value="1">Ctrl</input>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input class="config" type="radio" name="showOnKey" value="2">Alt</input>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input class="config" type="radio" name="showOnKey" value="4">Shift</input>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input class="config" type="radio" name="showOnKey" value="3">Ctrl + Alt</input>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input class="config" type="radio" name="showOnKey" value="7">Ctrl
-								+ Alt + Shift</input>
-							</td>
-						</tr>
-					</table>
-					<div class="bottom">
-						<input class="config" type="checkbox" id="disableKeys" name="disableKeys">Disable hotkeys</input>
-					</div>
-				</div>
-				<div>
-					<div class="hotkeys">
-						<p>Hotkeys when popup is visible</p>
-						<table cellspacing=5>
-							<tr>
-								<td>A</td>
-								<td>Alternate popup location</td>
-							</tr>
-							<tr>
-								<td>Y</td>
-								<td>Move popup location down</td>
-							</tr>
-							<tr>
-								<td>C</td>
-								<td>Copy to clipboard</td>
-							</tr>
-							<tr>
-								<td>D</td>
-								<td>Hide/show definitions</td>
-							</tr>
-							<tr>
-								<td>B</td>
-								<td>Previous character</td>
-							</tr>
-							<tr>
-								<td>M</td>
-								<td>Next character</td>
-							</tr>
-							<tr>
-								<td>N</td>
-								<td>Next word</td>
-							</tr>
-							<tr>
-								<td>T</td>
-								<td>Text-To-Speech</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-			</div>
+        <div class="tab">
+            <div class="flex">
+                <div class="leftbox">
+                    <h3>Keyboard</h3>
+                    <table class="table" cellspacing=5>
+                        <tr>
+                            <td>
+                                Show popup only on key:
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="config" type="radio" name="showOnKey" value="0" checked>None</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="config" type="radio" name="showOnKey" value="1">Ctrl</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="config" type="radio" name="showOnKey" value="2">Alt</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="config" type="radio" name="showOnKey" value="4">Shift</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="config" type="radio" name="showOnKey" value="3">Ctrl + Alt</input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="config" type="radio" name="showOnKey" value="7">Ctrl
+                                + Alt + Shift</input>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="bottom">
+                        <input class="config" type="checkbox" id="disableKeys" name="disableKeys">Disable
+                        hotkeys</input>
+                    </div>
+                </div>
+                <div>
+                    <div class="hotkeys">
+                        <p>Hotkeys when popup is visible</p>
+                        <table cellspacing=5>
+                            <tr>
+                                <td>A</td>
+                                <td>Alternate popup location</td>
+                            </tr>
+                            <tr>
+                                <td>Y</td>
+                                <td>Move popup location down</td>
+                            </tr>
+                            <tr>
+                                <td>C</td>
+                                <td>Copy to clipboard</td>
+                            </tr>
+                            <tr>
+                                <td>D</td>
+                                <td>Hide/show definitions</td>
+                            </tr>
+                            <tr>
+                                <td>B</td>
+                                <td>Previous character</td>
+                            </tr>
+                            <tr>
+                                <td>M</td>
+                                <td>Next character</td>
+                            </tr>
+                            <tr>
+                                <td>N</td>
+                                <td>Next word</td>
+                            </tr>
+                            <tr>
+                                <td>T</td>
+                                <td>Text-To-Speech</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-		</div>
-		<div class="tab">
-			<h3>Customize Theme</h3>
-			<div id="liuchan-window" style="position:relative;margin: 10px;z-index:0;">
-				<div class="liuchan-container">
-					<div class="entry">
-						<div class="hanzi"><span class="tone2">流</span><span class="tone4">畅</span><span
-								class="tone2">弹</span><span
-								class="tone1">窗</span><span class="tone2">词</span><span class="tone3">典</span></div>
-						<div class="pinyin"><span class="tone2">liú</span> <span class="tone4">chàng</span>
-							<span
-									class="tone2">tán</span>
-							<span class="tone1">chuāng</span> <span class="tone2">cí</span> <span
-									class="tone3">diǎn</span></div>
-						<div class="def"><b>1</b> LiuChan Popup Dictionary</div>
-					</div>
-					<div class="entry">
-						<div class="hanzi"><span class="tone2">流</span><span class="tone4">畅</span><span
-								class="spacer"></span><span
-								class="brace">[</span><span class="tone2">・</span><span class="tone4">暢</span><span
-								class="brace">]</span></div>
-						<div class="pinyin"><span class="tone2">liú </span><span class="tone4">chàng </span></div>
-						<div class="def"><b>1</b> flowing (of speech, writing) <b>2</b> fluent <b>3</b> smooth and easy
-						</div>
-					</div>
-					<div class="entry">
-						<div class="hanzi"><span class="tone2">弹</span><span class="tone1">窗</span><span
-								class="spacer"></span><span class="brace">[</span><span class="tone2">彈</span><span
-								class="tone1">・</span><span class="brace">]</span></div>
-						<div class="pinyin"><span class="tone2">tán </span><span class="tone1">chuāng </span></div>
-						<div class="def">pop-up window (computing)</div>
-					</div>
-					<div class="entry">
-						<div class="hanzi"><span class="tone2">词</span><span class="tone3">典</span><span
-								class="spacer"></span><span class="brace">[</span><span class="tone2">詞</span><span
-								class="tone3">・</span><span class="brace">]</span></div>
-						<div class="pinyin"><span class="tone2">cí </span><span class="tone3">diǎn </span></div>
-						<div class="def"><b>1</b> dictionary (of Chinese compound words)
-						</div>
-					</div>
-				</div>
-			</div>
-			<h4>Tone Colors:</h4>
-			<table class="table" cellspacing=3>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="useHanziToneColors" name="useHanziToneColors">Color hanzi by
-						tone </input><span
-							tooltip="If disabled, you can use the tone 1 color picker to change the color (Remember to enable
+        </div>
+        <div class="tab">
+            <h3>Customize Theme</h3>
+            <div id="liuchan-window" style="position:relative;margin: 10px;z-index:0;">
+                <div class="liuchan-container">
+                    <div class="entry">
+                        <div class="hanzi"><span class="tone2">流</span><span class="tone4">畅</span><span
+                                class="tone2">弹</span><span
+                                class="tone1">窗</span><span class="tone2">词</span><span class="tone3">典</span></div>
+                        <div class="pinyin"><span class="tone2">liú</span> <span class="tone4">chàng</span>
+                            <span
+                                    class="tone2">tán</span>
+                            <span class="tone1">chuāng</span> <span class="tone2">cí</span> <span
+                                    class="tone3">diǎn</span></div>
+                        <div class="def"><b>1</b> LiuChan Popup Dictionary</div>
+                    </div>
+                    <div class="entry">
+                        <div class="hanzi"><span class="tone2">流</span><span class="tone4">畅</span><span
+                                class="spacer"></span><span
+                                class="brace">[</span><span class="tone2">・</span><span class="tone4">暢</span><span
+                                class="brace">]</span></div>
+                        <div class="pinyin"><span class="tone2">liú </span><span class="tone4">chàng </span></div>
+                        <div class="def"><b>1</b> flowing (of speech, writing) <b>2</b> fluent <b>3</b> smooth and easy
+                        </div>
+                    </div>
+                    <div class="entry">
+                        <div class="hanzi"><span class="tone2">弹</span><span class="tone1">窗</span><span
+                                class="spacer"></span><span class="brace">[</span><span class="tone2">彈</span><span
+                                class="tone1">・</span><span class="brace">]</span></div>
+                        <div class="pinyin"><span class="tone2">tán </span><span class="tone1">chuāng </span></div>
+                        <div class="def">pop-up window (computing)</div>
+                    </div>
+                    <div class="entry">
+                        <div class="hanzi"><span class="tone2">词</span><span class="tone3">典</span><span
+                                class="spacer"></span><span class="brace">[</span><span class="tone2">詞</span><span
+                                class="tone3">・</span><span class="brace">]</span></div>
+                        <div class="pinyin"><span class="tone2">cí </span><span class="tone3">diǎn </span></div>
+                        <div class="def"><b>1</b> dictionary (of Chinese compound words)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h4>Tone Colors:</h4>
+            <table class="table" cellspacing=3>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="useHanziToneColors" name="useHanziToneColors">Color
+                        hanzi by
+                        tone </input><span
+                            tooltip="If disabled, you can use the tone 1 color picker to change the color (Remember to enable
 										 custom tone colors!)">[?]</span>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="usePinyinToneColors"
-							   name="usePinyinToneColors">Color pinyin by tone </input><span
-							tooltip="If disabled, you can use the pinyin color picker to change the color (Remember to enable
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="usePinyinToneColors"
+                               name="usePinyinToneColors">Color pinyin by tone </input><span
+                            tooltip="If disabled, you can use the pinyin color picker to change the color (Remember to enable
 										 custom tone colors!)">[?]</span>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="useCustomTones" name="useCustomTones">Use custom
-					tone colors</input>
-					</td>
-					<td>
-						<button id="resetTones" style="margin: 0;">Reset</button>
-					</td>
-				</tr>
-			</table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="useCustomTones" name="useCustomTones">Use custom
+                        tone colors</input>
+                    </td>
+                    <td>
+                        <button id="resetTones" style="margin: 0;">Reset</button>
+                    </td>
+                </tr>
+            </table>
 
-			<div style="margin-bottom:8px;">
-				<input title="Color of first tone" id="tone1" class="config colorpicker" value="#F2777A">
-				<input title="Color of second tone" id="tone2" class="config colorpicker" value="#99CC99">
-				<input title="Color of third tone" id="tone3" class="config colorpicker" value="#6699CC">
-				<input title="Color of fourth tone" id="tone4" class="config colorpicker" value="#CC99CC">
-				<input title="Color of fifth tone" id="tone5" class="config colorpicker" value="#CCCCCC">
-				<input title="Color of pinyin (if 'Color pinyin by tone' is disabled)" id="tone6" class="config colorpicker"
-					   value="#66CCCC">
-			</div>
-			<h4>Popup:</h4>
-			<table class="table" cellspacing=3>
-				<tr>
-					<td>
-						<input class="config" type="checkbox" id="useCustomization" name="useCustomization">Enable
-						Custom Popup</input>
-					</td>
-					<td>
-						<button id="resetCustomization">Reset</button>
-					</td>
-				</tr>
-				<tr>
-					<td>Colors:</td>
-					<td>
-						<input title="Background Color" id="backgroundColor" class="config colorpicker"
-							   style="width:30px;height:30px;" value="#FFFFE0">
-						<input title="Border Color" id="borderColor" class="config colorpicker"
-							   style="width:30px;height:30px;" value="#D7D3AF">
-						<input title="Drop Shadow Color" id="dropShadowColor" class="config colorpicker"
-							   style="width:30px;height:30px;" value="#420808">
-					</td>
-				</tr>
-				<tr>
-					<td>Border Thickness:</td>
-					<td>
-						<input class="config" type="range" id="borderThickness" step=".1" min="0" max="10" value="2">
-					</td>
-					<td>
-						<p id="borderThicknessValue">2</p>
-					</td>
-				</tr>
-				<tr>
-					<td>Border Radius:</td>
-					<td>
-						<input class="config" type="range" id="borderRadius" step="1" min="0" max="25" value="8">
-					</td>
-					<td>
-						<p id="borderRadiusValue">8</p>
-					</td>
-				</tr>
-				<tr>
-					<td>Drop Shadow Opacity:</td>
-					<td>
-						<input class="config" type="range" id="dropShadowOpacity" step="0.01" min="0" max="1"
-							   value="0.10">
-					</td>
-					<td>
-						<p id="dropShadowOpacityValue">0.10</p>
-					</td>
-				</tr>
-			</table>
-		</div>
-		<div class="tab">
-			<h3>Text-To-Speech</h3>
-			<table class="table" cellspacing=3>
-				<tr>
-					<td>Dialect:</td>
-					<td>
-						<select class="config" id="ttsDialect" name="ttsDialect">
-							<option value="zh-CN">Mandarin</option>
-							<option value="zh-TW">Taiwanese</option>
-							<option value="zh-HK">Cantonese</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Speed:</td>
-					<td>
-						<input class="config" type="range" id="ttsSpeed" step=".1" min="0.1" max="1.5" value="1.0">
-					</td>
-					<td>
-						<p id="ttsSpeedValue">1.0</p>
-					</td>
-				</tr>
-			</table>
-		</div>
+            <div style="margin-bottom:8px;">
+                <input title="Color of first tone" id="tone1" class="config colorpicker" value="#F2777A">
+                <input title="Color of second tone" id="tone2" class="config colorpicker" value="#99CC99">
+                <input title="Color of third tone" id="tone3" class="config colorpicker" value="#6699CC">
+                <input title="Color of fourth tone" id="tone4" class="config colorpicker" value="#CC99CC">
+                <input title="Color of fifth tone" id="tone5" class="config colorpicker" value="#CCCCCC">
+                <input title="Color of pinyin (if 'Color pinyin by tone' is disabled)" id="tone6"
+                       class="config colorpicker"
+                       value="#66CCCC">
+            </div>
+            <h4>Popup:</h4>
+            <table class="table" cellspacing=3>
+                <tr>
+                    <td>
+                        <input class="config" type="checkbox" id="useCustomization" name="useCustomization">Enable
+                        Custom Popup</input>
+                    </td>
+                    <td>
+                        <button id="resetCustomization">Reset</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Colors:</td>
+                    <td>
+                        <input title="Background Color" id="backgroundColor" class="config colorpicker"
+                               style="width:30px;height:30px;" value="#FFFFE0">
+                        <input title="Border Color" id="borderColor" class="config colorpicker"
+                               style="width:30px;height:30px;" value="#D7D3AF">
+                        <input title="Drop Shadow Color" id="dropShadowColor" class="config colorpicker"
+                               style="width:30px;height:30px;" value="#420808">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Border Thickness:</td>
+                    <td>
+                        <input class="config" type="range" id="borderThickness" step=".1" min="0" max="10" value="2">
+                    </td>
+                    <td>
+                        <p id="borderThicknessValue">2</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Border Radius:</td>
+                    <td>
+                        <input class="config" type="range" id="borderRadius" step="1" min="0" max="25" value="8">
+                    </td>
+                    <td>
+                        <p id="borderRadiusValue">8</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Drop Shadow Opacity:</td>
+                    <td>
+                        <input class="config" type="range" id="dropShadowOpacity" step="0.01" min="0" max="1"
+                               value="0.10">
+                    </td>
+                    <td>
+                        <p id="dropShadowOpacityValue">0.10</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="tab">
+            <h3>Text-To-Speech</h3>
+            <table class="table" cellspacing=3>
+                <tr>
+                    <td>Dialect:</td>
+                    <td>
+                        <select class="config" id="ttsDialect" name="ttsDialect">
+                            <option value="zh-CN">Mandarin</option>
+                            <option value="zh-TW">Taiwanese</option>
+                            <option value="zh-HK">Cantonese</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Speed:</td>
+                    <td>
+                        <input class="config" type="range" id="ttsSpeed" step=".1" min="0.1" max="1.5" value="1.0">
+                    </td>
+                    <td>
+                        <p id="ttsSpeedValue">1.0</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-		<div class="tab">
-			<h3>Copy to Clipboard</h3>
-			<table cellspacing=5>
-				<tr>
-					<td>Line ending:</td>
-					<td>
-						<select class="config" id="lineEnding" name="lineEnding">
-							<option value="n">Unix (\n)</option>
-							<option value="rn">Windows (\r\n)</option>
-							<option value="r">Mac (\r)</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Field separator:</td>
-					<td>
-						<select class="config" id="copySeparator" name="copySeparator">
-							<option value="tab">Tab</option>
-							<option value=",">Comma</option>
-							<option value=" ">Space</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>Maximum entries:</td>
-					<td>
-						<input class="config" type="number" id="maxClipCopyEntries" name="maxClipCopyEntries" min="1" value="7">
-					</td>
-				</tr>
-			</table>
-			</p>
-		</div>
-	</div>
+        <div class="tab">
+            <h3>Copy to Clipboard</h3>
+            <table cellspacing=5>
+                <tr>
+                    <td>Line ending:</td>
+                    <td>
+                        <select class="config" id="lineEnding" name="lineEnding">
+                            <option value="n">Unix (\n)</option>
+                            <option value="rn">Windows (\r\n)</option>
+                            <option value="r">Mac (\r)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Field separator:</td>
+                    <td>
+                        <select class="config" id="copySeparator" name="copySeparator">
+                            <option value="tab">Tab</option>
+                            <option value=",">Comma</option>
+                            <option value=" ">Space</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Maximum entries:</td>
+                    <td>
+                        <input class="config" type="number" id="maxClipCopyEntries" name="maxClipCopyEntries" min="1"
+                               value="7">
+                    </td>
+                </tr>
+            </table>
+            </p>
+        </div>
+    </div>
 </div>
 </body>
 </html>

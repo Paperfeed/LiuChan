@@ -1,5 +1,6 @@
-export interface PopupConfig {
+export interface PopupOptions {
     popupTheme: string;
+    popupDelay: number;
     scaleOnZoom: boolean;
     useCustomization: boolean;
     customStyling?: {
@@ -13,12 +14,12 @@ export interface PopupConfig {
 
 export class Popup {
     private container: HTMLElement;
-    private config: PopupConfig;
+    private config: PopupOptions;
     public isVisible: boolean;
     public location: number;
     
     
-    constructor(config: PopupConfig) {
+    constructor(config: PopupOptions) {
         this.config = config;
         
         this.loadStyleSheet();
@@ -91,7 +92,7 @@ export class Popup {
     }
     
     
-    showPopup(text: string, element = null, x = 0, y = 0) {
+    public showPopup(text: string, element? : ClientRect) {
         // Sometimes pages do some funky dynamic loading and we lose the popup, so we recreate it.
         if (this.container === null) this.createContainer();
         const popup = this.container;
@@ -99,11 +100,52 @@ export class Popup {
         popup.innerHTML = text;
         const width = popup.offsetWidth;
         const height = popup.offsetHeight;
+        const limitX = document.body.clientWidth;
+        const limitY = window.innerHeight;
+        const containerStyle = window.getComputedStyle(this.container);
+        let x = 0,
+            y = 0;
+        
+        if (element) {
+            if (this.location === 1) {
+                x = window.scrollX;
+                y = window.scrollY;
+            } else if (this.location === 2) {
+                x = (window.innerWidth - (width + 20)) + window.scrollX;
+                y = (window.innerHeight - (height + 20)) + window.scrollY;
+            } else if (element instanceof (<any>window).HTMLOptionElement) {
+                // Element is a select/dropdown
+            } else {
+                x = element.left;
+                
+                const overflowX = Math.max(x + width - limitX, 0);
+                
+                if (overflowX > 0) {
+                    if (x >= overflowX) {
+                        x -= overflowX;
+                    } else {
+                        //width = limitX;
+                        x = 0;
+                    }
+                }
+            }
+        } else {
+            x += window.scrollX;
+            y += window.scrollY;
+        }
+    
+    
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
+        popup.style.display = '';
+    
+        this.isVisible = true;
+        
         
         //const maxX = document.body.clientWidth;
         //const maxY = window.innerHeight;
         
-        
+        /*
         if (element) {
             // TODO Sort this crap out
             //popup.style.display = 'none';
@@ -172,11 +214,7 @@ export class Popup {
             y += window.scrollY;
         }
         
-        popup.style.left = `${x}px`;
-        popup.style.top = `${y}px`;
-        popup.style.display = '';
-        
-        this.isVisible = true;
+        */
     }
     
     

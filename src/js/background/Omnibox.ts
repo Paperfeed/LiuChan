@@ -1,28 +1,28 @@
 import fuzzysort from '../lib/fuzzysort';
-import { Dictionary } from './Dictionary';
-
-
-
-interface OmniboxConfig {
-    pinyinType: string;
-    definitionSeparator: string;
-    hanziType: string;
-}
-
+import { LiuChan } from './LiuChan';
 
 
 export class Omnibox {
     private timeout: number;
-    private dict: Dictionary;
-    private config: OmniboxConfig;
+    private parent: LiuChan;
+
+
+    constructor(parent : LiuChan) {
+        this.parent = parent;
+    }
     
     
-    constructor(dict: Dictionary, config: OmniboxConfig) {
-        this.dict = dict;
-        this.config = config;
-        
-        this.onInput = this.onInput.bind(this);
-        this.search = this.search.bind(this);
+    async fuzzysearch(text, suggest) {
+        console.log(this.parent.dict, this.parent.config);
+        /*if (!super.dict) {
+            try {
+                super.dict = new Dictionary("data/cedict_ts.u8", super.config);
+                await this.dict.loadDictionary();
+            } catch (e) {
+            
+            }
+        }
+        this.onInput(text, suggest);*/
     }
     
     
@@ -43,7 +43,7 @@ export class Omnibox {
         //fuzzysort.threshold = null;
         //fuzzysort.limit = null;
         
-        const dict = this.dict;
+        const dict = this.parent.dict;
         let results = [];
         
         // Check if user input is hanzi or plain english
@@ -52,10 +52,11 @@ export class Omnibox {
         if (isHanzi) {
             // If the text that has been typed is hanzi, get all entries that
             // start with the first character of the string and score them
-            useSimplified = /simp|boths/.test(this.config.hanziType);
+            useSimplified = /simp|boths/.test(this.parent.config.hanziType);
             
-            const index = dict.data.get(text.charAt(0));
+            const index = dict.getCharacterIndex(text.charAt(0));
             let score, item;
+            
             for (let i = 0, len = index.length; i < len; i++) {
                 if (useSimplified) {
                     item = index[i].simp;
@@ -79,17 +80,17 @@ export class Omnibox {
             // then score the pinyin and definition separately
             // @ts-ignore
             dict.data.keys().forEach((key) => {
-                let value = dict.data.get(key);
+                let value = dict.getCharacterIndex(key);
                 for (let i = 0, len = value.length; i < len; i++) {
                     let string = '', definition = value[i].def;
                     
-                    if (definition.length > 1 && (this.config.definitionSeparator === "num")) {
+                    if (definition.length > 1 && (this.parent.config.definitionSeparator === "num")) {
                         for (let a = 0; a < definition.length; a++) {
                             string += (a + 1) + ' ' + definition[a] + '  ';
                         }
                         string.trim();
                     } else {
-                        string = value[i].def.join(this.config.definitionSeparator);
+                        string = value[i].def.join(this.parent.config.definitionSeparator);
                     }
                     
                     let definitionScore = fuzzysort.single(text, string);
@@ -129,7 +130,7 @@ export class Omnibox {
                 } else {
                     // Fallthrough on purpose:
                     // noinspection FallThroughInSwitchStatementJS
-                    switch (this.config.hanziType) {
+                    switch (this.parent.config.hanziType) {
                         case "botht":
                             entry += results[i].item.trad + " ";
                         case "simp":
@@ -149,7 +150,7 @@ export class Omnibox {
             
             // TODO make other pinyin types highlighted as well
             // Pinyin
-            switch (this.config.pinyinType) {
+            switch (this.parent.config.pinyinType) {
                 case "tonemarks":
                     entry += " " + results[i].pinyinHighlighted;
                     break;

@@ -490,8 +490,11 @@ Promise.all([testMap.promise, testArray.promise, testObj.promise]).then(() => {
 // ūúǔù
 // īíǐì
 
-const pinyin = "Guī shān xiān Guī shān xiāng";
-console.log(convertPinyin(pinyin));
+
+//const pinyin = "Guī shān xiān Guī shān xiāng";
+//console.log(convertPinyin(pinyin));
+
+
 function convertPinyin(pinyin) {
     let str = '';
     for (let i = 0, len = pinyin.length-1; i < len; i++) {
@@ -671,4 +674,13 @@ function isVowel(letter) {
     if( letter === "a" || letter === "e" || letter === "i" ||
         letter === "o" || letter === "u" ) return true;
     return false;
+}
+
+function benchMark(fn, data, iterations) {
+    let timer = new Date().getTime();
+    for (let i = 0; i < iterations; i++) {
+        fn(data[(Math.floor(Math.random() * data.length)) - 1]);
+    }
+    const timeTaken = new Date().getTime() - timer;
+    console.log(fn.name + " finished in " + (timeTaken / 1000) + "s");
 }

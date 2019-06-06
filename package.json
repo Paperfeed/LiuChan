@@ -26,6 +26,7 @@
     "merge-stream": "latest",
     "ts-jest": "^23.1.4",
     "ts-loader": "^5.0.0",
+    "fork-ts-checker-webpack-plugin": "^0.4.9",
     "typescript": "^3.0.3",
     "webpack": "^4.17.2",
     "webpack-chrome-extension-reloader": "^0.8.3",

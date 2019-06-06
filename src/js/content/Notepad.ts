@@ -6,6 +6,7 @@ export interface NotepadOptions {
 }
 
 
+
 export class Notepad {
     private elements: any[];
     private isPinned: boolean;
@@ -14,7 +15,7 @@ export class Notepad {
     private inputTimer: number;
     
     
-    constructor() {
+    constructor(config : NotepadOptions) {
         // Load stylesheet (if it hasn't been loaded already)
         //if (!lcxContent.enabled) lcxContent.loadStyleSheet();
         
@@ -69,7 +70,7 @@ export class Notepad {
     }
     
     
-    updateState(data : NotepadOptions) {
+    updateState(data: NotepadOptions) {
         const overlay = this.elements[0];
         const textarea = this.elements[4];
         const d = document.documentElement;

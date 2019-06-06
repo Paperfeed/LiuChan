@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    /*"module": "commonjs",
     "target": "es6",
     "noImplicitAny": false,
-    "sourceMap": true,
-    "noEmitOnError": true
+    "noEmitOnError": true,*/
+    "target": "es6",
+    "sourceMap": true
   },
   "include": [
     "src/**/*"
