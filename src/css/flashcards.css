@@ -1,0 +1,80 @@
+#flashcards-container {
+  display: grid;
+  background-color: #deedfb;
+  grid-template-areas: "list card" "list button";
+  grid-gap: 20px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: aliceblue;
+  border-radius: 5px; }
+
+#flashcard {
+  grid-area: card;
+  background: lightyellow;
+  min-height: 150px;
+  border-radius: 5px;
+  min-width: 180px;
+  max-width: 250px;
+  padding: 30px 15px; }
+
+.hanzi, .subhanzi, .pinyin, .definition {
+  width: 100%;
+  text-align: center;
+  font-family: Roboto, sans-serif; }
+
+.hanzi, .subhanzi, .simp, .trad {
+  font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif; }
+
+.word-entry, .header * {
+  font-family: Roboto, sans-serif; }
+
+.subhanzi {
+  margin: 0;
+  font-size: 16px; }
+
+.hanzi {
+  margin: 0;
+  font-size: 35px; }
+
+.pinyin, .pin {
+  font-style: italic;
+  font-weight: 300; }
+
+#word-list {
+  grid-area: list;
+  display: grid;
+  grid-auto-rows: max-content;
+  grid-auto-flow: row;
+  overflow: auto;
+  cursor: default;
+  background: lightyellow; }
+
+.word-entry {
+  grid-row-start: span 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  grid-gap: 10px;
+  align-items: center;
+  justify-content: start;
+  background: lightyellow; }
+  .word-entry:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.04); }
+  .word-entry:hover {
+    background: #dedece; }
+
+.simp {
+  grid-column: 1;
+  width: max-content; }
+
+.trad {
+  grid-column: 2;
+  width: max-content; }
+
+.pin {
+  grid-column: 3;
+  width: max-content; }
+
+.def {
+  grid-column-start: span 1;
+  width: max-content; }

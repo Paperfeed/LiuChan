@@ -29,7 +29,7 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 
 ### Why is it called LiuChan?
 
-流畅 (*liú chàng*) stands for fluency in a language. I kept -Chan as an homage to it's origin.
+流畅 (*liú chàng*) stands for fluency in a language. I kept -Chan as an homage to its origin.
 
 ### Troubleshooting
 
