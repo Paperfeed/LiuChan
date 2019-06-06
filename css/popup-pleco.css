@@ -36,20 +36,20 @@ entry span = #e3e3e3
 
 
 /* Main Popup Styling*/
-#liuchan-window {
+#liuchan-window, #liuchan-notepad-overlay, #liuchan-notepad-input {
     position: absolute;
     min-width: 150px;
     padding: 7px 5px;
     background: #fff;
     border: 2px solid #0078c3;
     box-shadow: 4px 4px 0 0 rgba(66,8,8,0.25);
-    z-index: 99999999999;
+    z-index: 2147483647;
 }
 
-#liuchan-window:before {
+/*#liuchan-window:before {
     content: "";
     display: block;
-    padding: 10px;
+    padding: 7px;
     background: #0078c3;
     color: #fff;
     margin: -7px -5px 5px -5px;
@@ -58,11 +58,11 @@ entry span = #e3e3e3
 #liuchan-window:after {
     content: "";
     display: block;
-    padding: 10px;
+    padding: 7px;
     background: #0078c3;
     color: #fff;
     margin: 5px -5px -7px -5px;
-}
+}*/
 
 #liuchan-window .liuchan-container {
     display: flex;
@@ -109,7 +109,7 @@ entry span = #e3e3e3
 #liuchan-window .def {
     clear: left;
     color: #000;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 #liuchan-window .tone1 { color: #e30000; }
@@ -119,10 +119,122 @@ entry span = #e3e3e3
 #liuchan-window .tone5 { color: #636363; }
 
 /* used for word definitions */
-#liuchan-window .title {
-    margin: -27px -5px 5px -5px;
+#liuchan-window .liutitle {
+    margin: -7px -5px 5px -5px;
     padding: 5px;
     color: #fff;
     font-weight: bold;
     background-color: #0078c3;
+}
+
+/* MiniHelp Styling */
+#liuchan-window table, #liuchan-window table * {
+    line-height: 1em;
+    border: 0;
+    margin: 0;
+    color: #000;
+    font-family: "Roboto", sans-serif;
+}
+
+#liuchan-window table tr:nth-child(odd) {
+    background-color: rgba(0,0,0,0.04);
+}
+
+#liuchan-window table tr td:nth-child(odd){
+    padding: 4px 5px 4px 5px;
+    font-weight: bold;
+}
+
+/* Notepad Styling */
+#liuchan-notepad-overlay {
+    background: #0078c3;
+    border: none;
+    display: grid;
+    grid-template-columns: auto 22px 22px;
+    grid-template-rows: auto;
+    grid-template-areas:
+            "header button button"
+            " textarea textarea textarea";
+    grid-gap: 3px;
+    position: fixed;
+    z-index: 2147483646;
+    text-align: center;
+    width: fit-content;
+    height: auto;
+}
+
+#liuchan-notepad-overlay p {
+    color: #fff;
+    font-size: 16px;
+    font-family: Roboto, sans-serif;
+    padding: 0 3px;
+    margin: 0 0 2px 0;
+    cursor: move;
+    text-align: left;
+    user-select: none;
+}
+
+#liuchan-notepad-overlay button {
+    grid-area: span 1 / button;
+    grid-column: auto;
+    background: none;
+    width: 22px;
+    height: 22px;
+    min-height: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 100%;
+    box-shadow: none;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 0;
+    text-align: center;
+}
+
+#liuchan-notepad-overlay button:active {
+    color: #aaa;
+}
+
+#liuchan-notepad-overlay button:focus {
+    outline: 0;
+}
+
+.liuchan-overlay-pinned {
+    color: #ff4c5a !important;
+    border: 2px solid #ff4c5a !important;
+}
+
+#liuchan-notepad-input {
+    grid-area: textarea;
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 180px;
+    min-height: 60px;
+    font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
+    background: #fff;
+    border-bottom-right-radius: 0;
+    box-shadow: none;
+    resize: both;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar {
+    width: 20px;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar-track {
+    border-radius: 0 6px 0 0;
+    background-color: #bed2e9;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar-thumb {
+    background-color: #009aee;
+}
+
+#liuchan-notepad-input:focus {
+    border: 2px solid #009aee;
+    outline: 0;
 }

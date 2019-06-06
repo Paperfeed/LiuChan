@@ -1,60 +1,63 @@
-// todo Add omnibox keyword dictionary searching
-/*chrome.omnibox.onInputChanged.addListener(function(text, suggest) {
-    suggest([
-        {content: text + " one", description: "the first one"},
-        {content: text + " number two", description: "the second entry"}
-    ]);
-});
+'use strict';
 
-chrome.omnibox.onInputEntered.addListener(function(text) {
-    alert('You just typed "' + text + '"');
-});*/
-//manifest: "omnibox": {"keyword" : "liuchan"},
+const chromep = new ChromePromise();
+const liuChan = new LiuChan();
 
 // This gets fired when the extension's button is clicked
-chrome.browserAction.onClicked.addListener(lcxMain.toggleExtension);
-chrome.tabs.onActivated.addListener(lcxMain.onTabSelect);
+chrome.browserAction.onClicked.addListener(liuChan.toggleExtension.bind(liuChan));
+chrome.tabs.onActivated.addListener(liuChan.onTabSelect.bind(liuChan));
+chrome.windows.onFocusChanged.addListener(liuChan.onWindowChangeFocus.bind(liuChan));
+//chrome.storage.onChanged.addListener(liuChan.onConfigChange.bind(liuChan));
 
 // Fired when a message is sent from extension or content script
 // basically this allows the extension's background to communicate with the
 // content script that gets loaded on matching urls (as per the manifest)
 chrome.runtime.onMessage.addListener(
-	function(request, sender, response) {
-		//console.log(request);
+	(request, sender, response) => {
 		switch(request.type) {
 			case 'enable?':
-				lcxMain.onTabSelect(sender.tab);
+                //chrome.tabs.sendMessage(sender.tab.id, {"type":"config", "config": liuChan.config.content});
+				if (request.enabled === false && liuChan.enabled) liuChan.onTabSelect(sender.tab);
 				break;
 			case 'xsearch':
-				var e = lcxMain.dict.wordSearch(lcxMain.dict.hanzi, request.text);
+				let e = liuChan.dict.wordSearch(liuChan.dict.hanzi, request.text);
 				response(e);
 				break;
-            case 'translate':
-                //var e = lcxMain.dict.translate(request.title);
-                chrome.tabs.sendMessage(sender.tab.id, {"text":request.title});
-                break;
             case 'makehtml':
-				var html = lcxMain.dict.makeHtml(request.entry);
+				let html = liuChan.dict.makeHtml(request.entry);
 				response(html);
 				break;
 			case 'copyToClip':
-				lcxMain.copyToClip(sender.tab, request.entry);
+                liuChan.copyToClip(sender.tab, request.entry);
 				break;
 			case 'config':
-				// This is to immediately update settings upon change occuring
-				// in the options page.
-				lcxMain.config = request.config;
-
-				// Kind of redundant because the tab currently
-				// updates settings onTabSelect as well, but might change that later on
-				lcxMain.sendAllTabs(request);
+				// Immediately update settings upon change occuring
+                liuChan.config = Object.assign(liuChan.config, request.config);
 				break;
-			case 'switchOnlyReading':
-                lcxMain.dict.noDefinition = !lcxMain.dict.noDefinition;
+			case 'toggleDefinition':
+                liuChan.dict.noDefinition = !liuChan.dict.noDefinition;
+				break;
+			case 'tts':
+				// mandarin: zh-CN, zh-TW cantonese: zh-HK
+				chrome.tts.speak(request.text,  {"lang": liuChan.config.ttsDialect,
+					"rate": liuChan.config.ttsSpeed});
+				break;
+			case 'rebuild':
+                liuChan.dict.loadDictionary();
+				break;
+			case 'customstyling':
+                response(liuChan.config.styling);
+                break;
+			case 'notepad':
+				if (request.query === 'load') {
+                    response(liuChan.config.notepad);
+                } else {
+                    this.chrome.storage.sync.set({notepad : request.query});
+                    liuChan.config.notepad = request.query;
+				}
 				break;
 			default:
-				console.log(request);
+				console.log('Background received unknown request: ', request);
 		}
 });
 
-lcxMain.initConfig();
