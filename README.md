@@ -2,7 +2,7 @@
 ## LiuChan Chinese Popup Dictionary
 LiuChan (*liú chàng*) is an extension for chrome that allows you to mouse-over Chinese to instantly lookup the dictionary.
 
-It started out as a port of RikaiChan (and its Rikai derivatives) and has since grown into an extension that holds its own with new features and improved performance.
+It started out as a port of RikaiChan (and its Rikai derivatives) and has since grown into an extension that has been completely rewritten with greatly improved performance and new features.
 
 ### Current Features 
 
@@ -12,6 +12,7 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 * A handy little notepad that you can open on any page :)
 * Theme support
 * Fuzzy search! Use chrome's omnibox to search the dictionary using hanzi, pinyin or just plain english
+* Dictionaries automatically update to newer versions
 
 ### Usage
 
@@ -21,11 +22,9 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 
 ### To Do
 
+- [ ] Add Cantonese dictionary
 - [ ] Add word lists/Anki support
 - [ ] Move fuzzy search to its own input box as opposed to omnibox so that it can be expanded upon (eg. use rich formatting, etc)
-- [x] Improve performance
-- [x] Improve fuzzy search to match regular vowels with tonemarked pinyin
-- [x] Update CEDICT
 
 ### Why is it called LiuChan?
 
