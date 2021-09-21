@@ -3,11 +3,11 @@
    "name": "LiuChan Chinese Popup Dictionary",
    "applications": {
      "gecko": {
-       "id": "liuchan@liuchan.com"
+       "id": "{d75ce8ce-eded-4560-8dc3-fb1587c6cde9}"
      }
    },
    "short_name": "LiuChan",
-   "version": "1.1.7",
+   "version": "1.1.8",
    "options_ui": {
       "page": "html/options.html"
    },
