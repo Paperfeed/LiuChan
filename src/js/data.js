@@ -18,12 +18,17 @@ class Dictionary {
     }
 
     onDictionaryLoaded(tab) {
-        // Activate tab and send along content script related settings
-		if (this.lc.config.displayHelp === true && !this.lc.config.content.disableKeys) {
-            chrome.tabs.sendMessage(tab[0].id, {"type":"enable", "config": this.lc.config.content, "displayHelp": this.lc.displayHelp});
-		} else {
-            chrome.tabs.sendMessage(tab[0].id, {"type": "enable", "config": this.lc.config.content});
-        }
+        // Enable content script only if the detected language is Chinese.
+        chrome.tabs.detectLanguage(tab.id, (language) => {
+            if (!this.lc.config.content.showOnlyInChinesePage || language === "zh-CN" || language === "zh-TW") {
+                // Activate tab and send along content script related settings
+                if (this.lc.config.displayHelp === true && !this.lc.config.content.disableKeys) {
+                    chrome.tabs.sendMessage(tab[0].id, {"type":"enable", "config": this.lc.config.content, "displayHelp": this.lc.displayHelp});
+                } else {
+                    chrome.tabs.sendMessage(tab[0].id, {"type": "enable", "config": this.lc.config.content});
+                }
+            }
+        })
     }
 
     async checkForUpdates() {

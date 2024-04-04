@@ -17,7 +17,12 @@ chrome.runtime.onMessage.addListener(
 		switch(request.type) {
 			case 'enable?':
                 //chrome.tabs.sendMessage(sender.tab.id, {"type":"config", "config": liuChan.config.content});
-				if (request.enabled === false && liuChan.enabled) liuChan.onTabSelect(sender.tab);
+				// NOTE:
+				// `liuChan.onTabSelect()` handles the logic 
+				// to check if the content script should be enabled, based on the detected language of the current page.
+				// Therefore `liuChan.onTabSelect()` should be invoked regardless of `liuChan.enabled`.
+				// if (request.enabled === false && liuChan.enabled) liuChan.onTabSelect(sender.tab);
+				if (request.enabled === false) liuChan.onTabSelect(sender.tab);
 				break;
 			case 'xsearch':
 				let e = liuChan.dict.wordSearch(liuChan.dict.hanzi, request.text);

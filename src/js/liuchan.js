@@ -89,6 +89,7 @@ class LiuChan {
                 highlightText: true,
                 highlightInput: false,
                 scaleOnZoom: true,
+                showOnlyInChinesePage: false,
                 showOnKey: 0,
                 disableKeys: false
             },
@@ -263,12 +264,16 @@ class LiuChan {
 	// The callback for chrome.tabs.onActivated
 	// Sends a message to the tab to enable itself if it hasn't
 	onTabSelect(tab) {
-		if (this.enabled) {
-            chrome.tabs.sendMessage(tab.tabId ? tab.tabId : tab.id, {
-				"type":"enable",
-				"config":this.config.content
-			});
-		}
+        // Enable content script only if the detected language is Chinese.
+        chrome.tabs.detectLanguage(tab.id, (language) => {
+            if (this.enabled && 
+                (!this.config.content.showOnlyInChinesePage || language === "zh-CN" || language === "zh-TW")) {
+                chrome.tabs.sendMessage(tab.tabId ? tab.tabId : tab.id, {
+                    "type":"enable",
+                    "config":this.config.content
+                });
+            }
+        });
         chrome.tabs.sendMessage(tab.tabId ? tab.tabId : tab.id, {
             "type":"update",
             "notepad":this.config.notepad

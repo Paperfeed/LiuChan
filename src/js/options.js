@@ -64,6 +64,7 @@ function init() {
         checkboxUsePinyinToneColors: d.getElementById('usePinyinToneColors'),
         checkboxDisplayHelp: d.getElementById('displayHelp'),
         checkboxScaleOnZoom: d.getElementById('scaleOnZoom'),
+        checkboxShowOnlyInChinesePage: d.getElementById('showOnlyInChinesePage'),
         selectLineEnding: d.getElementById('lineEnding'),
         selectCopySeparator: d.getElementById('copySeparator'),
         inputMaxCopyEntries: d.getElementById('maxClipCopyEntries'),
@@ -104,6 +105,7 @@ function saveOptions() {
             highlightText: e.checkboxHighlightText.checked,
             highlightInput: e.checkboxHighlightInput.checked,
             scaleOnZoom: e.checkboxScaleOnZoom.checked,
+            showOnlyInChinesePage: e.checkboxShowOnlyInChinesePage.checked,
             showOnKey: parseInt(document.querySelector('input[name="showOnKey"]:checked').value),
             disableKeys: e.checkboxDisableKeys.checked
         },
@@ -166,6 +168,7 @@ function restoreOptions() {
             e.checkboxHighlightText.checked = items.content.highlightText;
             e.checkboxHighlightInput.checked = items.content.highlightInput;
             e.checkboxScaleOnZoom.checked = items.content.scaleOnZoom;
+            e.checkboxShowOnlyInChinesePage.checked = items.content.showOnlyInChinesePage;
             // showOnKey radio button - see below
             e.checkboxDisableKeys.checked = items.content.disableKeys;
 
