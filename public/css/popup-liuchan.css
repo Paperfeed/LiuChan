@@ -1,0 +1,228 @@
+/*
+LiuChan Theme
+*/
+
+/* Popup reset */
+#liuchan-window {
+    width: auto;
+    height: auto;
+    max-width: 500px;
+    background: transparent;
+    color: #000;
+    border: none;
+    border-spacing: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    letter-spacing: normal;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0;
+    text-transform: none;
+    white-space: normal;
+    word-spacing: normal;
+    font: normal 14px sans-serif;
+    visibility: visible;
+}
+
+/* Main Popup Styling*/
+#liuchan-window, #liuchan-notepad-overlay, #liuchan-notepad-input {
+    position: absolute;
+    min-width: 150px;
+    padding: 5px;
+    background: #ffffe0; /* Lightyellow */
+    border: 2px solid #d7d3af;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 0 rgba(66,8,8,0.10);
+    z-index: 2147483647;
+
+}
+
+#liuchan-window .liuchan-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Entry positioning */
+#liuchan-window .entry {
+    font-family: Roboto, sans-serif;
+}
+
+#liuchan-window .entry:not(:last-of-type) .def:after {
+    display: block;
+    content: '';
+    width: 100%;
+    margin: 5px -5px 3px -5px;
+    padding-left: 10px;
+    height: 1px;
+    background-color: #e3e3e3;
+}
+
+#liuchan-window .spacer {
+    padding-left: 5px;
+}
+
+/* Entry Styling */
+#liuchan-window .hanzi{
+    float: left;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
+    margin-right: 10px;
+}
+
+#liuchan-window .brace { color: #c9c2b1; }
+
+#liuchan-window .pinyin {
+    float: left;
+    height: fit-content;
+    line-height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #66CCCC;
+}
+
+#liuchan-window .def {
+    clear: left;
+    color: #524e45;
+    font-size: 13px;
+}
+
+#liuchan-window .def b {
+    /*color: #78635a;*/
+    font-size: 11px;
+    margin-right: 1px;
+}
+
+#liuchan-window .def b:not(:first-child) {
+    margin-left: 4px;
+}
+
+#liuchan-window .tone1 { color: #F2777A; }
+#liuchan-window .tone2 { color: #99CC99; }
+#liuchan-window .tone3 { color: #6699CC; }
+#liuchan-window .tone4 { color: #CC99CC; }
+#liuchan-window .tone5 { color: #CCCCCC; }
+
+/* used for word definitions */
+#liuchan-window .liutitle {
+    margin-bottom: 5px;
+    color: #524e45;
+    font-size: 16px;
+    font-weight: normal;
+    text-align: center;
+    font-family: "Roboto", sans-serif;
+}
+
+/* MiniHelp Styling */
+#liuchan-window table, #liuchan-window table * {
+    line-height: 1em;
+    border: 0;
+    margin: 0;
+    color: #524e45;
+    font-family: "Roboto", sans-serif;
+}
+
+#liuchan-window table tr:nth-child(odd) {
+    background-color: rgba(0,0,0,0.04);
+}
+
+#liuchan-window table tr td:nth-child(odd){
+    padding: 4px 5px 4px 5px;
+    font-weight: bold;
+}
+
+/* Notepad Styling */
+#liuchan-notepad-overlay {
+    display: grid;
+    grid-template-columns: auto 22px 22px;
+    grid-template-rows: auto;
+    grid-template-areas:
+            "header button button"
+            " textarea textarea textarea";
+    grid-gap: 3px;
+    position: fixed;
+    z-index: 2147483646;
+    text-align: center;
+    width: fit-content;
+    height: auto;
+    border-bottom-right-radius: 0;
+}
+
+#liuchan-notepad-overlay p {
+    color: #F2777A;
+    font-size: 16px;
+    font-family: Roboto, sans-serif;
+    padding: 0 3px;
+    margin: 0 0 2px 0;
+    cursor: move;
+    text-align: left;
+    user-select: none;
+}
+
+#liuchan-notepad-overlay button {
+    grid-area: span 1 / button;
+    grid-column: auto;
+    background: none;
+    width: 22px;
+    height: 22px;
+    min-height: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 2px solid #d7d3af;
+    border-radius: 100%;
+    box-shadow: none;
+    color: #d7d3af;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 0;
+    text-align: center;
+}
+
+#liuchan-notepad-overlay button:active {
+    color: #5d5946;
+    border: 2px solid #5d5946;
+}
+
+#liuchan-notepad-overlay button:focus {
+    outline: 0;
+}
+
+.liuchan-overlay-pinned {
+    color: #F2777A !important;
+    border: 2px solid #F2777A !important;
+}
+
+#liuchan-notepad-input {
+    grid-area: textarea;
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 180px;
+    min-height: 60px;
+    font-family: "Microsoft JhengHei", "Microsoft YaHei UI", sans-serif;
+    background: #fff;
+    border-bottom-right-radius: 0;
+    box-shadow: none;
+    resize: both;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar {
+    border-radius: 0 6px 0 0;
+    background-color: #d7d3af;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar-track {
+    border-radius: 0 6px 0 0;
+    background-color: #eeeac6;
+}
+
+#liuchan-notepad-input::-webkit-scrollbar-thumb {
+    background-color: #d7d3af;
+}
+
+#liuchan-notepad-input:focus {
+    border: 2px solid #d7d3af;
+    outline: 0;
+}

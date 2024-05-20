@@ -1,6 +1,8 @@
 {
   "name": "liuchan",
-  "version": "1.1.6",
+  "private": true,
+  "displayName": "LiuChan Chinese Popup Dictionary",
+  "version": "2.0.0",
   "description": "Chinese Popup Dictionary",
   "author": "Aldert Vaandering",
   "license": "GPL-3.0",
@@ -8,36 +10,51 @@
   "bugs": {
     "url": "https://github.com/Paperfeed/LiuChan/issues"
   },
-  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "watch": "vite build --watch --mode development",
+    "build": "tsc && vite build",
+    "build:firefox": "TARGET=FIREFOX tsc && vite build",
+    "build:chrome": "TARGET=CHROME tsc && vite build",
+    "serve:test-page": "npx http-server ./assets",
+    "serve:firefox": "web-ext run --start-url \"about:debugging#/runtime/this-firefox\"  --source-dir ./dist/",
+    "serve:chrome": "web-ext run -t chromium --start-url \"https://example.com\" --source-dir //wsl.localhost/Ubuntu/home/paper/projects/LiuChan/dist/",
+    "lint": "eslint . --quiet --ignore-pattern .gitignore",
+    "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore && prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,json}\" "
+  },
   "dependencies": {
-    "chrome-extension-async": "^3.3.0"
+    "@davstack/store": "^1.1.5",
+    "@floating-ui/react": "^0.26.15",
+    "immer": "^10.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ts-deepmerge": "^7.0.0",
+    "vite-tsconfig-paths": "^4.3.2",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.1",
-    "clean-webpack-plugin": "^0.1.19",
-    "copy-webpack-plugin": "^4.5.2",
-    "cross-env": "^5.2.0",
-    "del": "^3.0.0",
-    "gulp": "^4.0.0",
-    "gulp-clean-dest": "^0.2.0",
-    "gulp-minify": "^3.1.0",
-    "gulp-zip": "^4.2.0",
-    "jest": "^23.5.0",
-    "merge-stream": "latest",
-    "ts-jest": "^23.1.4",
-    "ts-loader": "^5.0.0",
-    "fork-ts-checker-webpack-plugin": "^0.4.9",
-    "typescript": "^3.0.3",
-    "webpack": "^4.17.2",
-    "webpack-chrome-extension-reloader": "^0.8.3",
-    "webpack-cli": "^3.1.0",
-    "zip-webpack-plugin": "^3.0.0"
-  },
-  "scripts": {
-    "test": "jest",
-    "gulp": "gulp",
-    "build": "webpack",
-    "watch": "cross-env NODE_ENV=development webpack --watch"
+    "@eslint/js": "^9.3.0",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
+    "@types/webextension-polyfill": "^0.10.7",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-react": "7.34.1",
+    "eslint-plugin-react-hooks": "4.6.2",
+    "eslint-plugin-simple-import-sort": "12.1.0",
+    "eslint-plugin-sort-destructure-keys": "2.0.0",
+    "eslint-plugin-sort-keys-fix": "1.1.2",
+    "eslint-plugin-typescript-sort-keys": "3.2.0",
+    "prettier": "^2.5.1",
+    "tailwindcss": "^3.0.8",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.9.0",
+    "vite": "^5.2.11",
+    "web-ext": "^7.11.0",
+    "vite-plugin-web-extension": "^4.0.0",
+    "webextension-polyfill": "^0.10.0"
   },
   "repository": {
     "type": "git",
@@ -50,18 +67,9 @@
     "mouse-over",
     "popup"
   ],
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
+  "prettier": {
+    "trailingComma": "es5",
+    "semi": false,
+    "singleQuote": true
   }
 }

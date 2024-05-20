@@ -1,4 +1,4 @@
-![Logo](/release/marquee.png)
+![Logo](/assets/release/marquee.png)
 ## LiuChan Chinese Popup Dictionary
 LiuChan (*liú chàng*) is an extension for chrome that allows you to mouse-over Chinese to instantly lookup the dictionary.
 
@@ -30,6 +30,17 @@ It started out as a port of RikaiChan (and its Rikai derivatives) and has since 
 ### Why is it called LiuChan?
 
 流畅 (*liú chàng*) stands for fluency in a language. I kept -Chan as an homage to it's origin.
+
+### Data sources
+Dictionaries are sourced from:
+- [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict)
+- [CC-Canto](https://cantonese.org/download.html)
+ 
+These are both licensed under the Creative Commons Attribution-Share Alike 3.0 License.
+
+### Building
+The extension is using Vite and [vite-plugin-web-extension](https://vite-plugin-web-extension.aklinker1.io/guide) to build the extension for different browsers.
+
 
 ### Troubleshooting
 
