@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 
-import { PopupOptions } from '@/config/defaultConfig'
+import { PopupOptions } from '@/background/config/defaultConfig'
 
 export class Popup {
   private container: HTMLElement

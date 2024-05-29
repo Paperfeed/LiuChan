@@ -64,7 +64,7 @@ export class LiuChanContent {
     sender: MessageSender,
     response: (msg: any) => void
   ) {
-    logger.log('[CONTENT]Received message', message)
+    logger.log('[CONTENT] Received message', message)
 
     return Promise.resolve()
   }

@@ -1,6 +1,20 @@
-const logLevel = 'debug'
+/* eslint-disable no-console */
+declare global {
+  const logger: Logger
+  interface Window {
+    logger: Logger
+  }
+  interface ServiceWorkerGlobalScope {
+    logger: Logger
+  }
+  interface GlobalThis {
+    logger: Logger
+  }
+}
 
-const logLevels = ['debug', 'info', 'warn', 'error']
+const logLevel = 'log'
+
+const logLevels = ['debug', 'log', 'info', 'warn', 'error']
 const logLevelIndex = logLevels.indexOf(logLevel)
 
 const createDebugFn =
@@ -16,9 +30,10 @@ const createDebugFn =
   }
 
 const logger = {
+  debug: createDebugFn('debug', 'debug'),
   error: createDebugFn('error', 'error'),
   info: createDebugFn('info', 'info'),
-  log: createDebugFn('log', 'debug'),
+  log: createDebugFn('log', 'log'),
   warn: createDebugFn('warn', 'warn'),
 }
 

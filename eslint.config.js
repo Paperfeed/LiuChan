@@ -51,7 +51,12 @@ export default tseslint.config({
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-member-accessibility': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+      },
+    ],
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/ban-types': 'warn',
     '@typescript-eslint/no-explicit-any': 'off',

@@ -5,7 +5,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 import { toolbarIcon } from './src/utils/icons'
 
-const target = process.env.TARGET || 'chrome'
+const target = process.env.VITE_BROWSER ?? 'chrome'
 
 function generateManifest() {
   const manifest = readJsonFile('src/manifest.json')
@@ -27,16 +27,15 @@ function generateManifest() {
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    minify: false,
-  },
-  define: {
-    __BROWSER__: JSON.stringify(target),
+    minify: process.env.DEV !== 'true',
+    sourcemap: process.env.DEV === 'true',
   },
   plugins: [
     tsconfigPaths(),
     react(),
     webExtension({
-      // additionalInputs: ['src/content.tsx'],
+      // additionalInputs: ['src/options/options.tsx'],
+      browser: target,
       manifest: generateManifest,
       webExtConfig: {
         browserConsole: true,

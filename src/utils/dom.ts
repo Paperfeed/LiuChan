@@ -1,5 +1,5 @@
 export function isInputElement(
-  element: Element | null
+  element: Element
 ): element is HTMLInputElement | HTMLTextAreaElement {
   return Boolean(element && ['INPUT', 'TEXTAREA'].includes(element.tagName))
 }

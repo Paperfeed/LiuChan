@@ -2,7 +2,11 @@ import { store } from '@davstack/store'
 import browser from 'webextension-polyfill'
 import { createJSONStorage, StateStorage } from 'zustand/middleware'
 
-import { defaultConfig } from '@/config/defaultConfig'
+import {
+  CURRENT_CONFIG_VERSION,
+  defaultConfig,
+} from '@/background/config/defaultConfig'
+import { migrateConfig } from '@/background/config/initConfig'
 
 const webextStorage: StateStorage = {
   getItem: async (name) => {
@@ -24,6 +28,10 @@ export const configStore = store()
     name: 'liuchan-config',
     persist: {
       enabled: true,
+      migrate: migrateConfig,
       storage: createJSONStorage(() => webextStorage),
+      version: CURRENT_CONFIG_VERSION,
     },
   })
+
+export const backgroundStore = store().state({ isEnabled: false })

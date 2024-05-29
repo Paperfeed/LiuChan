@@ -1,14 +1,20 @@
 import browser, { Action, Tabs } from 'webextension-polyfill'
 import SetIconDetailsType = Action.SetIconDetailsType
 import SendMessageOptionsType = Tabs.SendMessageOptionsType
+import {
+  BackgroundMessages,
+  BackgroundResponse,
+} from '@/background/backgroundMessages'
+import { ContentMessages, ContentResponse } from '@/content/contentMessages'
 
-export async function sendMessageToAllTabs(message: any) {
+export async function sendMessageToAllTabs(message: BackgroundMessages) {
+  logger.debug('[Background] Sending Message to All Tabs', message)
   const windows = await browser.windows.getAll({ populate: true })
 
   windows.forEach((window) => {
     window.tabs?.forEach((tab) => {
       if (!tab.id) {
-        console.error('No tab found')
+        logger.error('No tab found')
         return
       }
       browser.tabs.sendMessage(tab.id, message)
@@ -17,7 +23,7 @@ export async function sendMessageToAllTabs(message: any) {
 }
 
 export async function setIcon(icon: SetIconDetailsType) {
-  if (__BROWSER__ === 'firefox') {
+  if (getCurrentBrowser() === 'firefox') {
     await browser.browserAction.setIcon(icon)
   } else {
     await browser.action.setIcon(icon)
@@ -32,23 +38,26 @@ export async function getCurrentTab() {
   return currentTabs[0]
 }
 
-// TODO: Add typing for messages
-export async function sendTabMessage(
+export async function sendTabMessage<T extends BackgroundMessages>(
   tabId: number | undefined,
-  message: any,
+  message: T,
   options?: SendMessageOptionsType
-) {
+): Promise<BackgroundResponse<T['type']>> {
+  logger.debug('[Background] Sending Message to Tab', message, options)
   if (!tabId) {
-    logger.error('Tab id is not defined')
-    return
+    throw new Error('Tab id is not defined')
   }
   return browser.tabs.sendMessage(tabId, message, options)
 }
 
-export function sendRuntimeMessage(
-  message: any,
+export function sendRuntimeMessage<T extends ContentMessages>(
+  message: T,
   options?: SendMessageOptionsType
-) {
-  logger.log('[CONTENT]Sending RuntimeMessage', message, options)
-  return browser.runtime.sendMessage(message, options)
+): Promise<ContentResponse<T['type']>> {
+  logger.debug('[Content] Sending RuntimeMessage', message, options)
+  return browser.runtime.sendMessage(message as any, options)
+}
+
+export function getCurrentBrowser() {
+  return (import.meta.env.VITE_BROWSER as 'chrome' | 'firefox') ?? 'chrome'
 }

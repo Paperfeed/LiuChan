@@ -12,6 +12,11 @@
   "{{firefox}}.browser_action": {
     "default_title": "LiuChan Chinese Dictionary"
   },
+  "options_ui": {
+    "page": "src/options/index.html",
+    "open_in_tab": true,
+    "{{firefox}}.chrome_style": false
+  },
   "permissions": [
     "activeTab",
     "storage",
@@ -21,12 +26,6 @@
   ],
   "host_permissions": [
     "<all_urls>"
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["src/content.tsx", "css/*", "icon/*"],
-      "matches": ["<all_urls>"]
-    }
   ],
   "content_scripts": [
     {

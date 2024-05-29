@@ -1,0 +1,46 @@
+export const themes = {
+  liuchan: {
+    brace: 'text-brace',
+    bullet: 'text-xs mr-[1px] font-bold',
+    colors: {
+      background: '255 255 224',
+      border: '215 211 175',
+      brace: '201 194 177',
+      pinyin: '102 204 204',
+      tone1: '242 119 122',
+      tone2: '153 204 153',
+      tone3: '111 114 185',
+      tone4: '204 153 204',
+      tone5: '204 204 204',
+    },
+    container:
+      'bg-background px-2 py-1 border-2 border-border rounded-lg shadow-md my-2',
+    definition: 'text-[13px]',
+    entry: 'mb-1',
+    hanzi: 'font-bold text-[18px] mr-[10px] leading-0',
+    pinyin: 'font-bold text-[16px] leading-0 text-pinyin',
+    spacer: 'pl-2',
+  },
+
+  pleco: {
+    brace: 'text-brace',
+    bullet: 'text-xs mr-[1px] font-bold',
+    colors: {
+      background: '227 227 227',
+      border: '215 211 175',
+      brace: '201 194 177',
+      pinyin: '102 204 204',
+      tone1: '227 0 0',
+      tone2: '0 176 0',
+      tone3: '0 0 239',
+      tone4: '127 0 186',
+      tone5: '99 99 99',
+    },
+    container: 'bg-background px-2 py-1 border-2 border-border shadow-md my-2',
+    definition: 'text-[13px]',
+    entry: 'mb-1',
+    hanzi: 'font-bold text-[18px] mr-[10px] leading-0',
+    pinyin: 'font-bold text-[16px] leading-0 text-pinyin',
+    spacer: 'pl-2',
+  },
+}

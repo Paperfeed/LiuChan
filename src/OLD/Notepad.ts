@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 
-import { NotepadOptions } from '@/config/defaultConfig'
+import { NotepadOptions } from '@/background/config/defaultConfig'
 
 export class Notepad {
   private elements: any[]

@@ -1,3 +1,5 @@
+import { VirtualElement } from '@floating-ui/react'
+
 import {
   caretPositionFromPoint,
   getEndContainerAndOffset,
@@ -13,9 +15,11 @@ import {
 
 const MAX_TEXT_LENGTH = 20
 
-export function getHoveredText(event: MouseEvent) {
+export function getHoveredText(event: MouseEvent, maxLength = MAX_TEXT_LENGTH) {
   let highlight: (offset: number) => void = () => null
+
   let text = ''
+  const range = document.createRange()
 
   const caretPosition = caretPositionFromPoint(event.clientX, event.clientY)
   if (!caretPosition) {
@@ -26,20 +30,45 @@ export function getHoveredText(event: MouseEvent) {
   }
 
   const element = document.elementFromPoint(event.clientX, event.clientY)
+  if (
+    !element ||
+    element.classList.contains('liuchan') ||
+    element.closest('.liuchan')
+  ) {
+    return {
+      highlight,
+      text: null,
+    }
+  }
 
   if (isInputElement(element)) {
     const cursorPosition = getCaretPositionInInput(element, event)
+    // range.setStart(element.firstChild, cursorPosition)
     text = element.value.substring(
       cursorPosition,
-      Math.min(cursorPosition + MAX_TEXT_LENGTH, element.value.length)
+      Math.min(cursorPosition + maxLength, element.value.length)
     )
 
     highlight = (offset) => {
-      highlightTextInInput(element, cursorPosition, cursorPosition + offset)
+      return highlightTextInInput(
+        element,
+        cursorPosition,
+        cursorPosition + offset
+      )
     }
   } else {
     if (caretPosition.startContainer.nodeType === Node.TEXT_NODE) {
-      text = getTextUpToLimit(caretPosition, MAX_TEXT_LENGTH)
+      text = getTextUpToLimit(caretPosition, maxLength)
+      range.setStart(caretPosition.startContainer, caretPosition.startOffset)
+      range.setEnd(
+        caretPosition.endContainer,
+        Math.min(
+          caretPosition.endContainer.textContent?.length ??
+            Number.POSITIVE_INFINITY,
+          caretPosition.endOffset
+        )
+      )
+
       highlight = (offset) => {
         const endDetails = getEndContainerAndOffset(
           caretPosition.startContainer,
@@ -63,8 +92,14 @@ export function getHoveredText(event: MouseEvent) {
     }
   }
 
+  const virtualElement = {
+    getBoundingClientRect: () => range.getBoundingClientRect(),
+    getClientRects: () => range.getClientRects(),
+  } as VirtualElement
+
   return {
     highlight,
     text,
+    virtualElement,
   }
 }

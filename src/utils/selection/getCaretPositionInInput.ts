@@ -1,7 +1,7 @@
 export function getCaretPositionInInput(
   inputElement: HTMLInputElement | HTMLTextAreaElement,
   event: MouseEvent
-): number {
+) {
   const rect = inputElement.getBoundingClientRect()
   const relativeX = event.clientX - rect.left
 
