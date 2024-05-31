@@ -5,7 +5,6 @@ import {
   getEndContainerAndOffset,
   isInputElement,
 } from '@/utils/dom'
-import { hasChinese } from '@/utils/language'
 import {
   getCaretPositionInInput,
   getTextUpToLimit,
