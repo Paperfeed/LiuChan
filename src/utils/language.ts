@@ -9,7 +9,7 @@ const REGEX_CHINESE =
 // 2: Simplified Chinese
 // 3: Pinyin
 // 4: English
-export const REGEX_DICTIONARY = /(.+?)\s(.+?)\s\[(.+?)\]\s\/(.+)\//gi
+export const REGEX_DICTIONARY = /(.+?) +(.+?) +\[(.+?)\] +\/(.+)\//gi
 
 // Matches the pinyin and tone numbers (in the dictionary it is stored as for example [ji1 you3])
 export const REGEX_PINYIN = /\[((?:[a-z]+\d\s?)+)\]/gi

@@ -33,21 +33,20 @@ export interface SearchResult {
 }
 
 export class Dictionary {
-  protected data: Map<string, DictionaryEntry[]>
+  data: Map<string, DictionaryEntry[]>
 
-  private showDefinition: boolean
   private dictFile: string | undefined
+  private longestString = 0
 
   constructor() {
     this.data = new Map()
-    this.showDefinition = true
 
     configStore.onChange((state, prevState) => {
       // Rebuild dictionary if dictionary related settings change
       // Todo add more related keys or change options layout to .dict.* or sth
       if (state.dictionary !== prevState.dictionary && this.data.size > 0) {
         logger.info('Rebuilding dictionary')
-        this.loadDictionary(state.dictionary)
+        this.loadDictionary(this.dictFile)
       }
     })
   }
@@ -122,6 +121,7 @@ export class Dictionary {
 
     logger.log('Dictionary Loaded', this.data)
     logger.log('Longest string:', longestString)
+    this.longestString = longestString
   }
 
   search(word: string) {
@@ -148,7 +148,6 @@ export class Dictionary {
       word = word.substr(0, length - 1)
     }
 
-    console.log(results)
     return results
   }
 

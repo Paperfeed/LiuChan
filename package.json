@@ -22,7 +22,8 @@
     "postinstall": "wxt prepare",
     "serve:test-page": "npx http-server ./assets",
     "lint": "eslint . --quiet --ignore-pattern .gitignore",
-    "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore && prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,json}\" "
+    "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore && prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,json}\" ",
+    "test": "vitest"
   },
   "dependencies": {
     "@davstack/store": "^1.1.5",
@@ -57,6 +58,7 @@
     "typescript-eslint": "^7.9.0",
     "vite": "^5.2.11",
     "vite-plugin-web-extension": "^4.0.0",
+    "vitest": "^1.6.0",
     "web-ext": "^7.11.0",
     "webextension-polyfill": "^0.10.0",
     "wxt": "^0.18.3"
