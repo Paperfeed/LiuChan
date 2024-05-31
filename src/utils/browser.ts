@@ -17,7 +17,9 @@ export async function sendMessageToAllTabs(message: BackgroundMessages) {
         logger.error('No tab found')
         return
       }
-      browser.tabs.sendMessage(tab.id, message)
+      browser.tabs
+        .sendMessage(tab.id, message)
+        .catch((error) => logger.debug("Tab doesn't accept messages", error))
     })
   })
 }

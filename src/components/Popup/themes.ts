@@ -44,3 +44,5 @@ export const themes = {
     spacer: 'pl-2',
   },
 }
+
+export type Theme = keyof typeof themes

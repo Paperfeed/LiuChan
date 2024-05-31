@@ -1,7 +1,7 @@
 import { Runtime } from 'webextension-polyfill'
 
-import { ContentOptions } from '@/background/config/defaultConfig'
 import MessageSender = Runtime.MessageSender
+import { LiuChanOptions } from '@/background/config/defaultConfig.ts'
 
 export enum BackgroundMessageType {
   Config = 'config',
@@ -16,13 +16,13 @@ interface BaseMessage {
 }
 
 interface InitializeMessage extends BaseMessage {
-  config: ContentOptions
+  config: LiuChanOptions
   enabled?: boolean
   type: BackgroundMessageType.Initialize
 }
 
 interface ConfigMessage extends BaseMessage {
-  config: ContentOptions
+  config: LiuChanOptions
   type: BackgroundMessageType.Config
 }
 

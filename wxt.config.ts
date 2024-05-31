@@ -20,6 +20,7 @@ export default defineConfig({
     ],
   },
   runner: {
+    chromiumArgs: ['--auto-open-devtools-for-tabs'],
     openConsole: true,
     openDevtools: true,
     startUrls: ['http://localhost:8080'],

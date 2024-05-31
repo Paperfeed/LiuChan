@@ -85,7 +85,8 @@ export function getHoveredText(event: MouseEvent, maxLength = MAX_TEXT_LENGTH) {
     }
   }
 
-  if (!text || !hasChinese(text)) {
+  if (!text) {
+    /*|| !hasChinese(text)) {*/
     return {
       highlight,
       text: null,

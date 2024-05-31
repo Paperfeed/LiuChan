@@ -2,9 +2,11 @@ import { Runtime } from 'webextension-polyfill'
 
 import { SearchResult } from '@/background/Dictionary'
 import MessageSender = Runtime.MessageSender
-import { ContentOptions } from '@/background/config/defaultConfig'
+
+import { LiuChanOptions } from '@/background/config/defaultConfig'
 
 export enum ContentMessageType {
+  Config = 'config',
   Initialize = 'initialize',
   Search = 'xsearch',
 }
@@ -13,21 +15,27 @@ interface BaseMessage {
   type: ContentMessageType
 }
 
+interface InitializeMessage extends BaseMessage {
+  type: ContentMessageType.Initialize
+}
+
 interface SearchMessage extends BaseMessage {
   text: string
   type: ContentMessageType.Search
 }
 
-interface InitializeMessage extends BaseMessage {
-  type: ContentMessageType.Initialize
+// This message is sent from the options page to the background script
+interface ConfigMessage extends BaseMessage {
+  config: LiuChanOptions
+  type: ContentMessageType.Config
 }
 
-export type ContentMessages = SearchMessage | InitializeMessage
+export type ContentMessages = InitializeMessage | SearchMessage | ConfigMessage
 
 interface ContentResponseMap {
   [ContentMessageType.Search]: SearchResult
   [ContentMessageType.Initialize]: {
-    config: ContentOptions
+    config: LiuChanOptions
     enabled: boolean
   }
 }

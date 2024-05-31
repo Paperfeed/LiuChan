@@ -36,14 +36,25 @@ export class Dictionary {
   protected data: Map<string, DictionaryEntry[]>
 
   private showDefinition: boolean
+  private dictFile: string | undefined
 
   constructor() {
     this.data = new Map()
     this.showDefinition = true
+
+    configStore.onChange((state, prevState) => {
+      // Rebuild dictionary if dictionary related settings change
+      // Todo add more related keys or change options layout to .dict.* or sth
+      if (state.dictionary !== prevState.dictionary && this.data.size > 0) {
+        logger.info('Rebuilding dictionary')
+        this.loadDictionary(state.dictionary)
+      }
+    })
   }
 
   async loadDictionary(dictFile = 'data/cedict_ts.u8') {
     const data = await this.readFile(dictFile)
+    this.dictFile = dictFile
     this.parseDictionary(data)
   }
 
@@ -61,8 +72,7 @@ export class Dictionary {
 
   parseDictionary(dict: string) {
     // Match every entry in the dictionary and map it to an object
-    const pinyinType =
-      configStore.content.pinyinDisplayType.get() ?? 'tonemarks'
+    const pinyinType = configStore.pinyinDisplayType.get() ?? 'tonemarks'
     const map = this.data
 
     let longestString = 0
@@ -138,11 +148,8 @@ export class Dictionary {
       word = word.substr(0, length - 1)
     }
 
+    console.log(results)
     return results
-  }
-
-  toggleDefinition() {
-    this.showDefinition = !this.showDefinition
   }
 
   getCharacterIndex(character: string) {
@@ -164,7 +171,7 @@ export class Dictionary {
     const pinyin = pinyinStr.split(' ')
     const config = configStore.get()
     const result: PinyinResult = { tones: [] }
-    const pinyinDisplayType = config.content.pinyinDisplayType ?? 'tonemarks'
+    const pinyinDisplayType = config.pinyinDisplayType ?? 'tonemarks'
     const addToneMarks = pinyinDisplayType === 'tonemarks'
     const addToneNums = pinyinDisplayType === 'tonenums'
     const addZhuyin = pinyinDisplayType === 'zhuyin'
@@ -231,7 +238,6 @@ export class Dictionary {
     if (addToneMarks) result.tonemarks = pinyin.join(' ')
     if (addToneNums) result.tonenums = tonenums.join(' ')
     if (addZhuyin) result.zhuyin = zhuyin.join(' ')
-
     return result
   }
 }

@@ -1,4 +1,4 @@
-import { themes } from '@/components/Popup/themes'
+import { Theme } from '@/components/Popup/themes'
 import { KeyboardShortcut } from '@/utils/keymapper'
 
 export const CURRENT_CONFIG_VERSION = 2
@@ -8,41 +8,56 @@ export enum KeyboardAction {
   TTS = 'tts',
 }
 
-export interface ContentOptions {
+export interface LiuChanOptions {
+  copySeparator: 'tab' | 'comma' | 'space'
+  customColors?: {
+    tone1?: string
+    tone2?: string
+    tone3?: string
+    tone4?: string
+    tone5?: string
+  }
+  dictionary: 'mandarin' | 'cantonese' | 'both'
   hanziDisplaySetting: 'boths' | 'simp' | 'trad' | 'botht'
   highlightMatch: boolean
+  highlightMatchInInputs: boolean
   keymap: Record<KeyboardAction, KeyboardShortcut>
+  lineEnding: 'unix' | 'windows' | 'mac'
+  maximumEntries: number
   pinyinDisplayType: 'tonemarks' | 'tonenums' | 'zhuyin'
-  theme: keyof typeof themes
+  popupDelay: number
+  separator: 'num' | 'semi' | 'slash'
+  theme: Theme
   ttsDialect: string
   ttsSpeed: number
   useToneColors: boolean
 }
 
-export interface LiuChanOptions {
-  content: ContentOptions
-}
-
 export const defaultConfig: LiuChanOptions = {
-  content: {
-    hanziDisplaySetting: 'boths',
-    highlightMatch: false,
-    keymap: {
-      [KeyboardAction.TTS]: {
-        key: 't',
-        modifiers: [false, true, false],
-      },
-      [KeyboardAction.HidePopup]: {
-        key: 'Escape',
-        modifiers: [false, false, false],
-      },
+  copySeparator: 'tab',
+  dictionary: 'mandarin',
+  hanziDisplaySetting: 'boths',
+  highlightMatch: true,
+  highlightMatchInInputs: false,
+  keymap: {
+    [KeyboardAction.TTS]: {
+      key: 't',
+      modifiers: [false, true, false],
     },
-    pinyinDisplayType: 'tonemarks',
-    theme: 'pleco',
-    ttsDialect: 'zh-CN',
-    ttsSpeed: 0.9,
-    useToneColors: true,
+    [KeyboardAction.HidePopup]: {
+      key: 'Escape',
+      modifiers: [false, false, false],
+    },
   },
+  lineEnding: 'unix',
+  maximumEntries: 7,
+  pinyinDisplayType: 'tonemarks',
+  popupDelay: 0,
+  separator: 'num',
+  theme: 'pleco',
+  ttsDialect: 'zh-CN',
+  ttsSpeed: 0.9,
+  useToneColors: true,
 }
 
 // export interface ContentOptions {

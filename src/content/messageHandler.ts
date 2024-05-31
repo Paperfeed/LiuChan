@@ -30,6 +30,7 @@ export const messageHandler: BackgroundMessageHandler = (
       disableTab()
       return
     case BackgroundMessageType.Config:
+      logger.log('[Content] Received updated config:', message.config)
       contentConfig.set({
         ...contentConfig.get(),
         ...message.config,

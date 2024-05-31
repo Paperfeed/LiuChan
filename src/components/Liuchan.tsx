@@ -20,6 +20,12 @@ export const Liuchan = () => {
   const showPopup = contentStore.showPopup.get()
 
   useEffect(() => {
+    // Todo store original selection somewhere and only clean up if it was created by the popup
+    if (!highlightMatch && window.getSelection()) {
+      window.getSelection()?.removeAllRanges()
+    }
+  }, [highlightMatch])
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { highlight, text, virtualElement } = getHoveredText(e)
       if (!text) {
@@ -67,7 +73,7 @@ export const Liuchan = () => {
     return () => {
       document.removeEventListener('mousemove', debouncedHandleMouseMove)
     }
-  }, [])
+  }, [highlightMatch])
 
   if (!showPopup || matchingEntries.length === 0) return null
 

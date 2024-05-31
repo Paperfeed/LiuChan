@@ -26,7 +26,7 @@ export function backgroundMain() {
 
     configStore.onChange((state) => {
       sendMessageToAllTabs({
-        config: state.content,
+        config: state,
         type: BackgroundMessageType.Config,
       }).then(() => logger.log('Sent updated config to all tabs'))
     })
@@ -68,7 +68,7 @@ export async function enableExtension() {
 
   try {
     await sendMessageToAllTabs({
-      config: config.content,
+      config: config,
       enabled: true,
       type: BackgroundMessageType.Initialize,
     })

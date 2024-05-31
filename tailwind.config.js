@@ -3,6 +3,21 @@ export default {
   content: ['./src/**/*.{html,js,ts,tsx,css}'],
   theme: {
     colors: {
+      blue: {
+        50: '#f1f7fe',
+        100: '#e2effc',
+        200: '#bfddf8',
+        300: '#87c1f2',
+        400: '#53a8ea',
+        500: '#2086d7',
+        600: '#126ab7',
+        700: '#105494',
+        800: '#11487b',
+        900: '#143d66',
+        950: '#0d2744',
+      },
+      white: '#fff',
+      black: '#101010',
       transparent: 'transparent',
       current: 'currentColor',
       background: 'rgb(var(--background) / <alpha-value>)',
@@ -17,7 +32,9 @@ export default {
       brace: 'rgb(var(--brace) / <alpha-value>)',
       pinyin: 'rgb(var(--pinyin) / <alpha-value>)',
     },
-    extend: {},
+    boxShadow: {
+      popup: 'var(--box-popup)',
+    },
   },
   plugins: [],
 }

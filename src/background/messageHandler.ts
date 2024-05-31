@@ -16,13 +16,17 @@ export const messageHandler: ContentMessageHandler = (
   switch (message.type) {
     case ContentMessageType.Initialize:
       sendResponse({
-        config: configStore.content.get(),
+        config: configStore.get(),
         enabled: backgroundStore.isEnabled.get(),
       })
       return
     case ContentMessageType.Search:
       const result = dict.search(message.text)
       if (result?.entries.length) sendResponse(result)
+      return
+    case ContentMessageType.Config:
+      logger.log('Received updated config:', message.config)
+      configStore.set(message.config)
       return
     // case 'makehtml':
     //   return this.dict.makeHtml(message.entry)

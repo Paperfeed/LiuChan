@@ -11,7 +11,7 @@ interface ContentStore {
   text: string
 }
 
-export const contentConfig = store().state(defaultConfig.content)
+export const contentConfig = store().state(defaultConfig)
 
 export const contentStore = store<ContentStore>().state({
   inputActive: false,

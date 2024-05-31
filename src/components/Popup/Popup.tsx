@@ -1,10 +1,10 @@
 import { DictionaryEntry } from '@/background/Dictionary'
 import { Entry } from '@/components/Popup/Entry.tsx'
-import { themes } from '@/components/Popup/themes.ts'
+import { Theme, themes } from '@/components/Popup/themes.ts'
 
 interface PopupProps {
   entries: DictionaryEntry[]
-  theme: keyof typeof themes
+  theme: Theme
 }
 
 export const Popup = ({ entries, theme = 'liuchan' }: PopupProps) => {
