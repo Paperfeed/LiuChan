@@ -59,5 +59,5 @@ export function sendRuntimeMessage<T extends ContentMessages>(
 }
 
 export function getCurrentBrowser() {
-  return (import.meta.env.VITE_BROWSER as 'chrome' | 'firefox') ?? 'chrome'
+  return (import.meta.env.BROWSER as 'chrome' | 'firefox') ?? 'chrome'
 }

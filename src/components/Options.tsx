@@ -1,5 +1,5 @@
-import { Checkbox } from '@/components/Checkbox'
-import { configStore } from '@/background/config/store'
+import { configStore } from '@/background/config/store.ts'
+import { Checkbox } from '@/components/Checkbox.tsx'
 
 export function Options() {
   return (

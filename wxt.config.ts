@@ -19,6 +19,11 @@ export default defineConfig({
       'tts',
     ],
   },
+  runner: {
+    openConsole: true,
+    openDevtools: true,
+    startUrls: ['http://localhost:8080'],
+  },
   srcDir: 'src',
   vite: () => ({
     plugins: [tsconfigPaths(), react()],
