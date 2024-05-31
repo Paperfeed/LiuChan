@@ -1,4 +1,4 @@
-import { dict } from '@/background'
+import { dict } from '@/background/background.ts'
 import { backgroundStore, configStore } from '@/background/config/store'
 import {
   ContentMessageHandler,

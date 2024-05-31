@@ -12,14 +12,15 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "VITE_BROWSER=chrome DEV=true vite dev",
-    "watch": "DEV=true vite build --watch --mode development",
-    "build": "tsc && vite build",
-    "build:firefox": "VITE_BROWSER=FIREFOX tsc && vite build",
-    "build:chrome": "VITE_BROWSER=CHROME tsc && vite build",
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare",
     "serve:test-page": "npx http-server ./assets",
-    "serve:firefox": "web-ext run --start-url \"about:debugging#/runtime/this-firefox\"  --source-dir ./dist/",
-    "serve:chrome": "web-ext run -t chromium --start-url \"https://example.com\" --source-dir //wsl.localhost/Ubuntu/home/paper/projects/LiuChan/dist/",
     "lint": "eslint . --quiet --ignore-pattern .gitignore",
     "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore && prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,json}\" "
   },
@@ -56,7 +57,8 @@
     "vite": "^5.2.11",
     "vite-plugin-web-extension": "^4.0.0",
     "web-ext": "^7.11.0",
-    "webextension-polyfill": "^0.10.0"
+    "webextension-polyfill": "^0.10.0",
+    "wxt": "^0.18.3"
   },
   "repository": {
     "type": "git",

@@ -1,8 +1,5 @@
-import '@/utils/logger'
-import '@/global.css'
-
-import { configStore } from '@/background/config/store'
 import { Checkbox } from '@/components/Checkbox'
+import { configStore } from '@/background/config/store'
 
 export function Options() {
   return (

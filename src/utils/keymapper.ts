@@ -1,5 +1,5 @@
-import { KeyboardAction } from '@/background/config/defaultConfig'
-import { contentConfig } from '@/content/contentStore'
+import { KeyboardAction } from '@/background/config/defaultConfig.ts'
+import { contentConfig } from '@/content/contentStore.ts'
 
 export interface KeyboardShortcut {
   key: string

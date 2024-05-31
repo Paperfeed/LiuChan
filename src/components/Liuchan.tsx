@@ -2,12 +2,12 @@ import { flip, inline, shift, useFloating } from '@floating-ui/react'
 import { useEffect, useState } from 'react'
 
 import { DictionaryEntry } from '@/background/Dictionary'
-import { Popup } from '@/components/Popup/Popup'
+import { Popup } from '@/components/Popup/Popup.tsx'
 import { ContentMessageType } from '@/content/contentMessages'
 import { contentConfig, contentStore } from '@/content/contentStore'
 import { getHoveredText } from '@/content/getHoveredText'
-import { sendRuntimeMessage } from '@/utils/browser'
-import { throttle } from '@/utils/debounce'
+import { sendRuntimeMessage } from '@/utils/browser.ts'
+import { throttle } from '@/utils/debounce.ts'
 
 export const Liuchan = () => {
   const { floatingStyles, refs } = useFloating({

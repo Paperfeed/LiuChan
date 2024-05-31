@@ -27,7 +27,7 @@ dist-ssr
 .webextrc
 .webextrc.*
 
-
-/OLD/
-/SMARTUM/
 .vite/
+.output/
+.wxt/
+OLD/

@@ -1,6 +1,6 @@
+import { Entry } from '@/components/Popup/Entry.tsx'
+import { themes } from '@/components/Popup/themes.ts'
 import { DictionaryEntry } from '@/background/Dictionary'
-import { Entry } from '@/components/Popup/Entry'
-import { themes } from '@/components/Popup/themes'
 
 interface PopupProps {
   entries: DictionaryEntry[]

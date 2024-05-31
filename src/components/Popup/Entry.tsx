@@ -1,5 +1,5 @@
+import { themes } from '@/components/Popup/themes.ts'
 import { DictionaryEntry } from '@/background/Dictionary'
-import { themes } from '@/components/Popup/themes'
 import { contentConfig } from '@/content/contentStore'
 
 interface EntryProps {

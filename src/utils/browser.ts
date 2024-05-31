@@ -4,8 +4,8 @@ import SendMessageOptionsType = Tabs.SendMessageOptionsType
 import {
   BackgroundMessages,
   BackgroundResponse,
-} from '@/background/backgroundMessages'
-import { ContentMessages, ContentResponse } from '@/content/contentMessages'
+} from '@/background/backgroundMessages.ts'
+import { ContentMessages, ContentResponse } from '@/content/contentMessages.ts'
 
 export async function sendMessageToAllTabs(message: BackgroundMessages) {
   logger.debug('[Background] Sending Message to All Tabs', message)

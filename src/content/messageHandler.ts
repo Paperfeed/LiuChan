@@ -2,7 +2,7 @@ import {
   BackgroundMessageHandler,
   BackgroundMessageType,
 } from '@/background/backgroundMessages'
-import { disableTab, enableTab } from '@/content'
+import { disableTab, enableTab } from '@/content/content.ts'
 import { contentConfig } from '@/content/contentStore'
 
 // Handles incoming messages from the background script
