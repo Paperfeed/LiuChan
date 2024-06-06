@@ -28,3 +28,13 @@ export const onKeyDownHandler = convertKeysToAction((action) => {
 document.addEventListener('focusin', () => {
   contentStore.inputActive.set(activeElementIsInput())
 })
+
+export const onMouseDownHandler = () => {
+  // Technically not an active input, but we want to prevent the selection from being overridden
+  contentStore.inputActive.set(true)
+  document.getSelection()?.removeAllRanges()
+}
+
+export const onMouseUpHandler = () => {
+  contentStore.inputActive.set(activeElementIsInput())
+}

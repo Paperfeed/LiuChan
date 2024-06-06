@@ -26,7 +26,7 @@ export function convertKeysToAction(handler: (action: KeyboardAction) => void) {
     // This allows for multiple keymaps to be defined, but only the first one to match will be used
     Object.entries(keymap).some(([action, shortcut]) => {
       if (
-        event.key.toLowerCase() === shortcut.key &&
+        event.key.toLowerCase() === shortcut.key.toLowerCase() &&
         modifiersMatch(event, shortcut.modifiers)
       ) {
         handler(action as KeyboardAction)
