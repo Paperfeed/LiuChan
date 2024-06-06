@@ -12,7 +12,7 @@ const REGEX_CHINESE =
 export const REGEX_DICTIONARY = /(.+?) +(.+?) +\[(.+?)\] +\/(.+)\//gi
 
 // Matches the pinyin and tone numbers (in the dictionary it is stored as for example [ji1 you3])
-export const REGEX_PINYIN = /\[((?:[a-z]+\d\s?)+)\]/gi
+export const REGEX_PINYIN = /(?:([a-z]+)([1-5]))+?/gi
 
 export const hasJapanese = (str: string) => REGEX_JAPANESE.test(str)
 export const hasChinese = (str: string) => REGEX_CHINESE.test(str)

@@ -20,6 +20,7 @@ function replaceIdenticalCharacters(first: string, second: string) {
 export const Entry = ({ classes, data }: EntryProps) => {
   const { simplified, traditional } = data
   const config = contentConfig.use()
+
   const showSecond =
     simplified !== traditional &&
     ['boths', 'botht'].includes(config.hanziDisplaySetting)

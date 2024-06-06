@@ -1,9 +1,11 @@
-import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { readFileSync } from 'fs'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { LiuChanOptions } from '@/background/config/defaultConfig.ts'
 import { Dictionary, SearchResult } from '@/background/Dictionary.ts'
+import { parseEntry } from '@/utils/dictionary.ts'
 import { REGEX_DICTIONARY } from '@/utils/language.ts'
 
 vi.mock('@/background/config/store', () => ({
@@ -15,16 +17,28 @@ vi.mock('@/background/config/store', () => ({
     },
   },
 }))
+const filePath = path.resolve(__dirname, '../src/data/cedict_ts.u8')
+const realFileContent = readFileSync(filePath, 'utf-8')
+const realFileEntries: {
+  definitions: string
+  pinyin: string
+  simplified: string
+  traditional: string
+}[] = []
+
+let match: RegExpExecArray | null
+while ((match = REGEX_DICTIONARY.exec(realFileContent))) {
+  const [traditional, simplified, pinyin, definitions] = match.slice(1)
+  realFileEntries.push({ definitions, pinyin, simplified, traditional })
+}
 
 describe('Dictionary', () => {
   let dictionary: Dictionary
-  let realFileContent: string
+
   let totalEntries: number
 
   beforeAll(async () => {
     dictionary = new Dictionary()
-    const filePath = path.resolve(__dirname, '../src/data/cedict_ts.u8')
-    realFileContent = await readFile(filePath, 'utf-8')
     const result = new RegExp('#! entries=(.+)').exec(realFileContent)
     if (!result) throw new Error('Could not find total entries in file')
     totalEntries = parseInt(result[1])
@@ -67,31 +81,64 @@ describe('Dictionary', () => {
     expect(entry?.definitions).toContain('dictionary')
   })
 
-  it('should correctly identify vowels', () => {
-    expect(dictionary.isVowel('a')).toBe(true)
-    expect(dictionary.isVowel('e')).toBe(true)
-    expect(dictionary.isVowel('i')).toBe(true)
-    expect(dictionary.isVowel('o')).toBe(true)
-    expect(dictionary.isVowel('u')).toBe(true)
-    expect(dictionary.isVowel('b')).toBe(false)
-  })
-
-  it('should correctly parse pinyin', () => {
-    const pinyinStr = 'ci2 dian3'
-    const result = dictionary.parsePinyin(pinyinStr)
-    expect(result.tones).toEqual([2, 3])
-    expect(result.tonemarks).toBe('cí diǎn')
-  })
-
   it('should return results for all entries in the dictionary', () => {
-    let match: RegExpExecArray | null
-    let totalMatches = 0
-    while ((match = REGEX_DICTIONARY.exec(realFileContent))) {
-      const simplified = dictionary.search(match[2])
-      expect(simplified?.entries.length).toBeGreaterThan(0)
-      if (simplified?.entries.length) totalMatches++
-    }
-    expect(totalMatches).toBe(totalEntries)
+    realFileEntries.forEach((entry) => {
+      const result = dictionary.search(entry.simplified)
+      expect(result?.entries.length).toBeGreaterThan(0)
+    })
+    expect(realFileEntries.length).toBe(totalEntries)
+  })
+
+  it('should properly parse all entries', () => {
+    realFileEntries.forEach((entry) => {
+      expect(entry.simplified).toBeDefined()
+      expect(entry.traditional).toBeDefined()
+      expect(entry.pinyin).toBeDefined()
+      expect(entry.definitions).toBeDefined()
+
+      const result = parseEntry(
+        entry.traditional,
+        entry.simplified,
+        entry.pinyin,
+        entry.definitions,
+        'tonenums'
+      )
+      expect(result.simplified).toBe(entry.simplified)
+      expect(result.traditional).toBe(entry.traditional)
+      expect(result.definitions.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('should properly convert entries to the selected pinyin type', () => {
+    const testEntries: {
+      input: string
+      output: [string, number[]]
+      type: LiuChanOptions['pinyinDisplayType']
+    }[] = [
+      { input: 'zhu1 ming2', output: ['ㄓㄨ ㄇㄧㄥˊ', [1, 2]], type: 'zhuyin' },
+      {
+        input: 'feng1 huang2',
+        output: ['ㄈㄥ ㄏㄨㄤˊ', [1, 2]],
+        type: 'zhuyin',
+      },
+      { input: 'dong1 xi1', output: ['ㄉㄨㄥ ㄒㄧ', [1, 1]], type: 'zhuyin' },
+      {
+        input: 'shan1 dong4',
+        output: ['shān dòng', [1, 4]],
+        type: 'tonemarks',
+      },
+      { input: 'lao3 hu3', output: ['lǎo hǔ', [3, 3]], type: 'tonemarks' },
+      { input: 'xue2 xiao4', output: ['xué xiào', [2, 4]], type: 'tonemarks' },
+      { input: 'he2 shui3', output: ['he2 shui3', [2, 3]], type: 'tonenums' },
+      { input: 'gou3 qiu2', output: ['gou3 qiu2', [3, 2]], type: 'tonenums' },
+      { input: 'ji1 ji2', output: ['ji1 ji2', [1, 2]], type: 'tonenums' },
+    ]
+
+    testEntries.forEach((entry) => {
+      const parsed = parseEntry('', '', entry.input, '', entry.type)
+      expect(parsed.pinyin[entry.type]).toBe(entry.output[0])
+      expect(parsed.pinyin.tones).toEqual(entry.output[1])
+    })
   })
 
   it('should clear data when unloadDictionary is called', () => {
