@@ -4,13 +4,17 @@ import browser from 'webextension-polyfill'
 import { defineContentScript } from 'wxt/sandbox'
 
 import { Liuchan } from '@/components/Liuchan.tsx'
-import { themes } from '@/components/Popup/themes.ts'
 import { ContentMessageType } from '@/content/contentMessages.ts'
 import { contentConfig, contentStore } from '@/content/contentStore.ts'
-import { onKeyDownHandler } from '@/content/keyHandler.ts'
+import {
+  onKeyDownHandler,
+  onMouseDownHandler,
+  onMouseUpHandler,
+} from '@/content/keyHandler.ts'
 import { messageHandler } from '@/content/messageHandler.ts'
 import { activeElementIsInput } from '@/utils/activeElementIsInput.ts'
 import { sendRuntimeMessage } from '@/utils/browser.ts'
+import { setThemeCssVars } from '@/utils/theme.ts'
 
 // WXT doesn't export types, so I have to do this to get it instead
 type ExcludeFunc<T> = T extends () => void ? never : T
@@ -40,11 +44,14 @@ export async function contentMain(ctx: ContentContext) {
   }
 
   const ui = await createShadowRootUi(ctx, {
+    mode: 'open',
     name: 'liuchan-popup',
     onMount(container) {
       // Define how your UI will be mounted inside the container
       const app = document.createElement('div')
+      app.id = 'liuchan-popup'
       app.textContent = 'Hello world!'
+
       container.prepend(app)
       ReactDOM.createRoot(app).render(
         createElement(StrictMode, { children: createElement(Root) })
@@ -59,37 +66,23 @@ export async function contentMain(ctx: ContentContext) {
 export function enableTab() {
   logger.log('Enabling tab')
   window.addEventListener('keydown', onKeyDownHandler)
-  // window.addEventListener('keyup', this.onKeyUp)
-  // window.addEventListener('mousemove', onMouseMove)
-  // window.addEventListener('mousedown', this.onMouseDown)
-  // window.addEventListener('mouseup', this.onMouseUp)
-  // window.onresize = this.popup.setZoomLevel
+  window.addEventListener('mousedown', onMouseDownHandler)
+  window.addEventListener('mouseup', onMouseUpHandler)
 
   contentStore.isEnabled.set(true)
   contentStore.inputActive.set(activeElementIsInput())
 
-  contentConfig.onChange((state) => {
-    const theme = themes[state.theme ?? 'liuchan']
-    const setCSSVariable = document.documentElement.style.setProperty
-    setCSSVariable('--background', theme.colors.background)
-    setCSSVariable('--border', theme.colors.border)
-    setCSSVariable('--tone-1', theme.colors.tone1)
-    setCSSVariable('--tone-2', theme.colors.tone2)
-    setCSSVariable('--tone-3', theme.colors.tone3)
-    setCSSVariable('--tone-4', theme.colors.tone4)
-    setCSSVariable('--tone-5', theme.colors.tone5)
-    setCSSVariable('--pinyin', theme.colors.pinyin)
-    setCSSVariable('--brace', theme.colors.brace)
-  })
+  // Ensures config changes to the theme are reflected in the popup
+  contentConfig.onChange((state) =>
+    setThemeCssVars(state, contentStore.rootElement.get())
+  )
 }
 
 export function disableTab() {
   logger.log('Disabling tab')
   window.removeEventListener('keydown', onKeyDownHandler, true)
-  // window.removeEventListener('keyup', this.onKeyUp, true)
-  // window.removeEventListener('mousemove', onMouseMove)
-  // window.removeEventListener('mousedown', this.onMouseDown, false)
-  // window.removeEventListener('mouseup', this.onMouseUp, false)
+  window.removeEventListener('mousedown', onMouseDownHandler, false)
+  window.removeEventListener('mouseup', onMouseUpHandler, false)
 
   contentStore.isEnabled.set(false)
 }

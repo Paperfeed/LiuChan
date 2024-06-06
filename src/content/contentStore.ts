@@ -7,16 +7,18 @@ interface ContentStore {
   inputActive: boolean
   isEnabled: boolean
   matchingEntries: DictionaryEntry[]
+  rootElement: HTMLElement | null | undefined
   showPopup: boolean
   text: string
 }
 
-export const contentConfig = store().state(defaultConfig)
-
-export const contentStore = store<ContentStore>().state({
+export const contentStore = store<ContentStore>({
   inputActive: false,
   isEnabled: false,
   matchingEntries: [],
+  rootElement: null,
   showPopup: false,
   text: '',
 })
+
+export const contentConfig = store().state(defaultConfig)

@@ -16,11 +16,17 @@ import { ColorPicker, IColor, useColor } from 'react-color-palette'
 
 interface ColorCircleProps {
   color: string
-  cssKey: string
   label: string
+  onChange: (color: IColor) => void
+  onReset: () => void
 }
 
-export const ColorCircle = ({ color, cssKey, label }: ColorCircleProps) => {
+export const ColorCircle = ({
+  color,
+  label,
+  onChange,
+  onReset,
+}: ColorCircleProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const { context, floatingStyles, refs } = useFloating({
     middleware: [offset(-5), flip(), shift()],
@@ -43,11 +49,7 @@ export const ColorCircle = ({ color, cssKey, label }: ColorCircleProps) => {
 
   const handleColorChange = (color: IColor) => {
     setColor(color)
-    const rgb = `${Math.round(color.rgb.r)} ${Math.round(
-      color.rgb.g
-    )} ${Math.round(color.rgb.b)}`
-    logger.log(`Setting color for ${cssKey} to`, rgb)
-    document.documentElement.style.setProperty(cssKey, rgb)
+    onChange(color)
   }
 
   return (
@@ -55,7 +57,7 @@ export const ColorCircle = ({ color, cssKey, label }: ColorCircleProps) => {
       <div className="inline-flex flex-col items-center">
         <div
           ref={refs.setReference}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen(true)}
           {...getReferenceProps()}
           className="w-12 h-12 rounded-full"
           style={{
@@ -73,7 +75,10 @@ export const ColorCircle = ({ color, cssKey, label }: ColorCircleProps) => {
         >
           <ColorPicker color={newColor} onChange={handleColorChange} />
           <div className="flex justify-center">
-            <button className="-mt-4 mb-1 px-2 p-1 rounded-md justify-center bg-blue-600 text-white">
+            <button
+              className="-mt-4 mb-1 px-2 p-1 rounded-md justify-center bg-blue-600 text-white"
+              onClick={onReset}
+            >
               Reset
             </button>
           </div>

@@ -10,7 +10,7 @@ export enum KeyboardAction {
 
 export interface LiuChanOptions {
   copySeparator: 'tab' | 'comma' | 'space'
-  customColors?: {
+  customColors: {
     tone1?: string
     tone2?: string
     tone3?: string
@@ -35,6 +35,7 @@ export interface LiuChanOptions {
 
 export const defaultConfig: LiuChanOptions = {
   copySeparator: 'tab',
+  customColors: {},
   dictionary: 'mandarin',
   hanziDisplaySetting: 'boths',
   highlightMatch: true,
@@ -42,10 +43,10 @@ export const defaultConfig: LiuChanOptions = {
   keymap: {
     [KeyboardAction.TTS]: {
       key: 't',
-      modifiers: [false, true, false],
+      modifiers: [false, false, false],
     },
     [KeyboardAction.HidePopup]: {
-      key: 'Escape',
+      key: 'escape',
       modifiers: [false, false, false],
     },
   },

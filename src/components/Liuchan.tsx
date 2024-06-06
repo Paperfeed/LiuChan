@@ -8,6 +8,7 @@ import { contentConfig, contentStore } from '@/content/contentStore'
 import { getHoveredText } from '@/content/getHoveredText'
 import { sendRuntimeMessage } from '@/utils/browser.ts'
 import { throttle } from '@/utils/debounce.ts'
+import { setThemeCssVars } from '@/utils/theme.ts'
 
 export const Liuchan = () => {
   const { floatingStyles, refs } = useFloating({
@@ -15,19 +16,30 @@ export const Liuchan = () => {
     placement: 'bottom-start',
   })
   const [matchingEntries, setMatchingEntries] = useState<DictionaryEntry[]>([])
-  const theme = contentConfig.theme.get() ?? 'liuchan'
+  const theme = contentConfig.theme.use()
   const highlightMatch = contentConfig.highlightMatch.use()
-  const showPopup = contentStore.showPopup.get()
+  const showPopup = contentStore.showPopup.use()
 
   useEffect(() => {
-    // Todo store original selection somewhere and only clean up if it was created by the popup
+    // Store shadowRoot component so we can set CSS vars
+    const shadowRoot = document
+      .querySelector('liuchan-popup')
+      ?.shadowRoot?.getElementById('liuchan-popup')
+    contentStore.rootElement.set(shadowRoot)
+    setThemeCssVars(contentConfig.get(), shadowRoot)
+  }, [])
+
+  useEffect(() => {
+    // Todo Store original selection somewhere and only clean up if it was created by the popup
     if (!highlightMatch && window.getSelection()) {
       window.getSelection()?.removeAllRanges()
     }
   }, [highlightMatch])
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { highlight, text, virtualElement } = getHoveredText(e)
+
       if (!text) {
         setMatchingEntries([])
 
@@ -56,7 +68,7 @@ export const Liuchan = () => {
           return
         }
 
-        if (highlightMatch) {
+        if (highlightMatch && !contentStore.inputActive.get()) {
           highlight(response.longestMatchLength)
         }
         setMatchingEntries(response.entries)

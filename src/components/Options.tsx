@@ -1,22 +1,43 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { IColor } from 'react-color-palette'
 
+import { dict } from '@/background/background.ts'
+import { LiuChanOptions } from '@/background/config/defaultConfig.ts'
 import { configStore } from '@/background/config/store.ts'
+import { DictionaryEntry } from '@/background/Dictionary.ts'
 import { Checkbox } from '@/components/Options/Checkbox.tsx'
 import { ColorCircle } from '@/components/Options/ColorCircle.tsx'
 import { Dropdown } from '@/components/Options/Dropdown.tsx'
-import { exampleEntry } from '@/components/Options/exampleEntry.ts'
 import { Input } from '@/components/Options/Input.tsx'
 import { Section } from '@/components/Options/Section.tsx'
 import { Popup } from '@/components/Popup/Popup.tsx'
 import { Theme, themes } from '@/components/Popup/themes.ts'
 import { ContentMessageType } from '@/content/contentMessages.ts'
+import { contentConfig } from '@/content/contentStore.ts'
 import { sendRuntimeMessage } from '@/utils/browser.ts'
 import { capitalize } from '@/utils/capitalize.ts'
+import { debounce } from '@/utils/debounce.ts'
+import { setThemeCssVars } from '@/utils/theme.ts'
 
-document.documentElement.style.getPropertyValue
+const handleColorChange = (key: keyof LiuChanOptions['customColors']) =>
+  debounce((color: IColor) => {
+    const rgb = `${Math.round(color.rgb.r)} ${Math.round(
+      color.rgb.g
+    )} ${Math.round(color.rgb.b)}`
+
+    logger.log(`Setting color for ${key} to`, rgb)
+    configStore.customColors[key]?.set(rgb)
+  }, 50)
+
+const handleColorReset = (key: keyof LiuChanOptions['customColors']) => () => {
+  logger.log(`Resetting color for ${key}`)
+  configStore.customColors[key]?.set(undefined)
+}
+
 export function Options() {
   const currentConfig = configStore.use()
   const currentTheme = configStore.theme.use()
+  const [example, setExample] = useState<DictionaryEntry[]>([])
 
   useEffect(() => {
     configStore.onChange((state) => {
@@ -24,8 +45,21 @@ export function Options() {
         config: state,
         type: ContentMessageType.Config,
       })
+      contentConfig.set(state)
     })
+
+    configStore.onChange((state) =>
+      setThemeCssVars(state, document.documentElement)
+    )
+    setThemeCssVars(configStore.get(), document.documentElement)
   }, [])
+
+  useEffect(() => {
+    dict.loadDictionary().then(() => {
+      const result = dict.search('一部二十四史，不知從何說起')
+      setExample(result?.entries ?? [])
+    })
+  }, [currentConfig.hanziDisplaySetting, currentConfig.pinyinDisplayType])
 
   return (
     <div className="m-5 font-sans text-base flex flex-col gap-4">
@@ -125,9 +159,71 @@ export function Options() {
         {/*<div>Scale popup on zoom</div>*/}
       </Section>
 
-      <div className="w-60 -my-3">
-        <Popup entries={exampleEntry} theme={currentTheme} />
+      <div className="w-auto -my-3">
+        <Popup entries={example} theme={currentTheme} />
       </div>
+
+      <Section title="Customize Theme">
+        <div>Tone colors</div>
+        <div className="flex gap-2 justify-center">
+          <ColorCircle
+            color={
+              currentConfig.customColors?.tone1 ??
+              themes[currentTheme].colors.tone1
+            }
+            label="Tone 1"
+            onChange={handleColorChange('tone1')}
+            onReset={handleColorReset('tone1')}
+          />
+          <ColorCircle
+            color={
+              currentConfig.customColors?.tone2 ??
+              themes[currentTheme].colors.tone2
+            }
+            label="Tone 2"
+            onChange={handleColorChange('tone2')}
+            onReset={handleColorReset('tone2')}
+          />
+          <ColorCircle
+            color={
+              currentConfig.customColors?.tone3 ??
+              themes[currentTheme].colors.tone3
+            }
+            label="Tone 3"
+            onChange={handleColorChange('tone3')}
+            onReset={handleColorReset('tone3')}
+          />
+          <ColorCircle
+            color={
+              currentConfig.customColors?.tone4 ??
+              themes[currentTheme].colors.tone4
+            }
+            label="Tone 4"
+            onChange={handleColorChange('tone4')}
+            onReset={handleColorReset('tone4')}
+          />
+          <ColorCircle
+            color={
+              currentConfig.customColors?.tone5 ??
+              themes[currentTheme].colors.tone5
+            }
+            label="Tone 5"
+            onChange={handleColorChange('tone5')}
+            onReset={handleColorReset('tone5')}
+          />
+        </div>
+        <div>Color hanzi by tone</div>
+        <div>Color pinyin by tone</div>
+        <div>
+          Use custom tone colors <button>Reset</button>
+        </div>
+
+        <div>Popup</div>
+        <div>Use custom popup colors</div>
+        <div>Border thickness</div>
+        <div>Border radius</div>
+        <div>Drop shadow opacity</div>
+      </Section>
 
       <Section title="Hotkeys">
         <div>Show popup only when holding modifier:</div>
@@ -145,63 +241,6 @@ export function Options() {
           <div>N - next word</div>
           <div>T - text to speech</div>
         </div>
-      </Section>
-
-      <Section title="Customize Theme">
-        <div>Tone colors</div>
-        <div className="flex gap-2 justify-center">
-          <ColorCircle
-            color={
-              currentConfig.customColors?.tone1 ??
-              themes[currentTheme].colors.tone1
-            }
-            cssKey="--tone-1"
-            label="Tone 1"
-          />
-          <ColorCircle
-            color={
-              currentConfig.customColors?.tone2 ??
-              themes[currentTheme].colors.tone2
-            }
-            cssKey="--tone-2"
-            label="Tone 2"
-          />
-          <ColorCircle
-            color={
-              currentConfig.customColors?.tone3 ??
-              themes[currentTheme].colors.tone3
-            }
-            cssKey="--tone-3"
-            label="Tone 3"
-          />
-          <ColorCircle
-            color={
-              currentConfig.customColors?.tone4 ??
-              themes[currentTheme].colors.tone4
-            }
-            cssKey="--tone-4"
-            label="Tone 4"
-          />
-          <ColorCircle
-            color={
-              currentConfig.customColors?.tone5 ??
-              themes[currentTheme].colors.tone5
-            }
-            cssKey="--tone-5"
-            label="Tone 5"
-          />
-        </div>
-        <div>Color hanzi by tone</div>
-        <div>Color pinyin by tone</div>
-        <div>
-          Use custom tone colors <button>Reset</button>
-        </div>
-
-        <div>Popup</div>
-        <div>Use custom popup colors</div>
-        <div>Border thickness</div>
-        <div>Border radius</div>
-        <div>Drop shadow opacity</div>
       </Section>
 
       <Section title="Text to speech">
