@@ -1,59 +1,105 @@
-name: Release to Chrome Web Store
+name: Release LiuChan
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: Authenticate without uploading or submitting
-        required: true
-        default: true
-        type: boolean
 
 concurrency:
   group: chrome-web-store-release
   cancel-in-progress: false
 
 jobs:
-  submit:
+  release:
     runs-on: ubuntu-latest
     environment: chrome-web-store
     permissions:
-      contents: read
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Require master for a real submission
-        if: ${{ !inputs.dry_run && github.ref != 'refs/heads/master' }}
-        run: exit 1
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Prepare tag version
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must use the format v3.0.0" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "Release tags must point to a commit on master" >&2
+            exit 1
+          fi
+          npm pkg set version="${GITHUB_REF_NAME#v}"
+
       - run: pnpm run compile
       - run: pnpm run lint
       - run: pnpm run test:unit
-      - run: pnpm run zip
-      - uses: actions/upload-artifact@v4
+
+      - name: Package extension
+        run: |
+          find .output -maxdepth 1 -type f -name '*-chrome.zip' -delete
+          pnpm run zip
+          mapfile -t archives < <(find .output -maxdepth 1 -type f -name '*-chrome.zip')
+          if [[ ${#archives[@]} -ne 1 ]]; then
+            echo "Expected exactly one Chrome archive, found ${#archives[@]}:" >&2
+            printf '%s\n' "${archives[@]}" >&2
+            exit 1
+          fi
+          package_version="$(node -p "require('./package.json').version")"
+          mkdir -p release
+          cp "${archives[0]}" "release/liuchan-$package_version-chrome.zip"
+
+      - uses: actions/upload-artifact@v6
         with:
-          name: liuchan-chrome-${{ github.sha }}
-          path: .output/*-chrome.zip
+          name: liuchan-chrome-${{ github.ref_name }}
+          path: release/liuchan-*-chrome.zip
           if-no-files-found: error
+
       - name: Verify Chrome Web Store credentials
-        if: ${{ inputs.dry_run }}
-        run: pnpm run submit -- --dry-run --chrome-zip .output/*-chrome.zip
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: pnpm run submit -- --dry-run --chrome-zip release/liuchan-*-chrome.zip
         env:
           CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
           CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
           CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
-      - name: Submit update for review
-        if: ${{ !inputs.dry_run && github.ref == 'refs/heads/master' }}
-        run: pnpm run submit -- --chrome-zip .output/*-chrome.zip
+
+      - name: Create draft GitHub release
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/liuchan-*-chrome.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release/liuchan-*-chrome.zip \
+              --draft \
+              --generate-notes \
+              --title "LiuChan $GITHUB_REF_NAME" \
+              --verify-tag
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Submit update to Chrome Web Store
+        if: ${{ github.event_name == 'push' }}
+        run: pnpm run submit -- --chrome-zip release/liuchan-*-chrome.zip
         env:
           CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
           CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
           CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+
+      - name: Publish GitHub release
+        if: ${{ github.event_name == 'push' }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false
+        env:
+          GH_TOKEN: ${{ github.token }}

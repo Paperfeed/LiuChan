@@ -26,7 +26,7 @@ Follow the official [service-account setup](https://developer.chrome.com/docs/we
 
 ## Before submitting
 
-1. Confirm `package.json` has a version greater than the currently published version.
+1. Choose a release tag whose version is greater than the currently published version.
 2. Run the complete local verification sequence from the README.
 3. Review the generated `.output/chrome-mv3/manifest.json` and zip contents.
 4. Update the Store listing so it advertises only the features in the current README.
@@ -36,6 +36,15 @@ Follow the official [service-account setup](https://developer.chrome.com/docs/we
 
 ## Workflow
 
-Run **Release to Chrome Web Store** from the Actions tab with `dry_run` enabled first. This validates authentication without uploading. After it succeeds, run it from `master` with `dry_run` disabled. The workflow builds a fresh zip, retains it as an artifact, uploads it to the existing listing, and submits it for review.
+Run **Release LiuChan** from the Actions tab before the first release to validate the Chrome Web Store credentials without uploading anything.
+
+To publish a release, create and push a semantic version tag on a commit in `master`. The tag is the release version; no version file needs to be edited. For example:
+
+```sh
+git tag v3.0.0
+git push origin v3.0.0
+```
+
+The workflow derives the extension version from the tag, builds a fresh zip, retains it as a workflow artifact, attaches it to a GitHub Release, uploads it to the existing Chrome Web Store listing, and submits it for review. The GitHub Release remains a draft if Chrome submission fails.
 
 If automated submission is unavailable, download the workflow artifact and use **Upload New Package** in the Chrome Developer Dashboard.
