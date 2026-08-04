@@ -20,7 +20,7 @@ vi.mock('@/background/config/store', () => ({
     },
   },
 }))
-const filePath = path.resolve(__dirname, '../src/data/cedict_ts.u8')
+const filePath = path.resolve(__dirname, '../src/public/data/cedict_ts.u8')
 const realFileContent = readFileSync(filePath, 'utf-8')
 const realFileEntries: {
   definitions: string
