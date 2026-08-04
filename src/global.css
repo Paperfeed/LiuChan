@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 224;
+    --border: 215 211 175;
+    --tone1: 242 119 122;
+    --tone2: 153 204 153;
+    --tone3: 111 114 185;
+    --tone4: 204 153 204;
+    --tone5: 204 204 204;
+    --pinyin: 102 204 204;
+    --brace: 201 194 177;
+  }
+
+  /*@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(/fonts/Roboto.woff2) format('woff2');
+  }*/
+}
