@@ -45,6 +45,7 @@ jobs:
 
       - name: Package extension
         run: |
+          mkdir -p .output
           find .output -maxdepth 1 -type f -name '*-chrome.zip' -delete
           pnpm run zip
           mapfile -t archives < <(find .output -maxdepth 1 -type f -name '*-chrome.zip')
