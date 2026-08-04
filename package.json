@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.11.0",
   "displayName": "LiuChan Chinese Popup Dictionary",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Chinese Popup Dictionary",
   "author": "Aldert Vaandering",
   "license": "GPL-3.0",
