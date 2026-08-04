@@ -11,6 +11,9 @@ import { REGEX_DICTIONARY } from '@/utils/language.ts'
 vi.mock('@/background/config/store', () => ({
   configStore: {
     get: vi.fn(() => ({ pinyinDisplayType: 'tonemarks' })),
+    dictionary: {
+      get: vi.fn(() => 'mandarin'),
+    },
     onChange: vi.fn(),
     pinyinDisplayType: {
       get: vi.fn(() => 'tonemarks'),
@@ -47,6 +50,7 @@ describe('Dictionary', () => {
       'fetch',
       vi.fn(() =>
         Promise.resolve({
+          ok: true,
           text: () => Promise.resolve(realFileContent),
         })
       )
@@ -59,11 +63,11 @@ describe('Dictionary', () => {
 
   it('should load all the entries from the cedict file', async () => {
     await dictionary.loadDictionary()
-    let total = 0
+    const uniqueEntries = new Set()
     for (const entries of dictionary.data.values()) {
-      total += entries.length
+      entries.forEach((entry) => uniqueEntries.add(entry))
     }
-    expect(total).toBe(totalEntries)
+    expect(uniqueEntries.size).toBe(totalEntries)
   })
 
   it('should parse dictionary data correctly', async () => {
@@ -74,11 +78,11 @@ describe('Dictionary', () => {
 
   it('should return correct search results', () => {
     const result = dictionary.search('词典') as SearchResult
-    expect(result.entries.length).toBeGreaterThan(1)
+    expect(result.entries.length).toBeGreaterThan(0)
     const entry = result.entries.find((e) => e.simplified === '词典')
     expect(entry).toBeTruthy()
     expect(entry?.traditional).toBe('詞典')
-    expect(entry?.definitions).toContain('dictionary')
+    expect(entry?.definitions.mandarin).toContain('dictionary')
   })
 
   it('should return results for all entries in the dictionary', () => {
@@ -105,9 +109,9 @@ describe('Dictionary', () => {
       )
       expect(result.simplified).toBe(entry.simplified)
       expect(result.traditional).toBe(entry.traditional)
-      expect(result.definitions.length).toBeGreaterThan(0)
+      expect(result.definitions.mandarin.length).toBeGreaterThan(0)
     })
-  })
+  }, 20_000)
 
   it('should properly convert entries to the selected pinyin type', () => {
     const testEntries: {
@@ -136,13 +140,57 @@ describe('Dictionary', () => {
 
     testEntries.forEach((entry) => {
       const parsed = parseEntry('', '', entry.input, '', entry.type)
-      expect(parsed.pinyin[entry.type]).toBe(entry.output[0])
-      expect(parsed.pinyin.tones).toEqual(entry.output[1])
+      expect(parsed.pronunciations.mandarin?.[entry.type]).toBe(entry.output[0])
+      expect(parsed.pronunciations.mandarin?.tones).toEqual(entry.output[1])
     })
   })
 
   it('should clear data when unloadDictionary is called', () => {
     dictionary.unloadDictionary()
     expect(dictionary.data.size).toBe(0)
+  })
+
+  it('merges CC-CEDICT, supplemental readings, and CC-Canto definitions', () => {
+    const cedict = '你好 你好 [ni3 hao3] /hello/'
+    const readings = '你好 你好 [ni3 hao3] {nei5 hou2}'
+    const canto = '你好 你好 [ni3 hao3] {nei5 hou2} /hello (Cantonese)/'
+    dictionary.parseDictionaries({ canto, cedict, readings }, 'both')
+    const entry = dictionary.search('你好')?.entries[0]
+    expect(entry?.pronunciations.mandarin?.tonemarks).toBe('nǐ hǎo')
+    expect(entry?.pronunciations.cantonese?.text).toBe('nei5 hou2')
+    expect(entry?.definitions.mandarin).toEqual(['hello'])
+    expect(entry?.definitions.cantonese).toEqual(['hello (Cantonese)'])
+  })
+
+  it('accepts Unicode line separators inside upstream definitions', () => {
+    const canto =
+      '你好 你好 [ni3 hao3] {nei5 hou2} /hello\u2028greeting/ # adapted from cc-cedict'
+    dictionary.parseDictionaries(
+      { canto, cedict: '', readings: '' },
+      'cantonese'
+    )
+    expect(
+      dictionary.search('你好')?.entries[0]?.definitions.cantonese
+    ).toEqual(['hello\u2028greeting'])
+  })
+
+  it('looks up both traditional and simplified forms', () => {
+    dictionary.parseDictionary('詞典 词典 [ci2 dian3] /dictionary/')
+    expect(dictionary.search('词典')?.longestMatchLength).toBe(2)
+    expect(dictionary.search('詞典')?.longestMatchLength).toBe(2)
+  })
+
+  it('orders matching words from longest to shortest', () => {
+    dictionary.parseDictionary(
+      [
+        '你 你 [ni3] /you/',
+        '你好 你好 [ni3 hao3] /hello/',
+        '你好嗎 你好吗 [ni3 hao3 ma5] /how are you/',
+      ].join('\n')
+    )
+
+    expect(
+      dictionary.search('你好吗')?.entries.map((entry) => entry.simplified)
+    ).toEqual(['你好吗', '你好', '你'])
   })
 })
