@@ -1,41 +1,59 @@
-name: Release
+name: Release to Chrome Web Store
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Authenticate without uploading or submitting
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: chrome-web-store-release
+  cancel-in-progress: false
 
 jobs:
   submit:
     runs-on: ubuntu-latest
+    environment: chrome-web-store
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 'latest'
-
+      - name: Require master for a real submission
+        if: ${{ !inputs.dry_run && github.ref != 'refs/heads/master' }}
+        run: exit 1
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Zip extensions
-        run: |
-          pnpm zip
-          pnpm zip:firefox
-
-      - name: Submit to stores
-        run: |
-          pnpm wxt submit \
-            --chrome-zip .output/*-chrome.zip \
-            --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run compile
+      - run: pnpm run lint
+      - run: pnpm run test:unit
+      - run: pnpm run zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: liuchan-chrome-${{ github.sha }}
+          path: .output/*-chrome.zip
+          if-no-files-found: error
+      - name: Verify Chrome Web Store credentials
+        if: ${{ inputs.dry_run }}
+        run: pnpm run submit -- --dry-run --chrome-zip .output/*-chrome.zip
         env:
+          CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
-          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
-          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+      - name: Submit update for review
+        if: ${{ !inputs.dry_run && github.ref == 'refs/heads/master' }}
+        run: pnpm run submit -- --chrome-zip .output/*-chrome.zip
+        env:
+          CHROME_API_VERSION: v2
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
