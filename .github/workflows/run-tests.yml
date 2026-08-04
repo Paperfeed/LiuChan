@@ -2,7 +2,7 @@ name: Verify extension
 
 on:
   push:
-    branches: [master, rewrite]
+    branches: [master]
   pull_request:
     branches: [master]
 
