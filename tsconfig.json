@@ -3,9 +3,13 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
+    "noUncheckedIndexedAccess": false,
+    "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
     },
   },
+  "include": ["src", "tests", "*.config.ts", ".wxt/**/*.d.ts"],
+  "exclude": ["OLD", "dist", ".output", "node_modules"],
 }

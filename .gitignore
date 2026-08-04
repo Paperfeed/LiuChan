@@ -31,3 +31,5 @@ dist-ssr
 .output/
 .wxt/
 OLD/
+playwright-report/
+test-results/

@@ -1,26 +1,25 @@
-name: Run Vitest
+name: Verify extension
 
 on:
   push:
-    branches:
-      - master
+    branches: [master, rewrite]
   pull_request:
-    branches:
-      - master
+    branches: [master]
 
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Run tests
-        run: bun run test
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run compile
+      - run: pnpm run lint
+      - run: pnpm run test:unit
+      - run: pnpm run build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run test:e2e

@@ -9,17 +9,17 @@ export default defineConfig({
   manifest: {
     action: {
       default_icon: toolbarIcon.disabled['24'],
-      default_title: 'LiuCha Chinese Dictionary',
+      default_title: 'LiuChan Chinese Dictionary',
     },
-    permissions: [
-      'activeTab',
-      'storage',
-      'contextMenus',
-      'notifications',
-      'tts',
-    ],
+    description:
+      'A lightweight Mandarin and Cantonese mouse-over dictionary for Chinese.',
+    host_permissions: ['https://cc-cedict.org/*', 'https://cccanto.org/*'],
+    name: 'LiuChan Chinese Popup Dictionary',
+    permissions: ['storage', 'unlimitedStorage', 'tts'],
+    short_name: 'LiuChan',
   },
-  runner: {
+  publicDir: 'src/public',
+  webExt: {
     chromiumArgs: ['--auto-open-devtools-for-tabs'],
     openConsole: true,
     openDevtools: true,

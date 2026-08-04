@@ -9,6 +9,8 @@ import eslint from '@eslint/js'
 import react from 'eslint-plugin-react'
 
 export default tseslint.config({
+  ignores: ['.output/**', '.wxt/**', 'dist/**', 'OLD/**', 'node_modules/**'],
+}, {
   files: ['**/*.ts', '**/*.tsx'],
   plugins: {
     'simple-import-sort': simpleImportSort,
