@@ -4,6 +4,9 @@ import '@/global.css'
 import ReactDOM from 'react-dom/client'
 
 import { Options } from '@/components/Options.tsx'
+import { initializeConfig } from '@/background/config/store.ts'
 
 const root = document.getElementById('app')
-ReactDOM.createRoot(root!).render(<Options />)
+void initializeConfig().then(() => {
+  ReactDOM.createRoot(root!).render(<Options />)
+})

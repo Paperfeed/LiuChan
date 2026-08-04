@@ -1,95 +1,97 @@
 import '@/utils/logger.ts'
 
 import { BackgroundMessageType } from '@/background/backgroundMessages.ts'
-import { backgroundStore, configStore } from '@/background/config/store.ts'
+import {
+  backgroundStore,
+  configStore,
+  initializeConfig,
+  initializeEnabledState,
+  persistEnabledState,
+} from '@/background/config/store.ts'
+import { getDownloadedDictionaries } from '@/background/dictionaryData'
 import { Dictionary } from '@/background/Dictionary.ts'
 import { messageHandler } from '@/background/messageHandler.ts'
 import { sendMessageToAllTabs, setIcon } from '@/utils/browser.ts'
 import { toolbarIcon } from '@/utils/icons.ts'
 
 export const dict = new Dictionary()
+let dictionaryLoading: Promise<void> | undefined
 
-export function backgroundMain() {
-  try {
-    browser.runtime.onInstalled.addListener((details) => {
-      logger.log('Extension installed:', details)
+async function registerDevelopmentContentScript() {
+  if (
+    !import.meta.env.DEV ||
+    browser.runtime.getManifest().manifest_version !== 3
+  )
+    return
+  const scripting = (browser as any).scripting
+  if (!scripting) return
+  const id = 'wxt:content-scripts/content.js'
+  const existing = await scripting.getRegisteredContentScripts({ ids: [id] })
+  if (existing.length) return
+  await scripting.registerContentScripts([
+    {
+      allFrames: true,
+      id,
+      js: ['content-scripts/content.js'],
+      matches: ['<all_urls>'],
+      persistAcrossSessions: false,
+      runAt: 'document_idle',
+    },
+  ])
+  const tabs = await browser.tabs.query({ url: ['http://localhost/*'] })
+  await Promise.all(
+    tabs.flatMap((tab) => (tab.id ? [browser.tabs.reload(tab.id)] : []))
+  )
+}
+
+export async function ensureDictionaryLoaded() {
+  dictionaryLoading ??= dict
+    .ensureLoaded(await getDownloadedDictionaries())
+    .catch((error) => {
+      dictionaryLoading = undefined
+      throw error
     })
+  return dictionaryLoading
+}
 
-    browser.runtime.onMessage.addListener(messageHandler)
-    browser.action.onClicked.addListener(toggleExtension)
-    // browser.action.onClicked.addListener(liuChan.toggleExtension)
-    // browser.tabs.onActivated.addListener(liuChan.onActiveTabChange)
-    // browser.windows.onFocusChanged.addListener(liuChan.onWindowChangeFocus)
-    // browser.storage.onChanged.addListener(liuChan.onConfigChange)
-    //
-    // browser.runtime.onMessage.addListener(liuChan.messageHandler)
+export async function reloadDictionary() {
+  dict.unloadDictionary()
+  dictionaryLoading = undefined
+  await ensureDictionaryLoaded()
+}
 
-    configStore.onChange((state) => {
-      sendMessageToAllTabs({
-        config: state,
-        type: BackgroundMessageType.Config,
-      }).then(() => logger.log('Sent updated config to all tabs'))
-    })
+export async function backgroundMain() {
+  browser.runtime.onMessage.addListener(messageHandler)
+  browser.action.onClicked.addListener(toggleExtension)
 
-    // Todo remove this
-    enableExtension()
-  } catch (error) {
-    logger.error('Error:', error)
-  }
+  await registerDevelopmentContentScript()
+
+  await Promise.all([initializeConfig(), initializeEnabledState()])
+  configStore.onChange((state, previous) => {
+    sendMessageToAllTabs({ config: state, type: BackgroundMessageType.Config })
+    if (state.dictionary !== previous.dictionary) void reloadDictionary()
+  })
+
+  if (backgroundStore.isEnabled.get()) await enableExtension(false)
+  else await setIcon({ path: toolbarIcon.disabled })
 }
 
 export async function toggleExtension() {
-  if (backgroundStore.isEnabled.get()) {
-    logger.log('Disabling Liuchan')
-    await disableExtension()
-  } else {
-    logger.log('Enabling Liuchan')
-    await enableExtension()
+  if (backgroundStore.isEnabled.get()) await disableExtension()
+  else await enableExtension()
+}
+
+export async function enableExtension(notifyTabs = true) {
+  await ensureDictionaryLoaded()
+  await persistEnabledState(true)
+  await setIcon({ path: toolbarIcon.enabled })
+  if (notifyTabs) {
+    await sendMessageToAllTabs({ type: BackgroundMessageType.Enable })
   }
 }
 
-export async function enableExtension() {
-  // Check if the content script is actually running and let the user know the tab needs to be reloaded if not.
-  const config = configStore.get()
-
-  // TODO Fix fuzzysearch
-  // this.omnibox = new Omnibox(this)
-  // browser.omnibox.onInputChanged.addListener(this.omnibox.fuzzysearch)
-  //browser.omnibox.onInputEntered.addListener(text => { //Do sth on enter });
-
-  await dict.loadDictionary()
-
-  backgroundStore.isEnabled.set(true)
-
-  // Set extension icon
-  await setIcon({
-    path: toolbarIcon.enabled,
-  })
-
-  try {
-    await sendMessageToAllTabs({
-      config: config,
-      enabled: true,
-      type: BackgroundMessageType.Initialize,
-    })
-  } catch (e) {
-    logger.error(e)
-    await browser.notifications.create({
-      iconUrl: '/icon/128.png',
-      message:
-        'Oops! You will need to reload this tab before Liuchan can work its ' +
-        'magic! \n\nThis is only necessary on tabs that were open before Liuchan was installed or updated :)',
-      title: 'Liuchan - Please reload this tab',
-      type: 'basic',
-    })
-  }
-}
-
-async function disableExtension() {
-  await sendMessageToAllTabs({ type: BackgroundMessageType.Disable })
-  // browser.omnibox.onInputChanged.removeListener(this.omnibox.fuzzysearch)
-
-  backgroundStore.isEnabled.set(false)
-  dict.unloadDictionary()
+export async function disableExtension() {
+  await persistEnabledState(false)
   await setIcon({ path: toolbarIcon.disabled })
+  await sendMessageToAllTabs({ type: BackgroundMessageType.Disable })
 }

@@ -3,12 +3,10 @@ import 'react-color-palette/css'
 import {
   flip,
   offset,
-  safePolygon,
   shift,
+  useClick,
   useDismiss,
   useFloating,
-  useFocus,
-  useHover,
   useInteractions,
 } from '@floating-ui/react'
 import { useState } from 'react'
@@ -34,15 +32,10 @@ export const ColorCircle = ({
     open: isOpen,
   })
 
-  const hover = useHover(context, {
-    delay: { open: 200 },
-    handleClose: safePolygon({ blockPointerEvents: true }),
-  })
-  const focus = useFocus(context)
+  const click = useClick(context)
   const dismiss = useDismiss(context)
   const { getFloatingProps, getReferenceProps } = useInteractions([
-    hover,
-    focus,
+    click,
     dismiss,
   ])
   const [newColor, setColor] = useColor(`rgb(${color})`)
@@ -55,11 +48,12 @@ export const ColorCircle = ({
   return (
     <div>
       <div className="inline-flex flex-col items-center">
-        <div
+        <button
+          aria-label={`Choose ${label.toLowerCase()}`}
           ref={refs.setReference}
-          onClick={() => setIsOpen(true)}
           {...getReferenceProps()}
-          className="w-12 h-12 rounded-full"
+          className="w-12 h-12 rounded-full border border-black/20"
+          type="button"
           style={{
             backgroundColor: newColor.hex,
           }}

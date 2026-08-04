@@ -1,55 +1,53 @@
-![Logo](/assets/release/marquee.png)
+![LiuChan](assets/release/marquee.png)
 
+# LiuChan Chinese Popup Dictionary
 
-## LiuChan Chinese Popup Dictionary
-LiuChan (*liú chàng*) is an extension for chrome that allows you to mouse-over Chinese to instantly lookup the dictionary.
+LiuChan (_liú chàng_, 流畅) is a Chrome extension that looks up Chinese text as you move the pointer over it. Version 2 is a Manifest V3 rewrite with Mandarin and Cantonese support.
 
-It started out as a port of RikaiChan (and its Rikai derivatives) and has since grown into an extension that holds its own with new features and improved performance.
+## Features
 
-### Current Features 
+- Fast mouse-over lookup on page text, inputs, and textareas
+- Simplified and traditional Hanzi
+- CC-CEDICT Mandarin definitions with Pinyin, tone numbers, or Zhuyin
+- CC-Canto definitions and supplemental Jyutping readings
+- Mandarin, Cantonese, or combined dictionary display
+- Synchronized display settings, themes, and custom colors
+- Text highlighting, speech, clipboard export, and navigation hotkeys
+- User-triggered dictionary updates without reinstalling the extension
 
-* Instantaneous translation of Chinese characters and words on mouse over
-* Synchronized settings across all your devices
-* Text input support
-* A handy little notepad that you can open on any page :)
-* Theme support
-* Fuzzy search! Use chrome's omnibox to search the dictionary using hanzi, pinyin or just plain english
+Click the toolbar icon to enable or disable LiuChan. The options page documents the available popup hotkeys.
 
-### Usage
+## Dictionary updates
 
-**Mouse Over Dictionary:** Simply enable the extension and mouse over Chinese on a page!
+The extension includes an offline dictionary. In **Settings → Dictionary data**, click **Check for updates** to download the latest CC-CEDICT editor export and the latest published CC-Canto data. Downloads happen only after this button is clicked. New data is validated before it replaces the active dictionary; **Restore bundled data** always returns to the release snapshot.
 
-**Fuzzy search:** Type 'lc' in the omnibox followed by whatever term you want to look for (Chinese, pinyin or English), the results will show up as suggestions.
+Dictionary files are data only. LiuChan does not download or execute remote code.
 
-### To Do
+## Development
 
-- [ ] Add word lists/Anki support
-- [ ] Move fuzzy search to its own input box as opposed to omnibox so that it can be expanded upon (eg. use rich formatting, etc)
-- [x] Improve performance
-- [x] Improve fuzzy search to match regular vowels with tonemarked pinyin
-- [x] Update CEDICT
+Requirements: Node.js 22 and pnpm 10.11.0.
 
-### Why is it called LiuChan?
+```sh
+pnpm install --frozen-lockfile
+pnpm run compile
+pnpm run lint
+pnpm run test:unit
+pnpm run build
+pnpm exec playwright install chromium
+pnpm run test:e2e
+pnpm run zip
+```
 
-流畅 (*liú chàng*) stands for fluency in a language. I kept -Chan as an homage to it's origin.
+Load `.output/chrome-mv3` as an unpacked extension for local testing. The Chrome Store zip is written to `.output/`.
 
-### Data sources
-Dictionaries are sourced from:
-- [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict)
-- [CC-Canto](https://cantonese.org/download.html)
- 
-These are both licensed under the Creative Commons Attribution-Share Alike 3.0 License.
+## Data sources and licenses
 
-### Building
-The extension is using Vite and [vite-plugin-web-extension](https://vite-plugin-web-extension.aklinker1.io/guide) to build the extension for different browsers.
+- [CC-CEDICT](https://cc-cedict.org/) — community-maintained Mandarin dictionary published by MDBG, Creative Commons Attribution-ShareAlike 4.0.
+- [CC-Canto](https://cccanto.org/download.html) — Cantonese dictionary, copyright Pleco Inc., Creative Commons Attribution-ShareAlike 3.0.
+- CC-CEDICT Cantonese Readings — supplemental readings from the CC-Canto download, copyright Pleco Software Incorporated, Creative Commons Attribution-ShareAlike 3.0.
 
+LiuChan source code is licensed under GPL-3.0.
 
-### Troubleshooting
+## Troubleshooting
 
-If anything malfunctions, your best bet is disabling and re-enabling the extension and reloading the page you want it to work on.
-
-In case a problem persists please open an issue on github and try to describe as clearly as possible how to recreate the problem.
-
-#### Known issues:
-
-Currently fuzzy search isn't 'fuzzy' enough to match regular vowels with tonemarked ones.
+Chrome cannot inject extensions into internal pages such as `chrome://` or into tabs that have not been reloaded since an extension update. Reload the affected page and try again. If a dictionary update fails, the previously working data remains active.

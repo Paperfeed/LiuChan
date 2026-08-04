@@ -1,40 +1,55 @@
 import { KeyboardAction } from '@/background/config/defaultConfig'
 import { contentConfig, contentStore } from '@/content/contentStore'
-import { activeElementIsInput } from '@/utils/activeElementIsInput'
-import { convertKeysToAction } from '@/utils/keymapper'
 
-export const onKeyDownHandler = convertKeysToAction((action) => {
-  logger.log('[KeyHandler] Action:', action)
-  if (contentStore.inputActive.get()) {
-    logger.debug('[KeyHandler] Input active, ignoring action')
-    return
-  }
-
-  switch (action) {
-    case KeyboardAction.HidePopup:
-      contentStore.showPopup.set(false)
-      return
-    case KeyboardAction.TTS:
-      const config = contentConfig.get()
-      const text = contentStore.text.get()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = config.ttsDialect
-      utterance.rate = config.ttsSpeed
-      speechSynthesis.speak(utterance)
-      return
-  }
-})
-
-document.addEventListener('focusin', () => {
-  contentStore.inputActive.set(activeElementIsInput())
-})
-
-export const onMouseDownHandler = () => {
-  // Technically not an active input, but we want to prevent the selection from being overridden
-  contentStore.inputActive.set(true)
-  document.getSelection()?.removeAllRanges()
+const actionByKey: Record<string, KeyboardAction> = {
+  a: KeyboardAction.AlternatePopupLocation,
+  b: KeyboardAction.PreviousCharacter,
+  c: KeyboardAction.Copy,
+  d: KeyboardAction.ToggleDefinitions,
+  escape: KeyboardAction.HidePopup,
+  m: KeyboardAction.NextCharacter,
+  n: KeyboardAction.NextWord,
+  t: KeyboardAction.TTS,
+  y: KeyboardAction.MovePopupDown,
 }
 
-export const onMouseUpHandler = () => {
-  contentStore.inputActive.set(activeElementIsInput())
+export function modifierMatches(event: Pick<KeyboardEvent | MouseEvent, 'altKey' | 'ctrlKey'>) {
+  switch (contentConfig.showOnModifier.get()) {
+    case 'ctrl':
+      return event.ctrlKey && !event.altKey
+    case 'alt':
+      return event.altKey && !event.ctrlKey
+    case 'ctrl-alt':
+      return event.ctrlKey && event.altKey
+    default:
+      return true
+  }
+}
+
+function isEditableTarget(target: EventTarget | null) {
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  )
+}
+
+export const onKeyDownHandler = (event: KeyboardEvent) => {
+  if (
+    event.repeat ||
+    contentConfig.disableHotkeys.get() ||
+    isEditableTarget(event.target) ||
+    !modifierMatches(event)
+  ) {
+    return
+  }
+  const action = actionByKey[event.key.toLowerCase()]
+  if (!action || (!contentStore.showPopup.get() && action !== KeyboardAction.HidePopup)) return
+  window.dispatchEvent(new CustomEvent('liuchan:action', { detail: action }))
+}
+
+export const onKeyUpHandler = (event: KeyboardEvent) => {
+  if (contentConfig.showOnModifier.get() !== 'none' && !modifierMatches(event)) {
+    contentStore.showPopup.set(false)
+  }
 }

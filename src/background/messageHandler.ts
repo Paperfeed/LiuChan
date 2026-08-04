@@ -1,62 +1,50 @@
-import { dict } from '@/background/background.ts'
-import { backgroundStore, configStore } from '@/background/config/store'
 import {
-  ContentMessageHandler,
-  ContentMessageType,
-} from '@/content/contentMessages'
+  backgroundStore,
+  configStore,
+  initializeConfig,
+  initializeEnabledState,
+} from '@/background/config/store'
+import {
+  getDictionaryMetadata,
+  restoreBundledDictionaries,
+  updateDictionaries,
+} from '@/background/dictionaryData'
+import { ContentMessages, ContentMessageType } from '@/content/contentMessages'
+import { speak } from '@/background/tts'
 
-// Handles incoming messages from the content script
-export const messageHandler: ContentMessageHandler = (
-  message,
-  sender,
-  sendResponse
-) => {
-  logger.debug('[Background] Received message', message, sender)
+import { dict, ensureDictionaryLoaded, reloadDictionary } from './background'
 
+export async function messageHandler(message: ContentMessages) {
+  logger.debug('[Background] Received message', message)
   switch (message.type) {
     case ContentMessageType.Initialize:
-      sendResponse({
+      await Promise.all([initializeConfig(), initializeEnabledState()])
+      return {
         config: configStore.get(),
         enabled: backgroundStore.isEnabled.get(),
-      })
-      return
+      }
     case ContentMessageType.Search:
-      const result = dict.search(message.text)
-      if (result?.entries.length) sendResponse(result)
-      return
+      await ensureDictionaryLoaded()
+      return dict.search(message.text)
     case ContentMessageType.Config:
-      logger.log('Received updated config:', message.config)
       configStore.set(message.config)
       return
-    // case 'makehtml':
-    //   return this.dict.makeHtml(message.entry)
-    // case 'copyToClip':
-    //   this.copyToClip(sender.tab, message.entry)
-    //   return
-    // case 'config':
-    //           // Immediately update settings upon change occuring
-    //           this.config = Object.assign(this.config, message.config);
-    //           break;
-    // case 'toggleDefinition':
-    //   this.dict.toggleDefinition()
-    //   break
-    // case 'rebuild':
-    //   this.dict.loadDictionary()
-    //   break
-    // case 'customstyling':
-    //   response(this.config.content.popup.customStyling)
-    //   break
-    // case 'notepad':
-    //   if (message.load) {
-    //     response(this.config.content.notepad)
-    //   } else {
-    //     await browser.storage.sync.set({ notepad: message.query })
-    //     this.config.content.notepad = message.query
-    //   }
-    //   break
-    // case 'SIGN_CONNECT':
-    //   break
-    default:
-      logger.error('Background received unknown request: ', message)
+    case ContentMessageType.Speak:
+      return speak(
+        message.text,
+        configStore.ttsDialect.get(),
+        configStore.ttsSpeed.get()
+      )
+    case ContentMessageType.DictionaryStatus:
+      return getDictionaryMetadata()
+    case ContentMessageType.DictionaryUpdate: {
+      const metadata = await updateDictionaries()
+      await reloadDictionary()
+      return metadata
+    }
+    case ContentMessageType.DictionaryRestore:
+      await restoreBundledDictionaries()
+      await reloadDictionary()
+      return
   }
 }

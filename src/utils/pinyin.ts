@@ -437,12 +437,12 @@ export function zhuyinFromPinyin(pinyin: string, tone: number): string {
     const zhuyin = zhuyinMap[pinyin as keyof typeof zhuyinMap]
     const toneMark = toneCharMap.zhuyin[tone - 1]
     if (toneMark === undefined) {
-      logger.warn('Could not find tone mark for', zhuyin, pinyin, tone)
+      logger.debug('Could not find tone mark for', zhuyin, pinyin, tone)
       return zhuyin
     }
     return zhuyin + toneMark
   } else {
-    logger.warn('Could not find zhuyin for', pinyin, tone)
+    logger.debug('Could not find zhuyin for', pinyin, tone)
     return pinyin + tone
   }
 }
@@ -452,7 +452,8 @@ const isVowel = (letter: string) =>
   letter === 'e' ||
   letter === 'i' ||
   letter === 'o' ||
-  letter === 'u'
+  letter === 'u' ||
+  letter === '\u00FC'
 
 export function toneMarksFromPinyin(pinyin: string, tone: number): string {
   if (pinyin.indexOf('a') !== -1) {
@@ -477,7 +478,7 @@ export function toneMarksFromPinyin(pinyin: string, tone: number): string {
           case 'u':
             return toneCharMap.u[tone - 1]
           case '\u00FC':
-            return toneCharMap.v[tone]
+            return toneCharMap.v[tone - 1]
           default:
             logger.error('Exception: weird vowel ' + letter)
         }

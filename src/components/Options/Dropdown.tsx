@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 interface DropdownProps<T> {
   label?: string
   onChange: (value: T) => void
@@ -11,11 +13,18 @@ export function Dropdown<T>({
   options,
   value,
 }: DropdownProps<T>) {
+  const id = useId()
+
   return (
     <div className="grid grid-cols-2 items-center">
-      {label && <p className="col-span-1">{label}</p>}
+      {label && (
+        <label className="col-span-1" htmlFor={id}>
+          {label}
+        </label>
+      )}
       <select
         className="col-span-1 p-2 bg-white rounded-md focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 outline-0"
+        id={id}
         onChange={(e) => onChange(JSON.parse(e.target.value))}
         value={JSON.stringify(value)}
       >

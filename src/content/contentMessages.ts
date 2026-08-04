@@ -1,51 +1,35 @@
-import { Runtime } from 'webextension-polyfill'
-
-import { SearchResult } from '@/background/Dictionary'
-import MessageSender = Runtime.MessageSender
-
 import { LiuChanOptions } from '@/background/config/defaultConfig'
+import { DictionaryMetadata } from '@/background/dictionaryData'
+import { SearchResult } from '@/background/Dictionary'
 
 export enum ContentMessageType {
   Config = 'config',
+  DictionaryRestore = 'dictionaryRestore',
+  DictionaryStatus = 'dictionaryStatus',
+  DictionaryUpdate = 'dictionaryUpdate',
   Initialize = 'initialize',
-  Search = 'xsearch',
+  Search = 'search',
+  Speak = 'speak',
 }
 
-interface BaseMessage {
-  type: ContentMessageType
-}
+export type ContentMessages =
+  | { type: ContentMessageType.Initialize }
+  | { config: LiuChanOptions; type: ContentMessageType.Config }
+  | { text: string; type: ContentMessageType.Search }
+  | { text: string; type: ContentMessageType.Speak }
+  | { type: ContentMessageType.DictionaryStatus }
+  | { type: ContentMessageType.DictionaryUpdate }
+  | { type: ContentMessageType.DictionaryRestore }
 
-interface InitializeMessage extends BaseMessage {
-  type: ContentMessageType.Initialize
-}
-
-interface SearchMessage extends BaseMessage {
-  text: string
-  type: ContentMessageType.Search
-}
-
-// This message is sent from the options page to the background script
-interface ConfigMessage extends BaseMessage {
-  config: LiuChanOptions
-  type: ContentMessageType.Config
-}
-
-export type ContentMessages = InitializeMessage | SearchMessage | ConfigMessage
-
-interface ContentResponseMap {
-  [ContentMessageType.Search]: SearchResult
-  [ContentMessageType.Initialize]: {
-    config: LiuChanOptions
-    enabled: boolean
-  }
+export interface ContentResponseMap {
+  [ContentMessageType.Initialize]: { config: LiuChanOptions; enabled: boolean }
+  [ContentMessageType.Config]: undefined
+  [ContentMessageType.Search]: SearchResult | undefined
+  [ContentMessageType.Speak]: string
+  [ContentMessageType.DictionaryStatus]: DictionaryMetadata | undefined
+  [ContentMessageType.DictionaryUpdate]: DictionaryMetadata
+  [ContentMessageType.DictionaryRestore]: undefined
 }
 
 export type ContentResponse<T extends ContentMessageType> =
-  T extends keyof ContentResponseMap ? ContentResponseMap[T] : undefined
-
-export type ContentMessageHandler<T extends ContentMessages = ContentMessages> =
-  (
-    message: T,
-    sender: MessageSender,
-    sendResponse: (response: ContentResponse<T['type']>) => void
-  ) => void
+  ContentResponseMap[T]

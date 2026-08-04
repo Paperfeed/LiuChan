@@ -93,8 +93,10 @@ export function getHoveredText(event: MouseEvent, maxLength = MAX_TEXT_LENGTH) {
   }
 
   const virtualElement = {
-    getBoundingClientRect: () => range.getBoundingClientRect(),
-    getClientRects: () => range.getClientRects(),
+    getBoundingClientRect: () =>
+      isInputElement(element) ? element.getBoundingClientRect() : range.getBoundingClientRect(),
+    getClientRects: () =>
+      isInputElement(element) ? element.getClientRects() : range.getClientRects(),
   } as VirtualElement
 
   return {

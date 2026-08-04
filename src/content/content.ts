@@ -1,88 +1,74 @@
 import { createElement, StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import browser from 'webextension-polyfill'
-import { defineContentScript } from 'wxt/sandbox'
+import { ContentScriptContext } from 'wxt/utils/content-script-context'
+import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root'
 
 import { Liuchan } from '@/components/Liuchan.tsx'
 import { ContentMessageType } from '@/content/contentMessages.ts'
 import { contentConfig, contentStore } from '@/content/contentStore.ts'
-import {
-  onKeyDownHandler,
-  onMouseDownHandler,
-  onMouseUpHandler,
-} from '@/content/keyHandler.ts'
+import { onKeyDownHandler, onKeyUpHandler } from '@/content/keyHandler.ts'
 import { messageHandler } from '@/content/messageHandler.ts'
-import { activeElementIsInput } from '@/utils/activeElementIsInput.ts'
 import { sendRuntimeMessage } from '@/utils/browser.ts'
-import { setThemeCssVars } from '@/utils/theme.ts'
 
-// WXT doesn't export types, so I have to do this to get it instead
-type ExcludeFunc<T> = T extends () => void ? never : T
-type ContentContext = NonNullable<
-  ExcludeFunc<Parameters<Parameters<typeof defineContentScript>[0]['main']>>[0]
->
+let listenersEnabled = false
 
-export async function contentMain(ctx: ContentContext) {
+export async function contentMain(ctx: ContentScriptContext) {
+  if (document.querySelector('liuchan-popup')) return
   browser.runtime.onMessage.addListener(messageHandler)
-
-  sendRuntimeMessage({
+  const response = await sendRuntimeMessage({
     type: ContentMessageType.Initialize,
-  }).then((response) => {
-    contentConfig.set({
-      ...contentConfig.get(),
-      ...response.config,
-    })
-    if (response.enabled) {
-      enableTab()
-    }
   })
+  contentConfig.set(response.config)
 
-  const Root = () => {
-    const isEnabled = contentStore.isEnabled.use()
-
-    return isEnabled ? createElement(Liuchan) : null
-  }
+  const Root = () =>
+    contentStore.isEnabled.use() ? createElement(Liuchan) : null
 
   const ui = await createShadowRootUi(ctx, {
     mode: 'open',
     name: 'liuchan-popup',
     onMount(container) {
-      // Define how your UI will be mounted inside the container
+      const root = container.getRootNode()
+      if (root instanceof ShadowRoot && root.host instanceof HTMLElement) {
+        Object.assign(root.host.style, {
+          height: '0',
+          left: '0',
+          overflow: 'visible',
+          position: 'fixed',
+          top: '0',
+          width: '0',
+          zIndex: '2147483647',
+        })
+      }
       const app = document.createElement('div')
       app.id = 'liuchan-popup'
-      app.textContent = 'Hello world!'
-
       container.prepend(app)
+      contentStore.rootElement.set(app)
       ReactDOM.createRoot(app).render(
         createElement(StrictMode, { children: createElement(Root) })
       )
     },
     position: 'inline',
   })
-
   ui.mount()
+  if (response.enabled) enableTab()
 }
 
 export function enableTab() {
-  logger.log('Enabling tab')
-  window.addEventListener('keydown', onKeyDownHandler)
-  window.addEventListener('mousedown', onMouseDownHandler)
-  window.addEventListener('mouseup', onMouseUpHandler)
-
+  if (!listenersEnabled) {
+    listenersEnabled = true
+    window.addEventListener('keydown', onKeyDownHandler, true)
+    window.addEventListener('keyup', onKeyUpHandler, true)
+  }
   contentStore.isEnabled.set(true)
-  contentStore.inputActive.set(activeElementIsInput())
-
-  // Ensures config changes to the theme are reflected in the popup
-  contentConfig.onChange((state) =>
-    setThemeCssVars(state, contentStore.rootElement.get())
-  )
 }
 
 export function disableTab() {
-  logger.log('Disabling tab')
-  window.removeEventListener('keydown', onKeyDownHandler, true)
-  window.removeEventListener('mousedown', onMouseDownHandler, false)
-  window.removeEventListener('mouseup', onMouseUpHandler, false)
-
+  if (listenersEnabled) {
+    listenersEnabled = false
+    window.removeEventListener('keydown', onKeyDownHandler, true)
+    window.removeEventListener('keyup', onKeyUpHandler, true)
+  }
+  contentStore.showPopup.set(false)
   contentStore.isEnabled.set(false)
 }

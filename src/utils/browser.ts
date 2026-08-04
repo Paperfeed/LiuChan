@@ -1,10 +1,8 @@
-import browser, { Action, Tabs } from 'webextension-polyfill'
+import browser, { Action, Runtime, Tabs } from 'webextension-polyfill'
 import SetIconDetailsType = Action.SetIconDetailsType
 import SendMessageOptionsType = Tabs.SendMessageOptionsType
-import {
-  BackgroundMessages,
-  BackgroundResponse,
-} from '@/background/backgroundMessages.ts'
+import RuntimeSendMessageOptionsType = Runtime.SendMessageOptionsType
+import { BackgroundMessages } from '@/background/backgroundMessages.ts'
 import { ContentMessages, ContentResponse } from '@/content/contentMessages.ts'
 
 export async function sendMessageToAllTabs(message: BackgroundMessages) {
@@ -40,11 +38,11 @@ export async function getCurrentTab() {
   return currentTabs[0]
 }
 
-export async function sendTabMessage<T extends BackgroundMessages>(
+export async function sendTabMessage(
   tabId: number | undefined,
-  message: T,
+  message: BackgroundMessages,
   options?: SendMessageOptionsType
-): Promise<BackgroundResponse<T['type']>> {
+) {
   logger.debug('[Background] Sending Message to Tab', message, options)
   if (!tabId) {
     throw new Error('Tab id is not defined')
@@ -54,10 +52,10 @@ export async function sendTabMessage<T extends BackgroundMessages>(
 
 export function sendRuntimeMessage<T extends ContentMessages>(
   message: T,
-  options?: SendMessageOptionsType
+  options?: RuntimeSendMessageOptionsType
 ): Promise<ContentResponse<T['type']>> {
   logger.debug('[Content] Sending RuntimeMessage', message, options)
-  return browser.runtime.sendMessage(message as any, options)
+  return browser.runtime.sendMessage(message, options)
 }
 
 export function getCurrentBrowser() {

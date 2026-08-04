@@ -1,22 +1,25 @@
 import browser from 'webextension-polyfill'
 
+import { DictionaryMode } from '@/background/config/defaultConfig'
 import { configStore } from '@/background/config/store'
-import { parseEntry } from '@/utils/dictionary.ts'
-import { convertToSimplified, REGEX_DICTIONARY } from '@/utils/language'
+import { parseEntry, parseJyutping } from '@/utils/dictionary.ts'
 
-export interface DictionaryEntry {
-  definitions: string[]
-  length: number
-  pinyin: PinyinResult
-  simplified: string
-  traditional: string
+export interface MandarinPronunciation {
+  tonemarks: string
+  tonenums: string
+  tones: number[]
+  zhuyin: string
 }
 
-interface PinyinResult {
-  tonemarks?: string
-  tonenums?: string
-  tones: number[]
-  zhuyin?: string
+export interface DictionaryEntry {
+  definitions: { cantonese: string[]; mandarin: string[] }
+  length: number
+  pronunciations: {
+    cantonese?: { text: string; tones: number[] }
+    mandarin?: MandarinPronunciation
+  }
+  simplified: string
+  traditional: string
 }
 
 export interface SearchResult {
@@ -24,112 +27,156 @@ export interface SearchResult {
   longestMatchLength?: number
 }
 
-export class Dictionary {
-  data: Map<string, DictionaryEntry[]>
+export interface DictionaryFiles {
+  canto: string
+  cedict: string
+  readings: string
+}
 
-  private dictFile: string | undefined
+const ENTRY_PATTERN =
+  /^(\S+)\s+(\S+)\s+\[([^\]]+)](?:\s+\{([^}]+)})?(?:\s+\/([\s\S]*)\/)?(?:\s+#.*)?$/
+
+const unique = (values: string[]) => [...new Set(values.filter(Boolean))]
+const keyFor = (traditional: string, simplified: string) =>
+  `${traditional}\u0000${simplified}`
+const pinyinKey = (pinyin: string) => pinyin.replaceAll(' ', '').toLowerCase()
+
+export class Dictionary {
+  data = new Map<string, DictionaryEntry[]>()
+  private loadedMode?: DictionaryMode
 
   constructor() {
-    this.data = new Map()
-
-    configStore.onChange((state, prevState) => {
-      // Rebuild dictionary if dictionary related settings change
-      // Todo add more related keys or change option layout to .dict.* or sth
-      if (state.dictionary !== prevState.dictionary && this.data.size > 0) {
-        logger.info('Rebuilding dictionary')
-        this.loadDictionary(this.dictFile)
+    configStore.onChange((state, previous) => {
+      if (state.dictionary !== previous.dictionary && this.data.size) {
+        this.unloadDictionary()
       }
     })
   }
 
-  async loadDictionary(dictFile = 'data/cedict_ts.u8') {
-    const data = await this.readFile(dictFile)
-    this.dictFile = dictFile
-    this.parseDictionary(data)
+  async loadDictionary(files?: Partial<DictionaryFiles>) {
+    const resolved: DictionaryFiles = {
+      canto: files?.canto ?? (await this.readFile('data/cccanto-webdist.txt')),
+      cedict: files?.cedict ?? (await this.readFile('data/cedict_ts.u8')),
+      readings:
+        files?.readings ??
+        (await this.readFile('data/cccedict-canto-readings.txt')),
+    }
+    this.parseDictionaries(resolved, configStore.dictionary.get())
   }
 
-  /**
-   * This unloads the dictionary from memory, lowering the memory footprint of the extension.
-   */
-  unloadDictionary() {
-    this.data.clear()
+  async ensureLoaded(files?: Partial<DictionaryFiles>) {
+    const mode = configStore.dictionary.get()
+    if (!this.data.size || this.loadedMode !== mode)
+      await this.loadDictionary(files)
   }
 
   async readFile(filename: string) {
     const response = await fetch(browser.runtime.getURL(filename))
-    return await response.text()
+    if (!response.ok) throw new Error(`Could not load ${filename}`)
+    return response.text()
   }
 
   parseDictionary(dict: string) {
-    // Match every entry in the dictionary and map it to an object
-    const pinyinType = configStore.pinyinDisplayType.get() ?? 'tonemarks'
-    const map = this.data
-    map.clear()
-
-    let longestString = 0
-    let match: RegExpExecArray | null
-
-    while ((match = REGEX_DICTIONARY.exec(dict))) {
-      const [traditional, simplified, pinyin, definitions] = match.slice(1)
-      // Keep track of the longest entry in the dictionary
-      if (simplified.length > longestString) longestString = simplified.length
-
-      const key = simplified.charAt(0)
-      const value = map.get(key)
-
-      const entry = parseEntry(
-        traditional,
-        simplified,
-        pinyin,
-        definitions,
-        pinyinType
-      )
-
-      if (value) {
-        value.push(entry)
-        map.set(key, value)
-      } else {
-        map.set(key, [entry])
-      }
-    }
-
-    // I noticed that chrome keeps the last regex match in memory
-    // which in this case is the entire dictionary file, so this is to lower the memory footprint
-    ;/./g.exec('c')
-
-    logger.log('Dictionary Loaded', this.data)
-    logger.log('Longest string:', longestString)
+    this.parseDictionaries(
+      { canto: '', cedict: dict, readings: '' },
+      'mandarin'
+    )
   }
 
-  search(word: string) {
-    // Convert to simplified so that we only have to index search for one type of character
-    // making it easier to get through the data quickly.
-    word = convertToSimplified(word)
+  parseDictionaries(files: DictionaryFiles, mode: DictionaryMode) {
+    const byKey = new Map<string, DictionaryEntry[]>()
+    const readings = new Map<string, Map<string, string>>()
 
-    const index = this.getCharacterIndex(word.charAt(0))
-    if (!index) return // If first character doesn't match with anything, stop looking
-
-    const results: SearchResult = { entries: [] }
-
-    // Loop through all matched text and delete one character off the end each loop, returning all matches
-    for (let length = word.length; length > 0; length--) {
-      for (let i = 0, len = index.length; i < len; i++) {
-        if (index[i].simplified === word) {
-          // Save the length of the longest result (for selection purposes)
-          if (!results.longestMatchLength)
-            results.longestMatchLength = word.length
-          results.entries.push(index[i])
-        }
-      }
-
-      word = word.substring(0, length - 1)
+    for (const line of files.readings.split(/\r?\n/)) {
+      const match = ENTRY_PATTERN.exec(line)
+      if (!match?.[4]) continue
+      const [, traditional, simplified, pinyin, jyutping] = match
+      const variants =
+        readings.get(keyFor(traditional, simplified)) ?? new Map()
+      variants.set(pinyinKey(pinyin), jyutping)
+      readings.set(keyFor(traditional, simplified), variants)
     }
 
-    return results
+    for (const line of files.cedict.split(/\r?\n/)) {
+      const match = ENTRY_PATTERN.exec(line)
+      if (!match) continue
+      const [, traditional, simplified, pinyin, , definitions = ''] = match
+      const entry = parseEntry(traditional, simplified, pinyin, definitions)
+      const readingVariants = readings.get(keyFor(traditional, simplified))
+      const jyutping =
+        readingVariants?.get(pinyinKey(pinyin)) ??
+        readingVariants?.values().next().value
+      if (jyutping) entry.pronunciations.cantonese = parseJyutping(jyutping)
+      const key = keyFor(traditional, simplified)
+      byKey.set(key, [...(byKey.get(key) ?? []), entry])
+    }
+
+    for (const line of files.canto.split(/\r?\n/)) {
+      const match = ENTRY_PATTERN.exec(line)
+      if (!match?.[4]) continue
+      const [, traditional, simplified, pinyin, jyutping, definitions = ''] =
+        match
+      const key = keyFor(traditional, simplified)
+      const existing = (byKey.get(key) ?? []).find(
+        (entry) =>
+          entry.pronunciations.mandarin?.tonenums.replaceAll(' ', '') ===
+          pinyinKey(pinyin)
+      )
+      const entry = existing ?? parseEntry(traditional, simplified, pinyin, '')
+      entry.pronunciations.cantonese = parseJyutping(jyutping)
+      entry.definitions.cantonese = unique([
+        ...entry.definitions.cantonese,
+        ...definitions.split('/'),
+      ])
+      if (!existing) byKey.set(key, [...(byKey.get(key) ?? []), entry])
+    }
+
+    this.data.clear()
+    for (const entries of byKey.values()) {
+      for (const entry of entries) {
+        const included =
+          mode === 'both' ||
+          (mode === 'mandarin' && Boolean(entry.definitions.mandarin.length)) ||
+          (mode === 'cantonese' && Boolean(entry.pronunciations.cantonese))
+        if (!included) continue
+        for (const first of new Set([
+          entry.simplified.charAt(0),
+          entry.traditional.charAt(0),
+        ])) {
+          this.data.set(first, [...(this.data.get(first) ?? []), entry])
+        }
+      }
+    }
+    this.loadedMode = mode
+    logger.info(`Dictionary loaded in ${mode} mode`, this.data.size)
+  }
+
+  unloadDictionary() {
+    this.data.clear()
+    this.loadedMode = undefined
+  }
+
+  search(text: string): SearchResult | undefined {
+    const index = this.data.get(text.charAt(0))
+    if (!index) return
+    const matches: { entry: DictionaryEntry; length: number }[] = []
+
+    for (const entry of index) {
+      const match = [entry.simplified, entry.traditional].find((word) =>
+        text.startsWith(word)
+      )
+      if (!match) continue
+      matches.push({ entry, length: match.length })
+    }
+    if (!matches.length) return
+    matches.sort((first, second) => second.length - first.length)
+    return {
+      entries: matches.map(({ entry }) => entry),
+      longestMatchLength: matches[0].length,
+    }
   }
 
   getCharacterIndex(character: string) {
-    // Returns array with all words corresponding to the provided character
     return this.data.get(character)
   }
 }
