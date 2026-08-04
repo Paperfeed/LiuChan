@@ -66,7 +66,7 @@ jobs:
 
       - name: Verify Chrome Web Store credentials
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: pnpm run submit -- --dry-run --chrome-zip release/liuchan-*-chrome.zip
+        run: pnpm run submit --dry-run --chrome-zip release/liuchan-*-chrome.zip
         env:
           CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
@@ -91,7 +91,7 @@ jobs:
 
       - name: Submit update to Chrome Web Store
         if: ${{ github.event_name == 'push' }}
-        run: pnpm run submit -- --chrome-zip release/liuchan-*-chrome.zip
+        run: pnpm run submit --chrome-zip release/liuchan-*-chrome.zip
         env:
           CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
